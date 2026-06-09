@@ -7,26 +7,35 @@ def run_migrations(engine: Engine) -> None:
         return
 
     inspector = inspect(engine)
-    columns = {col["name"] for col in inspector.get_columns("product_reviews")}
-    if "rating" not in columns:
-        with engine.begin() as conn:
-            conn.execute(
-                text("ALTER TABLE product_reviews ADD COLUMN rating INTEGER NOT NULL DEFAULT 5")
-            )
+    tables = set(inspector.get_table_names())
 
-    product_columns = {col["name"] for col in inspector.get_columns("products")}
-    if "sale_price" not in product_columns:
-        with engine.begin() as conn:
-            conn.execute(text("ALTER TABLE products ADD COLUMN sale_price FLOAT"))
-
-    if "created_at" not in product_columns:
-        with engine.begin() as conn:
-            conn.execute(
-                text(
-                    "ALTER TABLE products ADD COLUMN created_at DATETIME "
-                    "DEFAULT CURRENT_TIMESTAMP"
+    if "product_reviews" in tables:
+        columns = {col["name"] for col in inspector.get_columns("product_reviews")}
+        if "rating" not in columns:
+            with engine.begin() as conn:
+                conn.execute(
+                    text(
+                        "ALTER TABLE product_reviews ADD COLUMN rating INTEGER NOT NULL DEFAULT 5"
+                    )
                 )
-            )
+
+    if "products" in tables:
+        product_columns = {col["name"] for col in inspector.get_columns("products")}
+        if "sale_price" not in product_columns:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE products ADD COLUMN sale_price FLOAT"))
+
+        if "created_at" not in product_columns:
+            with engine.begin() as conn:
+                conn.execute(
+                    text(
+                        "ALTER TABLE products ADD COLUMN created_at DATETIME "
+                        "DEFAULT CURRENT_TIMESTAMP"
+                    )
+                )
+
+    if "product_reviews" not in tables or "products" not in tables:
+        return
 
     index_statements = [
         "CREATE INDEX IF NOT EXISTS ix_product_reviews_product_published "

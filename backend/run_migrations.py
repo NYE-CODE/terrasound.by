@@ -1,5 +1,6 @@
 """Применить схему БД и SQLite-миграции без запуска HTTP-сервера."""
 
+import app.models  # noqa: F401 — регистрация таблиц в Base.metadata
 from app.database import Base, engine
 from app.migrations import run_migrations
 
