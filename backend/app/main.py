@@ -50,7 +50,15 @@ app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origin_regex=(
+        r"https?://("
+        r"localhost|127\.0\.0\.1"
+        r"|\d{1,3}(?:\.\d{1,3}){3}"
+        r"|admin\.terrasound\.by"
+        r"|terrasound\.by"
+        r"|www\.terrasound\.by"
+        r")(:\d+)?"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
