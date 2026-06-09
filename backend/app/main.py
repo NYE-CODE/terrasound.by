@@ -27,7 +27,8 @@ async def lifespan(_: FastAPI):
     run_migrations(engine)
     db = SessionLocal()
     try:
-        seed_database(db)
+        if not settings.is_production:
+            seed_database(db)
     finally:
         db.close()
     yield

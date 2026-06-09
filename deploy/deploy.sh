@@ -75,6 +75,8 @@ GIT_REMOTE="${GIT_REMOTE:-origin}"
 PYTHON="${PYTHON:-python3}"
 VENV_DIR="${VENV_DIR:-.venv}"
 API_SERVICE="${API_SERVICE:-terrasound-api}"
+API_USER="${API_USER:-www-data}"
+API_GROUP="${API_GROUP:-www-data}"
 API_HOST="${API_HOST:-127.0.0.1}"
 API_PORT="${API_PORT:-8000}"
 PNPM="${PNPM:-pnpm}"
@@ -135,6 +137,16 @@ if [[ "$SKIP_BACKEND" == false ]]; then
   cd "$BACKEND_DIR"
   python run_migrations.py
   cd "$APP_DIR"
+
+  log "Backend: права для $API_USER (systemd)"
+  $SUDO chown -R "$API_USER:$API_GROUP" "$VENV_PATH" "$BACKEND_ENV"
+  $SUDO chown "$API_USER:$API_GROUP" "$BACKEND_DIR"
+  if [[ -f "$BACKEND_DIR/terrasound.db" ]]; then
+    $SUDO chown "$API_USER:$API_GROUP" "$BACKEND_DIR/terrasound.db"
+    $SUDO chmod 664 "$BACKEND_DIR/terrasound.db"
+  fi
+  $SUDO chmod 750 "$BACKEND_DIR"
+  $SUDO chmod 640 "$BACKEND_ENV"
 
   if [[ "$SKIP_API_RESTART" == false ]]; then
     log "Перезапуск API: $API_SERVICE"
