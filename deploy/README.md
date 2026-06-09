@@ -48,6 +48,9 @@ sudo systemctl enable terrasound-api
 
 chmod +x deploy/deploy.sh
 ./deploy/deploy.sh
+
+# или без chmod:
+bash deploy/deploy.sh
 ```
 
 ## Повторный деплой
