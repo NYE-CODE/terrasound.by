@@ -52,6 +52,36 @@ log() { printf '\033[1;34m[deploy]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[deploy]\033[0m %s\n' "$*" >&2; }
 fail() { printf '\033[1;31m[deploy]\033[0m %s\n' "$*" >&2; exit 1; }
 
+resolve_pnpm() {
+  if command -v "$PNPM" >/dev/null 2>&1; then
+    PNPM="$(command -v "$PNPM")"
+    return 0
+  fi
+
+  local candidate
+  for candidate in \
+    /usr/local/bin/pnpm \
+    /usr/bin/pnpm \
+    "${HOME}/.local/share/pnpm/pnpm" \
+    /root/.local/share/pnpm/pnpm; do
+    if [[ -x "$candidate" ]]; then
+      PNPM="$candidate"
+      return 0
+    fi
+  done
+
+  if command -v corepack >/dev/null 2>&1; then
+    corepack enable >/dev/null 2>&1 || true
+    corepack prepare pnpm@latest --activate >/dev/null 2>&1 || true
+    if command -v pnpm >/dev/null 2>&1; then
+      PNPM="$(command -v pnpm)"
+      return 0
+    fi
+  fi
+
+  return 1
+}
+
 load_env_file() {
   local file="$1"
   # shellcheck disable=SC1090
@@ -179,7 +209,8 @@ need_node=false
 [[ "$BUILD_ADMIN" == true && "$SKIP_ADMIN" == false ]] && need_node=true
 
 if [[ "$need_node" == true ]]; then
-  command -v "$PNPM" >/dev/null 2>&1 || fail "pnpm не найден. Установите: npm i -g pnpm"
+  resolve_pnpm || fail "pnpm не найден. Установите: npm install -g pnpm  или  corepack enable && corepack prepare pnpm@latest --activate"
+  log "pnpm: $PNPM ($($PNPM --version))"
   log "pnpm install $PNPM_INSTALL_FLAGS"
   cd "$APP_DIR"
   $PNPM install $PNPM_INSTALL_FLAGS

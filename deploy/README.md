@@ -44,7 +44,14 @@ sudo nano /etc/systemd/system/terrasound-api.service
 sudo systemctl daemon-reload
 sudo systemctl enable terrasound-api
 
-# nginx — см. deploy/nginx.conf.example
+# nginx — API на том же домене: terrasound.by/api/
+sudo cp deploy/nginx/terrasound.by.conf /etc/nginx/sites-available/terrasound.by
+# если nginx -t ругается на SSL — сначала HTTP-версия:
+# sudo cp deploy/nginx/terrasound.by.http.conf /etc/nginx/sites-available/terrasound.by
+sudo ln -sf /etc/nginx/sites-available/terrasound.by /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/api.terrasound.by
+sudo nginx -t && sudo systemctl reload nginx
+curl -s http://terrasound.by/api/health
 
 chmod +x deploy/deploy.sh
 ./deploy/deploy.sh
