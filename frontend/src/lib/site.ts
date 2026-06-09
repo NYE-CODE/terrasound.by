@@ -1,0 +1,9 @@
+export const SITE_NAME = "TerraSound";
+export const SITE_URL = "terrasound.by";
+export const SITE_ORIGIN = import.meta.env.VITE_SITE_URL ?? "https://terrasound.by";
+export const COMPANY_NAME = 'ООО «Территория звука»';
+export const CONTACT_EMAIL = "info@terrasound.by";
+export const CONTACT_PHONE = "+375 33 917 7444";
+export const CONTACT_PHONE_TEL = "+375339177444";
+export const ADDRESS = "г. Гродно";
+export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";

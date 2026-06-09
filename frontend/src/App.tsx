@@ -1,0 +1,23 @@
+import { RouterProvider } from "react-router";
+import { router } from "./routes";
+import { Toaster } from "sonner";
+
+export default function App() {
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#181818',
+            border: '1px solid #2A2A2A',
+            color: '#F0EDE8',
+            fontFamily: 'Inter, sans-serif',
+          },
+          className: 'font-heading',
+        }}
+      />
+    </>
+  );
+}
