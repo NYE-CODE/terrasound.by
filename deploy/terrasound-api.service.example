@@ -1,0 +1,24 @@
+# Пример unit для systemd.
+# Установка на сервере:
+#   sudo cp deploy/terrasound-api.service.example /etc/systemd/system/terrasound-api.service
+#   sudo nano /etc/systemd/system/terrasound-api.service   # поправьте пути и User
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable terrasound-api
+#   sudo systemctl start terrasound-api
+
+[Unit]
+Description=Terrasound FastAPI
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/terrasound.by/backend
+EnvironmentFile=/var/www/terrasound.by/backend/.env
+ExecStart=/var/www/terrasound.by/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
