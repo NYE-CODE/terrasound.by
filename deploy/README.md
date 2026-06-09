@@ -83,7 +83,7 @@ cd /var/www/terrasound.by
 APP_DIR=/var/www/terrasound.by
 GIT_BRANCH=main
 API_SERVICE=terrasound-api
-VITE_API_URL=https://api.terrasound.by
+VITE_API_URL=https://terrasound.by
 VITE_SITE_URL=https://terrasound.by
 PRERENDER_API_URL=http://127.0.0.1:8000
 ```
