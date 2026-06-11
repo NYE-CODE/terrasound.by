@@ -1,5 +1,8 @@
 import type { CategoryFilter, CategoryFilters } from "../../lib/api";
 
+const filterGroupTitleClass = "font-heading text-[13px] uppercase tracking-wide leading-snug";
+const filterFieldTitleClass = `${filterGroupTitleClass} break-words`;
+
 export type AttributeFilterState = Record<
   string,
   string | string[] | boolean | { min?: number; max?: number }
@@ -44,7 +47,7 @@ export function AttributeFilters({ config, values, onChange }: AttributeFiltersP
       {Object.entries(groups).map(([group, filters]) => (
         <div key={group || "default"} className="pt-6 border-t border-border space-y-4">
           {group && (
-            <h3 className="font-heading text-sm uppercase tracking-wider">{group}</h3>
+            <h3 className={filterGroupTitleClass}>{group}</h3>
           )}
           {filters.map((filter) => (
             <FilterField
@@ -90,7 +93,7 @@ function FilterField({
     const currentMax = range.max ?? max;
     return (
       <div>
-        <h4 className="font-heading text-sm uppercase tracking-wider mb-3">
+        <h4 className={`${filterFieldTitleClass} mb-3`}>
           {filter.label}
           {filter.unit ? ` (${filter.unit})` : ""}
         </h4>
@@ -118,7 +121,7 @@ function FilterField({
     const selected = Array.isArray(value) ? value : value ? [value] : [];
     return (
       <div>
-        <h4 className="font-heading text-sm uppercase tracking-wider mb-2">{filter.label}</h4>
+        <h4 className={`${filterFieldTitleClass} mb-2`}>{filter.label}</h4>
         <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
           {filter.options.map((opt) => (
             <label key={opt.value} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -144,7 +147,7 @@ function FilterField({
   if (filter.filterType === "dropdown") {
     return (
       <div>
-        <h4 className="font-heading text-sm uppercase tracking-wider mb-2">{filter.label}</h4>
+        <h4 className={`${filterFieldTitleClass} mb-2`}>{filter.label}</h4>
         <select
           value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value || undefined)}

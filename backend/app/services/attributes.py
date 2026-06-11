@@ -172,10 +172,12 @@ def update_attribute(db: Session, attribute_id: str, payload: AttributeUpdate) -
         attribute.value_type = data["value_type"]
 
     option_count = len(attribute.options)
-    if payload.options is not None:
+    if payload.options is not None and attribute.value_type == "enum":
         option_count = len(payload.options)
 
-    if "filter_type" in data or "value_type" in data or payload.options is not None:
+    if "filter_type" in data or "value_type" in data or (
+        payload.options is not None and attribute.value_type == "enum"
+    ):
         requested = data.get("filter_type", attribute.filter_type)
         attribute.filter_type = _resolve_attribute_filter_type(
             attribute.value_type,
@@ -190,9 +192,10 @@ def update_attribute(db: Session, attribute_id: str, payload: AttributeUpdate) -
             attribute.unit = None
 
     if payload.options is not None:
-        if attribute.value_type != "enum":
+        if attribute.value_type == "enum":
+            _sync_options(db, attribute, payload.options)
+        elif payload.options:
             raise HTTPException(status_code=400, detail="Опции доступны только для enum-атрибутов")
-        _sync_options(db, attribute, payload.options)
     elif "value_type" in data and data["value_type"] != "enum":
         _sync_options(db, attribute, [])
 

@@ -36,7 +36,7 @@ function StockAvailabilityFilter({
 
   return (
     <div className="pt-6 border-t border-border">
-      <h3 className="font-heading text-sm uppercase tracking-wider mb-3">Наличие</h3>
+      <h3 className="font-heading text-[13px] uppercase tracking-wide leading-snug mb-3">Наличие</h3>
       <div className="space-y-2">
         {AVAILABILITY_OPTIONS.map((option) => (
           <label key={option.value} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -122,7 +122,7 @@ export function CatalogueFiltersPanel({
       <StockAvailabilityFilter selected={availability} onChange={onAvailabilityChange} />
 
       <div className="pt-6 border-t border-border">
-        <h3 className="font-heading text-sm uppercase tracking-wider mb-4">Ценовой диапазон</h3>
+        <h3 className="font-heading text-[13px] uppercase tracking-wide leading-snug mb-4">Ценовой диапазон</h3>
         <div className="space-y-4">
           <input
             type="range"

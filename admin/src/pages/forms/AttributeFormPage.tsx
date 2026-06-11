@@ -77,8 +77,12 @@ export function AttributeFormPage() {
         filterType: defaultFilterType(form.valueType, options.length) === null
           ? null
           : (form.filterType ?? defaultFilterType(form.valueType, options.length)),
-        options,
       };
+      if (form.valueType === "enum") {
+        payload.options = options;
+      } else {
+        delete payload.options;
+      }
       if (isEdit && id) {
         const { id: _id, ...update } = payload;
         await api.updateAttribute(token, id, update);

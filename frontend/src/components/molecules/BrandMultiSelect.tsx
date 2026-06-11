@@ -42,7 +42,7 @@ export function BrandMultiSelect({ brands, selected, onChange }: BrandMultiSelec
 
   return (
     <div>
-      <h3 className="font-heading text-sm uppercase tracking-wider mb-3">Бренд</h3>
+      <h3 className="font-heading text-[13px] uppercase tracking-wide leading-snug mb-3">Бренд</h3>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button

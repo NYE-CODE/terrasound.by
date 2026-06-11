@@ -45,7 +45,7 @@ export function FilterCombobox({
 
   return (
     <div>
-      <h3 className="font-heading text-sm uppercase tracking-wider mb-3">{label}</h3>
+      <h3 className="font-heading text-[13px] uppercase tracking-wide leading-snug mb-3">{label}</h3>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
