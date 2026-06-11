@@ -1,5 +1,5 @@
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
-import { ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "../lib/site";
+import { ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, WORKING_HOURS } from "../lib/site";
 
 export function ContactPage() {
   return (
@@ -42,17 +42,14 @@ export function ContactPage() {
                 <Clock size={20} className="text-accent" />
                 <h3 className="font-heading text-xl">Режим работы</h3>
               </div>
-              <div className="space-y-1 text-muted-foreground">
-                <p>Понедельник — суббота: 10:00 — 19:00</p>
-                <p>Воскресенье: выходной</p>
-              </div>
+              <p className="text-muted-foreground">{WORKING_HOURS}</p>
             </div>
           </div>
 
           <div className="aspect-video bg-secondary/30 rounded overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80"
-              alt="Расположение мастерской"
+              alt="Расположение студии"
               className="w-full h-full object-cover"
             />
           </div>

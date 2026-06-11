@@ -5,6 +5,8 @@ from app.models.product import Product
 from app.models.review import ProductReview
 from app.schemas.product import ProductCardOut, ProductDetailOut, ProductListOut
 from app.schemas.review import ProductReviewPublicOut
+from app.services.attribute_filters import apply_attribute_filters
+from app.services.attributes import product_attributes_dict
 from app.services.compatibility import apply_vehicle_filter
 
 SORT_OPTIONS = frozenset({"popularity", "price-low", "price-high", "new", "rating"})
@@ -91,6 +93,7 @@ def _apply_product_filters(
     year: int | None,
     price_min: float | None,
     price_max: float | None,
+    attr_filters: dict | None = None,
 ):
     query = query.filter(Product.in_stock.is_(True))
 
@@ -107,7 +110,10 @@ def _apply_product_filters(
     if price_max is not None:
         query = query.filter(effective <= price_max)
 
-    return apply_vehicle_filter(db, query, make, model, year)
+    query = apply_vehicle_filter(db, query, make, model, year)
+    if attr_filters:
+        query = apply_attribute_filters(db, query, attr_filters)
+    return query
 
 
 def _apply_product_sort(query, sort: str, review_stats):
@@ -137,6 +143,7 @@ def list_products(
     year: int | None = None,
     price_min: float | None = None,
     price_max: float | None = None,
+    attr_filters: dict | None = None,
     sort: str = "popularity",
     limit: int | None = None,
     offset: int = 0,
@@ -159,6 +166,7 @@ def list_products(
         year=year,
         price_min=price_min,
         price_max=price_max,
+        attr_filters=attr_filters,
     )
 
     total = query.order_by(None).count()
@@ -177,7 +185,11 @@ def list_products(
     return ProductListOut(items=items, total=total)
 
 
-def product_to_detail(product: Product, reviews: list[ProductReview] | None = None) -> ProductDetailOut:
+def product_to_detail(
+    db: Session,
+    product: Product,
+    reviews: list[ProductReview] | None = None,
+) -> ProductDetailOut:
     images = [img.url for img in sorted(product.images, key=lambda i: i.sort_order)]
     if not images:
         images = [product.image_url]
@@ -193,6 +205,7 @@ def product_to_detail(product: Product, reviews: list[ProductReview] | None = No
         sale_price=product.sale_price,
         images=images,
         specs={spec.key: spec.value for spec in product.specs},
+        attributes=product_attributes_dict(db, product.id),
         compatibility=[item.vehicle for item in product.compatibility],
         reviews=[ProductReviewPublicOut.model_validate(r) for r in review_list],
         in_stock=product.in_stock,
@@ -209,6 +222,7 @@ def get_product_or_404(db: Session, product_id: str) -> Product:
             joinedload(Product.specs),
             joinedload(Product.compatibility),
             joinedload(Product.reviews),
+            joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
         .first()

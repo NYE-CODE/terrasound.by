@@ -58,13 +58,13 @@ export function SiteStatsPage() {
       <PageHeader title="Статистика сайта" />
 
       <p className="text-sm text-[var(--muted-foreground)] mb-6 max-w-2xl">
-        Цифры отображаются в блоке фактов на главной странице. Количество установок показывается с
-        суффиксом «+».
+        Цифры отображаются в блоке статистики на главной. Количество подобранных систем показывается
+        с суффиксом «+». Третий блок («100% — Профессионалы своего дела») задаётся в коде сайта.
       </p>
 
       <form onSubmit={handleSubmit} className={`${formCardClass} max-w-xl space-y-4`}>
         <div>
-          <label className="block text-sm mb-2">Установок выполнено</label>
+          <label className="block text-sm mb-2">Подобранных систем</label>
           <input
             type="number"
             min={0}
@@ -77,12 +77,12 @@ export function SiteStatsPage() {
             required
           />
           <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            На сайте: {form.installationsCompleted.toLocaleString("ru-RU")}+
+            На сайте: {form.installationsCompleted.toLocaleString("ru-RU")}+ — Подобранных систем
           </p>
         </div>
 
         <div>
-          <label className="block text-sm mb-2">Лет экспертизы в автозвуке</label>
+          <label className="block text-sm mb-2">Опыт установки и подбора систем</label>
           <input
             type="number"
             min={0}
@@ -92,6 +92,9 @@ export function SiteStatsPage() {
             className={inputClass}
             required
           />
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+            На сайте: {form.yearsExpertise} — Опыт установки и подбора систем
+          </p>
         </div>
 
         <button

@@ -11,7 +11,8 @@ interface MobileMenuProps {
 
 const navLinks = [
   { path: "/catalogue", label: "Каталог" },
-  { path: "/installation", label: "Установка" },
+  { path: "/installation", label: "Услуги" },
+  { path: "/about", label: "О нас" },
   { path: "/brands", label: "Бренды" },
   { path: "/blog", label: "Блог" },
 ];

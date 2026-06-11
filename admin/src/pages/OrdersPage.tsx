@@ -84,9 +84,6 @@ export function OrdersPage() {
                           <p>{order.email}</p>
                           <p>{order.city}, {order.address}</p>
                           <p className="mt-2">Оплата: {order.paymentMethod}</p>
-                          {order.installationConsultationRequested && (
-                            <p className="mt-2 text-[var(--accent)]">Нужна консультация по установке</p>
-                          )}
                         </div>
                         <div>
                           <h3 className="font-heading mb-2">Автомобиль</h3>

@@ -24,11 +24,12 @@ def list_products_admin(
             joinedload(Product.images),
             joinedload(Product.specs),
             joinedload(Product.compatibility),
+            joinedload(Product.attribute_values),
         )
         .order_by(Product.name)
         .all()
     )
-    return [product_to_admin_out(product) for product in products]
+    return [product_to_admin_out(db, product) for product in products]
 
 
 @router.get("/{product_id}", response_model=ProductAdminOut)
@@ -43,6 +44,7 @@ def get_product_admin(
             joinedload(Product.images),
             joinedload(Product.specs),
             joinedload(Product.compatibility),
+            joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
         .first()
@@ -51,7 +53,7 @@ def get_product_admin(
         from fastapi import HTTPException
 
         raise HTTPException(status_code=404, detail="Товар не найден")
-    return product_to_admin_out(product)
+    return product_to_admin_out(db, product)
 
 
 @router.post("", response_model=ProductAdminOut, status_code=201)
@@ -61,7 +63,7 @@ def create_product_admin(
     _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ProductAdminOut:
     product = create_product(db, payload)
-    return product_to_admin_out(product)
+    return product_to_admin_out(db, product)
 
 
 @router.patch("/{product_id}", response_model=ProductAdminOut)
@@ -72,7 +74,7 @@ def update_product_admin(
     _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ProductAdminOut:
     product = update_product(db, product_id, payload)
-    return product_to_admin_out(product)
+    return product_to_admin_out(db, product)
 
 
 @router.delete("/{product_id}", status_code=204)

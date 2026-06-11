@@ -1,9 +1,15 @@
 export const SITE_NAME = "TerraSound";
+export const SITE_SUBTITLE = "Территория звука";
+export const SITE_BRAND_TITLE = "ТЕРРИТОРИЯ ЗВУКА";
+export const SITE_BRAND_TAGLINE = "АВТОМОБИЛЬНЫЕ АУДИОСИСТЕМЫ";
 export const SITE_URL = "terrasound.by";
 export const SITE_ORIGIN = import.meta.env.VITE_SITE_URL ?? "https://terrasound.by";
 export const COMPANY_NAME = 'ООО «Территория звука»';
 export const CONTACT_EMAIL = "info@terrasound.by";
+export const INSTAGRAM_URL = "https://instagram.com/terrasound.by";
 export const CONTACT_PHONE = "+375 33 917 7444";
 export const CONTACT_PHONE_TEL = "+375339177444";
-export const ADDRESS = "г. Гродно";
+export const ADDRESS = "г. Гродно, Озерское шоссе, 14";
+export const WORKING_HOURS = "Пн–Пт, 10:00–18:00, обед 14:00–15:00";
+export const ADDRESS_MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ADDRESS}, Беларусь`)}`;
 export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";

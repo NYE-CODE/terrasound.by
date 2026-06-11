@@ -2,7 +2,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models.content import BlogPost, Brand, Category, InstallationService, TeamMember
+from app.catalog.attribute_seed import ATTRIBUTE_DEFINITIONS, CATEGORY_ATTRIBUTE_LINKS
+from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, ProductAttributeValue
+from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.admin_account import AdminAccount
 from app.models.site_stats import SiteStats
 from app.services.admin_account import hash_password
@@ -11,20 +13,20 @@ from app.models.review import ProductReview, ServiceReview
 
 CATEGORIES = [
     {
-        "id": "speakers",
-        "name": "Акустика",
-        "image_url": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&q=80",
+        "id": "sources",
+        "name": "Источники",
+        "image_url": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80",
         "sort_order": 1,
         "grid_cols": 2,
         "grid_tall": False,
     },
     {
-        "id": "subwoofers",
-        "name": "Сабвуферы",
-        "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+        "id": "processors",
+        "name": "Процессоры",
+        "image_url": "https://images.unsplash.com/photo-1545226685-5e8a2f1d1b8e?w=800&q=80",
         "sort_order": 2,
         "grid_cols": 1,
-        "grid_tall": True,
+        "grid_tall": False,
     },
     {
         "id": "amplifiers",
@@ -35,10 +37,18 @@ CATEGORIES = [
         "grid_tall": False,
     },
     {
-        "id": "head-units",
-        "name": "Головные устройства",
-        "image_url": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80",
+        "id": "speakers",
+        "name": "Динамики",
+        "image_url": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&q=80",
         "sort_order": 4,
+        "grid_cols": 2,
+        "grid_tall": True,
+    },
+    {
+        "id": "wiring",
+        "name": "Проводка и сопутствующие",
+        "image_url": "https://images.unsplash.com/photo-1570733577647-d3e8ae86a000?w=800&q=80",
+        "sort_order": 5,
         "grid_cols": 1,
         "grid_tall": False,
     },
@@ -46,16 +56,8 @@ CATEGORIES = [
         "id": "dampening",
         "name": "Шумоизоляция",
         "image_url": "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80",
-        "sort_order": 5,
-        "grid_cols": 1,
-        "grid_tall": False,
-    },
-    {
-        "id": "accessories",
-        "name": "Кабели и аксессуары",
-        "image_url": "https://images.unsplash.com/photo-1570733577647-d3e8ae86a000?w=800&q=80",
         "sort_order": 6,
-        "grid_cols": 2,
+        "grid_cols": 1,
         "grid_tall": False,
     },
 ]
@@ -78,7 +80,7 @@ CATALOGUE_PRODUCTS = [
         "specs_short": '12" subwoofer • 750W RMS',
         "price": 899.0,
         "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80",
-        "category": "subwoofers",
+        "category": "speakers",
     },
     {
         "id": "3",
@@ -114,7 +116,7 @@ CATALOGUE_PRODUCTS = [
         "specs_short": '7" touchscreen • Apple CarPlay',
         "price": 459.0,
         "image_url": "https://images.unsplash.com/photo-1545226685-5e8a2f1d1b8e?w=400&q=80",
-        "category": "head-units",
+        "category": "sources",
     },
     {
         "id": "7",
@@ -123,7 +125,7 @@ CATALOGUE_PRODUCTS = [
         "specs_short": '12" subwoofer • 300W RMS',
         "price": 329.0,
         "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80",
-        "category": "subwoofers",
+        "category": "speakers",
     },
     {
         "id": "8",
@@ -144,6 +146,137 @@ CATALOGUE_PRODUCTS = [
         "category": "speakers",
     },
 ]
+
+EXTRA_CATALOGUE_PRODUCTS = [
+    {
+        "id": "10",
+        "brand": "Audison",
+        "name": "bit One HD Virtuoso",
+        "specs_short": "10-channel DSP processor • Bluetooth",
+        "price": 1199.0,
+        "image_url": "https://images.unsplash.com/photo-1545226685-5e8a2f1d1b8e?w=400&q=80",
+        "category": "processors",
+    },
+    {
+        "id": "11",
+        "brand": "Ural",
+        "name": "УК 4 GA",
+        "specs_short": "Power cable 4 Ga OFC • 5 m",
+        "price": 45.0,
+        "image_url": "https://images.unsplash.com/photo-1570733577647-d3e8ae86a000?w=400&q=80",
+        "category": "wiring",
+    },
+]
+
+PRODUCT_ATTRIBUTE_VALUES: dict[str, dict[str, str | int | float | bool]] = {
+    "1": {
+        "speaker_size": "6.5",
+        "speaker_bands": 3,
+        "speaker_diameter": 6.5,
+        "power_4ohm": 160,
+        "power_2ohm": 220,
+        "impedance": 4,
+        "voice_coils": 1,
+        "sensitivity": 92,
+        "power_rms": 160,
+        "mounting_depth": 65,
+    },
+    "2": {
+        "speaker_size": "12",
+        "speaker_bands": 1,
+        "speaker_diameter": 12,
+        "power_4ohm": 750,
+        "power_rms": 750,
+        "impedance": 4,
+        "voice_coils": 2,
+        "sensitivity": 86,
+        "mounting_depth": 140,
+    },
+    "3": {
+        "speaker_size": "6.5",
+        "speaker_bands": 2,
+        "speaker_diameter": 6.5,
+        "power_4ohm": 100,
+        "power_rms": 100,
+        "impedance": 4,
+        "voice_coils": 1,
+        "sensitivity": 90,
+        "mounting_depth": 58,
+    },
+    "4": {
+        "speaker_size": "6.5",
+        "speaker_bands": 3,
+        "speaker_diameter": 6.5,
+        "power_4ohm": 200,
+        "power_rms": 200,
+        "impedance": 4,
+        "voice_coils": 1,
+        "sensitivity": 93,
+        "mounting_depth": 62,
+    },
+    "5": {
+        "amp_channels": 4,
+        "power_4ohm": 100,
+        "power_2ohm": 150,
+        "power_bridge_4ohm": 200,
+        "dsp_channels": 0,
+        "optical_output": False,
+        "optical_input": False,
+        "coax_input": True,
+        "usb_audio": False,
+        "bluetooth": False,
+        "wired_remote": True,
+        "impedance": 4,
+    },
+    "6": {
+        "device_type": "2din",
+        "screen_size": 7,
+        "video_output": "rca",
+        "sound_processor": True,
+        "optical_output": True,
+        "optical_input": False,
+    },
+    "7": {
+        "speaker_size": "12",
+        "speaker_bands": 1,
+        "speaker_diameter": 12,
+        "power_4ohm": 300,
+        "power_rms": 300,
+        "impedance": 4,
+        "voice_coils": 1,
+        "sensitivity": 88,
+        "mounting_depth": 120,
+    },
+    "8": {
+        "thickness": 4,
+        "sheet_weight": 1200,
+        "water_resistance": "no",
+    },
+    "9": {
+        "speaker_size": "6.5",
+        "speaker_bands": 2,
+        "speaker_diameter": 6.5,
+        "power_4ohm": 80,
+        "power_rms": 80,
+        "impedance": 4,
+        "voice_coils": 1,
+        "sensitivity": 89,
+        "mounting_depth": 55,
+    },
+    "10": {
+        "processor_type": "dsp",
+        "channel_count": 10,
+        "optical_input": True,
+        "coax_input": True,
+        "bluetooth": True,
+    },
+    "11": {
+        "wire_gauge": "4",
+        "wire_material": "ofc",
+        "fuse_type": "anl",
+        "fuse_rating": 100,
+    },
+}
 
 PRODUCT_1_IMAGES = [
     "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&q=80",
@@ -223,42 +356,36 @@ INSTALLATION_SERVICES = [
         "id": "svc-1",
         "title": "Установка компонентной акустики",
         "description": "Профессиональная установка 2- или 3-полосных компонентных систем с оптимальным размещением и прокладкой проводки.",
-        "price_range": "250-450",
         "sort_order": 1,
     },
     {
         "id": "svc-2",
         "title": "Установка сабвуфера и усилителя",
         "description": "Полная установка, включая изготовление короба, монтаж усилителя и подключение питания.",
-        "price_range": "350-650",
         "sort_order": 2,
     },
     {
         "id": "svc-3",
         "title": "Замена головного устройства",
         "description": "Установка магнитол с интеграцией кнопок на руле и подключением камеры заднего вида.",
-        "price_range": "150-300",
         "sort_order": 3,
     },
     {
         "id": "svc-4",
         "title": "Шумоизоляция",
         "description": "Нанесение вибропоглощающих материалов на двери, пол и багажник для снижения шума дороги.",
-        "price_range": "400-800",
         "sort_order": 4,
     },
     {
         "id": "svc-5",
         "title": "Акустическая калибровка",
         "description": "Профессиональная настройка DSP, выравнивание задержек и частот для оптимальной сцены и АЧХ.",
-        "price_range": "200-400",
         "sort_order": 5,
     },
     {
         "id": "svc-6",
         "title": "Сборка полной системы",
         "description": "Проектирование и установка полной аудиосистемы — от консультации до финальной калибровки.",
-        "price_range": "1500-5000",
         "sort_order": 6,
     },
 ]
@@ -322,27 +449,42 @@ BRANDS = [
     },
 ]
 
-TEAM_MEMBERS = [
+PORTFOLIO_WORKS = [
     {
-        "id": "team-1",
-        "name": "Дмитрий Волков",
-        "specialty": "Ведущий установщик",
-        "image_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+        "id": "portfolio-1",
+        "title": "BMW 5 Series",
+        "image_url": "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&q=80",
         "sort_order": 1,
     },
     {
-        "id": "team-2",
-        "name": "Сергей Петров",
-        "specialty": "Акустик",
-        "image_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80",
+        "id": "portfolio-2",
+        "title": "Mercedes-Benz E-Class",
+        "image_url": "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600&q=80",
         "sort_order": 2,
     },
     {
-        "id": "team-3",
-        "name": "Антон Иванов",
-        "specialty": "Специалист по электронике",
-        "image_url": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80",
+        "id": "portfolio-3",
+        "title": "Porsche 911",
+        "image_url": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80",
         "sort_order": 3,
+    },
+    {
+        "id": "portfolio-4",
+        "title": "Audi A6",
+        "image_url": "https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=80",
+        "sort_order": 4,
+    },
+    {
+        "id": "portfolio-5",
+        "title": "Volkswagen Golf",
+        "image_url": "https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=600&q=80",
+        "sort_order": 5,
+    },
+    {
+        "id": "portfolio-6",
+        "title": "Toyota Camry",
+        "image_url": "https://images.unsplash.com/photo-1570733577647-d3e8ae86a000?w=600&q=80",
+        "sort_order": 6,
     },
 ]
 
@@ -439,6 +581,57 @@ def _seed_products(db: Session) -> None:
         db.add(ServiceReview(published=True, **item))
 
     db.commit()
+    _seed_extra_products(db)
+    _seed_product_attribute_values(db)
+
+
+def _seed_extra_products(db: Session) -> None:
+    for item in EXTRA_CATALOGUE_PRODUCTS:
+        if db.query(Product).filter(Product.id == item["id"]).first():
+            continue
+        db.add(
+            Product(
+                id=item["id"],
+                brand=item["brand"],
+                name=item["name"],
+                price=item["price"],
+                sale_price=item.get("sale_price"),
+                category=item["category"],
+                image_url=item["image_url"],
+                specs_short=item["specs_short"],
+                in_stock=True,
+            )
+        )
+    db.commit()
+
+
+def _seed_product_attribute_values(db: Session) -> None:
+    for product_id, attributes in PRODUCT_ATTRIBUTE_VALUES.items():
+        if not db.query(Product).filter(Product.id == product_id).first():
+            continue
+        for attribute_id, raw in attributes.items():
+            exists = (
+                db.query(ProductAttributeValue)
+                .filter(
+                    ProductAttributeValue.product_id == product_id,
+                    ProductAttributeValue.attribute_id == attribute_id,
+                )
+                .first()
+            )
+            if exists:
+                continue
+            attribute = db.query(Attribute).filter(Attribute.id == attribute_id).first()
+            if not attribute:
+                continue
+            row = ProductAttributeValue(product_id=product_id, attribute_id=attribute_id)
+            if attribute.value_type == "boolean":
+                row.value_bool = bool(raw)
+            elif attribute.value_type == "number":
+                row.value_number = float(raw)
+            else:
+                row.value_string = str(raw)
+            db.add(row)
+    db.commit()
 
 
 def _seed_content(db: Session) -> None:
@@ -454,9 +647,9 @@ def _seed_content(db: Session) -> None:
         for item in BLOG_POSTS:
             db.add(BlogPost(published=True, **item))
 
-    if db.query(TeamMember).count() == 0:
-        for item in TEAM_MEMBERS:
-            db.add(TeamMember(published=True, **item))
+    if db.query(PortfolioWork).count() == 0:
+        for item in PORTFOLIO_WORKS:
+            db.add(PortfolioWork(published=True, **item))
 
     db.commit()
 
@@ -483,9 +676,54 @@ def _seed_site_stats(db: Session) -> None:
     db.commit()
 
 
+def _seed_attributes(db: Session) -> None:
+    if db.query(Attribute).count() == 0:
+        for item in ATTRIBUTE_DEFINITIONS:
+            options = item.get("options", [])
+            attribute = Attribute(
+                id=item["id"],
+                label=item["label"],
+                value_type=item["value_type"],
+                unit=item.get("unit"),
+            )
+            db.add(attribute)
+            db.flush()
+            for index, option in enumerate(options):
+                db.add(
+                    AttributeOption(
+                        attribute_id=attribute.id,
+                        value=option["value"],
+                        label=option["label"],
+                        sort_order=index,
+                    )
+                )
+        db.commit()
+
+    for category_id, links in CATEGORY_ATTRIBUTE_LINKS.items():
+        if not db.query(Category).filter(Category.id == category_id).first():
+            continue
+        for link in links:
+            exists = (
+                db.query(CategoryAttribute)
+                .filter(
+                    CategoryAttribute.category_id == category_id,
+                    CategoryAttribute.attribute_id == link["attribute_id"],
+                )
+                .first()
+            )
+            if exists:
+                continue
+            db.add(CategoryAttribute(category_id=category_id, **link))
+
+    db.commit()
+
+
 def seed_database(db: Session) -> None:
     _seed_categories(db)
+    _seed_attributes(db)
     _seed_products(db)
+    _seed_extra_products(db)
+    _seed_product_attribute_values(db)
     _seed_content(db)
     _seed_admin_account(db)
     _seed_site_stats(db)

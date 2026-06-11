@@ -13,7 +13,7 @@ export default function App() {
             background: '#181818',
             border: '1px solid #2A2A2A',
             color: '#F0EDE8',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: '"Golos Text", sans-serif',
           },
           className: 'font-heading',
         }}

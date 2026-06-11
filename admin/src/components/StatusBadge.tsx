@@ -8,7 +8,7 @@ const labels: Record<OrderStatus, string> = {
 };
 
 const styles: Record<OrderStatus, string> = {
-  new: "bg-[#d4621a33] text-[#ffb07a]",
+  new: "bg-[#E4AF0033] text-[#ffb07a]",
   confirmed: "bg-[#3b82f633] text-[#93c5fd]",
   completed: "bg-[#22c55e33] text-[#86efac]",
   cancelled: "bg-[#d4183d33] text-[#fca5a5]",

@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -28,7 +28,6 @@ class Order(Base):
     car_model: Mapped[str] = mapped_column(String(100), default="", nullable=False)
     car_year: Mapped[str] = mapped_column(String(10), default="", nullable=False)
     car_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
-    installation_consultation_requested: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     payment_method: Mapped[str] = mapped_column(String(20), nullable=False)
     total: Mapped[float] = mapped_column(Float, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

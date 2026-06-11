@@ -37,9 +37,6 @@ class OrderCreate(BaseModel):
     contact: ContactIn
     car: CarIn
     items: list[OrderItemIn] = Field(min_length=1, max_length=50)
-    installation_consultation_requested: bool = Field(
-        default=False, alias="installationConsultationRequested"
-    )
     payment_method: PaymentMethod = Field(alias="paymentMethod")
 
 
@@ -63,7 +60,6 @@ class OrderOut(CamelModel):
     car_model: str
     car_year: str
     car_comment: str | None = None
-    installation_consultation_requested: bool
     payment_method: str
     total: float
     created_at: datetime

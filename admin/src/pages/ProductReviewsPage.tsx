@@ -61,7 +61,7 @@ export function ProductReviewsPage() {
                   className={`text-xs px-2 py-1 rounded ${
                     review.published
                       ? "bg-[#22c55e33] text-[#86efac]"
-                      : "bg-[#d4621a33] text-[#ffb07a]"
+                      : "bg-[#E4AF0033] text-[#ffb07a]"
                   }`}
                 >
                   {review.published ? "Опубликован" : "На модерации"}

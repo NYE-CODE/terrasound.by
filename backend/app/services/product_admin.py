@@ -6,9 +6,14 @@ from sqlalchemy.orm import Session, joinedload
 from app.models.content import Category
 from app.models.product import Product, ProductCompatibility, ProductImage, ProductSpec
 from app.schemas.content import ProductAdminOut, ProductCreate, ProductUpdate
+from app.services.attributes import (
+    product_attributes_dict,
+    sync_product_attributes,
+    validate_and_normalize_attributes,
+)
 
 
-def product_to_admin_out(product: Product) -> ProductAdminOut:
+def product_to_admin_out(db: Session, product: Product) -> ProductAdminOut:
     images = [img.url for img in sorted(product.images, key=lambda i: i.sort_order)]
     if not images:
         images = [product.image_url]
@@ -25,6 +30,7 @@ def product_to_admin_out(product: Product) -> ProductAdminOut:
         in_stock=product.in_stock,
         images=images,
         specs={spec.key: spec.value for spec in product.specs},
+        attributes=product_attributes_dict(db, product.id),
         compatibility=[item.vehicle for item in product.compatibility],
     )
 
@@ -84,6 +90,8 @@ def create_product(db: Session, payload: ProductCreate) -> Product:
     db.flush()
     _sync_images(db, product, images)
     _sync_specs(db, product, payload.specs)
+    normalized_attrs = validate_and_normalize_attributes(db, payload.category, payload.attributes)
+    sync_product_attributes(db, product, normalized_attrs)
     _sync_compatibility(db, product, payload.compatibility)
     db.commit()
     return (
@@ -92,6 +100,7 @@ def create_product(db: Session, payload: ProductCreate) -> Product:
             joinedload(Product.images),
             joinedload(Product.specs),
             joinedload(Product.compatibility),
+            joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
         .one()
@@ -115,6 +124,7 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
     data = payload.model_dump(exclude_unset=True)
     images = data.pop("images", None)
     specs = data.pop("specs", None)
+    attributes = data.pop("attributes", None)
     compatibility = data.pop("compatibility", None)
 
     if "category" in data:
@@ -131,6 +141,10 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
         _sync_images(db, product, images)
     if specs is not None:
         _sync_specs(db, product, specs)
+    if attributes is not None:
+        category_id = data.get("category", product.category)
+        normalized_attrs = validate_and_normalize_attributes(db, category_id, attributes)
+        sync_product_attributes(db, product, normalized_attrs)
     if compatibility is not None:
         _sync_compatibility(db, product, compatibility)
 
@@ -141,6 +155,7 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
             joinedload(Product.images),
             joinedload(Product.specs),
             joinedload(Product.compatibility),
+            joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
         .one()

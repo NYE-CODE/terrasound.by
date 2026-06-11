@@ -8,10 +8,11 @@ import {
   MessageSquare,
   Package,
   BarChart3,
+  Images,
   KeyRound,
+  ListFilter,
   Star,
   Tag,
-  Users,
   Wrench,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -19,11 +20,12 @@ import { useAuth } from "../context/AuthContext";
 const navItems = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, end: true },
   { to: "/categories", label: "Категории", icon: Grid3x3 },
+  { to: "/attributes", label: "Атрибуты", icon: ListFilter },
   { to: "/products", label: "Товары", icon: Package },
   { to: "/services", label: "Услуги", icon: Wrench },
   { to: "/brands", label: "Бренды", icon: Tag },
   { to: "/blog", label: "Блог", icon: BookOpen },
-  { to: "/team", label: "Команда", icon: Users },
+  { to: "/portfolio", label: "Наши работы", icon: Images },
   { to: "/orders", label: "Заказы", icon: ClipboardList },
   { to: "/reviews/product", label: "Отзывы о товарах", icon: MessageSquare },
   { to: "/reviews/service", label: "Отзывы о магазине", icon: Star },

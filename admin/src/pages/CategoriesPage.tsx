@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { RowActions } from "../components/RowActions";
@@ -46,7 +47,15 @@ export function CategoriesPage() {
                 </div>
               </div>
             </div>
-            <RowActions editTo={`/categories/${item.id}/edit`} onDelete={() => remove(item.id)} />
+            <div className="flex items-center gap-3 shrink-0">
+              <Link
+                to={`/categories/${item.id}/attributes`}
+                className="text-sm text-[var(--accent)] hover:underline whitespace-nowrap"
+              >
+                Фильтры
+              </Link>
+              <RowActions editTo={`/categories/${item.id}/edit`} onDelete={() => remove(item.id)} />
+            </div>
           </div>
         ))}
         {items.length === 0 && (

@@ -3,7 +3,8 @@ import { Menu, Phone, ShoppingCart, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { MobileMenu } from "./MobileMenu";
 import { useCart } from "../../../context/CartContext";
-import { CONTACT_PHONE, CONTACT_PHONE_TEL } from "../../../lib/site";
+import { CONTACT_PHONE, CONTACT_PHONE_TEL, SITE_BRAND_TAGLINE, SITE_BRAND_TITLE } from "../../../lib/site";
+import logo from "../../../assets/logo.png";
 
 export function Navbar() {
   const location = useLocation();
@@ -21,7 +22,8 @@ export function Navbar() {
 
   const navLinks = [
     { path: "/catalogue", label: "Каталог" },
-    { path: "/installation", label: "Установка" },
+    { path: "/installation", label: "Услуги" },
+    { path: "/about", label: "О нас" },
     { path: "/brands", label: "Бренды" },
     { path: "/blog", label: "Блог" },
   ];
@@ -38,8 +40,20 @@ export function Navbar() {
       >
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-20">
-            <Link to="/" className="font-heading text-2xl font-bold tracking-tight text-foreground">
-              TerraSound
+            <Link
+              to="/"
+              className="flex items-center gap-3 shrink-0 text-foreground"
+              aria-label={`${SITE_BRAND_TITLE}. ${SITE_BRAND_TAGLINE}`}
+            >
+              <img src={logo} alt="" aria-hidden className="h-8 w-auto md:h-10" />
+              <div className="hidden md:grid leading-tight">
+                <span className="font-heading text-sm sm:text-base uppercase text-justify [text-align-last:justify] [text-justify:inter-character]">
+                  {SITE_BRAND_TITLE}
+                </span>
+                <span className="font-heading text-[10px] sm:text-xs uppercase text-muted-foreground text-justify [text-align-last:justify] [text-justify:inter-character]">
+                  {SITE_BRAND_TAGLINE}
+                </span>
+              </div>
             </Link>
 
             <div className="hidden md:flex items-center gap-8">

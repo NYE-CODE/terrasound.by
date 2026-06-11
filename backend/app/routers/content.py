@@ -10,15 +10,17 @@ from app.cache import (
     content_cache,
 )
 from app.database import get_db
-from app.models.content import BlogPost, Brand, Category, InstallationService, TeamMember
+from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
+from app.schemas.attribute import CategoryFiltersOut
 from app.schemas.content import (
     BlogPostCardOut,
     BlogPostDetailOut,
     BrandOut,
     CategoryOut,
     InstallationServiceOut,
-    TeamMemberOut,
+    PortfolioWorkOut,
 )
+from app.services.attributes import get_category_filters
 
 router = APIRouter(prefix="/api", tags=["content"])
 
@@ -36,6 +38,14 @@ def list_categories(db: Annotated[Session, Depends(get_db)]) -> list[CategoryOut
 
     data = content_cache.get(CONTENT_CATEGORIES, load)
     return [CategoryOut.model_validate(item) for item in data]
+
+
+@router.get("/categories/{category_id}/filters", response_model=CategoryFiltersOut)
+def category_filters(
+    category_id: str,
+    db: Annotated[Session, Depends(get_db)],
+) -> CategoryFiltersOut:
+    return get_category_filters(db, category_id)
 
 
 @router.get("/services", response_model=list[InstallationServiceOut])
@@ -102,12 +112,12 @@ def get_blog_post(post_id: str, db: Annotated[Session, Depends(get_db)]) -> Blog
     return BlogPostDetailOut.model_validate(item)
 
 
-@router.get("/team", response_model=list[TeamMemberOut])
-def list_team_members(db: Annotated[Session, Depends(get_db)]) -> list[TeamMemberOut]:
+@router.get("/portfolio", response_model=list[PortfolioWorkOut])
+def list_portfolio_works(db: Annotated[Session, Depends(get_db)]) -> list[PortfolioWorkOut]:
     items = (
-        db.query(TeamMember)
-        .filter(TeamMember.published.is_(True))
-        .order_by(TeamMember.sort_order, TeamMember.name)
+        db.query(PortfolioWork)
+        .filter(PortfolioWork.published.is_(True))
+        .order_by(PortfolioWork.sort_order, PortfolioWork.title)
         .all()
     )
-    return [TeamMemberOut.model_validate(item) for item in items]
+    return [PortfolioWorkOut.model_validate(item) for item in items]

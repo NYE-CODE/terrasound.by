@@ -5,7 +5,6 @@ import { Button } from "../components/atoms/Button";
 import { CarInfoFields } from "../components/molecules/CarInfoFields";
 import { PaymentMethod } from "../components/molecules/PaymentMethod";
 import { ContactForm } from "../components/organisms/ContactForm";
-import { CheckoutInstallation } from "../components/organisms/CheckoutInstallation";
 import { OrderSummary } from "../components/organisms/OrderSummary";
 import { CheckoutTemplate } from "../components/templates/CheckoutTemplate";
 import { api } from "../lib/api";
@@ -36,8 +35,6 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const { items, replaceItems, clearCart } = useCart();
   const [syncing, setSyncing] = useState(true);
-  const [installationConsultationRequested, setInstallationConsultationRequested] = useState(false);
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -180,7 +177,6 @@ export function CheckoutPage() {
           comment: formData.carComment || undefined,
         },
         items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
-        installationConsultationRequested,
         paymentMethod: formData.paymentMethod,
       });
 
@@ -258,13 +254,6 @@ export function CheckoutPage() {
               />
             </div>
           </section>
-
-          <CheckoutInstallation
-            checked={installationConsultationRequested}
-            onCheckedChange={setInstallationConsultationRequested}
-            title="Консультация по профессиональной установке"
-            description="Мы свяжемся с вами и расскажем об услугах установки, сроках и стоимости"
-          />
 
           <section className="bg-card border border-card-border rounded p-6">
             <h2 className="font-heading text-xl mb-6">Способ оплаты</h2>

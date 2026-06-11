@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from pydantic.alias_generators import to_camel
@@ -10,7 +11,6 @@ class InstallationServiceOut(CamelModel):
     id: str
     title: str
     description: str
-    price_range: str
     sort_order: int
     published: bool
 
@@ -20,7 +20,6 @@ class InstallationServiceCreate(BaseModel):
 
     title: str = Field(min_length=1)
     description: str = Field(min_length=1)
-    price_range: str = Field(min_length=1)
     sort_order: int = 0
     published: bool = True
 
@@ -30,7 +29,6 @@ class InstallationServiceUpdate(BaseModel):
 
     title: str | None = None
     description: str | None = None
-    price_range: str | None = None
     sort_order: int | None = None
     published: bool | None = None
 
@@ -134,30 +132,34 @@ class BlogPostUpdate(BaseModel):
     published: bool | None = None
 
 
-class TeamMemberOut(CamelModel):
+class PortfolioWorkOut(CamelModel):
     id: str
-    name: str
-    specialty: str
+    title: str
+    image_url: str
+    sort_order: int
+
+
+class PortfolioWorkAdminOut(CamelModel):
+    id: str
+    title: str
     image_url: str
     sort_order: int
     published: bool
 
 
-class TeamMemberCreate(BaseModel):
+class PortfolioWorkCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
-    name: str = Field(min_length=1)
-    specialty: str = Field(min_length=1)
+    title: str = Field(min_length=1)
     image_url: str = Field(min_length=1)
     sort_order: int = 0
     published: bool = True
 
 
-class TeamMemberUpdate(BaseModel):
+class PortfolioWorkUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
-    name: str | None = None
-    specialty: str | None = None
+    title: str | None = None
     image_url: str | None = None
     sort_order: int | None = None
     published: bool | None = None
@@ -218,6 +220,7 @@ class ProductAdminOut(CamelModel):
     in_stock: bool
     images: list[str] = []
     specs: dict[str, str] = {}
+    attributes: dict[str, Any] = {}
     compatibility: list[str] = []
 
 
@@ -234,6 +237,7 @@ class ProductCreate(BaseModel):
     in_stock: bool = True
     images: list[str] = []
     specs: dict[str, str] = {}
+    attributes: dict[str, Any] = {}
     compatibility: list[str] = []
 
 
@@ -250,4 +254,5 @@ class ProductUpdate(BaseModel):
     in_stock: bool | None = None
     images: list[str] | None = None
     specs: dict[str, str] | None = None
+    attributes: dict[str, Any] | None = None
     compatibility: list[str] | None = None

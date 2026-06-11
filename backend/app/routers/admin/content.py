@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.auth import get_current_admin
 from app.cache import CONTENT_BRANDS, CONTENT_CATEGORIES, CONTENT_SERVICES, content_cache
 from app.database import get_db
-from app.models.content import BlogPost, Brand, Category, InstallationService, TeamMember
+from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.product import Product
 from app.schemas.auth import AdminUser
 from app.schemas.content import (
@@ -25,9 +25,9 @@ from app.schemas.content import (
     CategoryAdminOut,
     CategoryCreate,
     CategoryUpdate,
-    TeamMemberCreate,
-    TeamMemberOut,
-    TeamMemberUpdate,
+    PortfolioWorkAdminOut,
+    PortfolioWorkCreate,
+    PortfolioWorkUpdate,
 )
 
 router = APIRouter(tags=["admin-content"])
@@ -304,54 +304,54 @@ def delete_category_admin(
     content_cache.invalidate(CONTENT_CATEGORIES)
 
 
-# --- Team ---
+# --- Portfolio ---
 
-@router.get("/api/admin/team", response_model=list[TeamMemberOut])
-def list_team_admin(
+@router.get("/api/admin/portfolio", response_model=list[PortfolioWorkAdminOut])
+def list_portfolio_admin(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[TeamMemberOut]:
-    items = db.query(TeamMember).order_by(TeamMember.sort_order, TeamMember.name).all()
-    return [TeamMemberOut.model_validate(item) for item in items]
+) -> list[PortfolioWorkAdminOut]:
+    items = db.query(PortfolioWork).order_by(PortfolioWork.sort_order, PortfolioWork.title).all()
+    return [PortfolioWorkAdminOut.model_validate(item) for item in items]
 
 
-@router.post("/api/admin/team", response_model=TeamMemberOut, status_code=201)
-def create_team_member_admin(
-    payload: TeamMemberCreate,
+@router.post("/api/admin/portfolio", response_model=PortfolioWorkAdminOut, status_code=201)
+def create_portfolio_work_admin(
+    payload: PortfolioWorkCreate,
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> TeamMemberOut:
-    item = TeamMember(id=str(uuid.uuid4()), **payload.model_dump())
+) -> PortfolioWorkAdminOut:
+    item = PortfolioWork(id=str(uuid.uuid4()), **payload.model_dump())
     db.add(item)
     db.commit()
     db.refresh(item)
-    return TeamMemberOut.model_validate(item)
+    return PortfolioWorkAdminOut.model_validate(item)
 
 
-@router.patch("/api/admin/team/{item_id}", response_model=TeamMemberOut)
-def update_team_member_admin(
+@router.patch("/api/admin/portfolio/{item_id}", response_model=PortfolioWorkAdminOut)
+def update_portfolio_work_admin(
     item_id: str,
-    payload: TeamMemberUpdate,
+    payload: PortfolioWorkUpdate,
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> TeamMemberOut:
-    item = db.query(TeamMember).filter(TeamMember.id == item_id).first()
+) -> PortfolioWorkAdminOut:
+    item = db.query(PortfolioWork).filter(PortfolioWork.id == item_id).first()
     if not item:
-        raise HTTPException(status_code=404, detail="Сотрудник не найден")
+        raise HTTPException(status_code=404, detail="Работа не найдена")
     _apply_updates(item, payload)
     db.commit()
     db.refresh(item)
-    return TeamMemberOut.model_validate(item)
+    return PortfolioWorkAdminOut.model_validate(item)
 
 
-@router.delete("/api/admin/team/{item_id}", status_code=204)
-def delete_team_member_admin(
+@router.delete("/api/admin/portfolio/{item_id}", status_code=204)
+def delete_portfolio_work_admin(
     item_id: str,
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> None:
-    item = db.query(TeamMember).filter(TeamMember.id == item_id).first()
+    item = db.query(PortfolioWork).filter(PortfolioWork.id == item_id).first()
     if not item:
-        raise HTTPException(status_code=404, detail="Сотрудник не найден")
+        raise HTTPException(status_code=404, detail="Работа не найдена")
     db.delete(item)
     db.commit()

@@ -151,16 +151,16 @@ export const api = {
   deleteBlogPost: (token: string, id: string) =>
     request<void>(`/api/admin/blog/${id}`, { method: "DELETE" }, token),
 
-  teamMembers: (token: string) => request<TeamMember[]>("/api/admin/team", {}, token),
+  portfolioWorks: (token: string) => request<PortfolioWork[]>("/api/admin/portfolio", {}, token),
 
-  createTeamMember: (token: string, data: TeamMemberInput) =>
-    request<TeamMember>("/api/admin/team", { method: "POST", body: JSON.stringify(data) }, token),
+  createPortfolioWork: (token: string, data: PortfolioWorkInput) =>
+    request<PortfolioWork>("/api/admin/portfolio", { method: "POST", body: JSON.stringify(data) }, token),
 
-  updateTeamMember: (token: string, id: string, data: Partial<TeamMemberInput>) =>
-    request<TeamMember>(`/api/admin/team/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+  updatePortfolioWork: (token: string, id: string, data: Partial<PortfolioWorkInput>) =>
+    request<PortfolioWork>(`/api/admin/portfolio/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
 
-  deleteTeamMember: (token: string, id: string) =>
-    request<void>(`/api/admin/team/${id}`, { method: "DELETE" }, token),
+  deletePortfolioWork: (token: string, id: string) =>
+    request<void>(`/api/admin/portfolio/${id}`, { method: "DELETE" }, token),
 
   categories: (token: string) => request<CategoryAdmin[]>("/api/admin/categories", {}, token),
 
@@ -175,6 +175,44 @@ export const api = {
 
   deleteCategory: (token: string, id: string) =>
     request<void>(`/api/admin/categories/${id}`, { method: "DELETE" }, token),
+
+  attributes: (token: string) => request<AttributeDef[]>("/api/admin/attributes", {}, token),
+
+  attribute: (token: string, id: string) =>
+    request<AttributeDef>(`/api/admin/attributes/${id}`, {}, token),
+
+  createAttribute: (token: string, data: AttributeInput) =>
+    request<AttributeDef>("/api/admin/attributes", { method: "POST", body: JSON.stringify(data) }, token),
+
+  updateAttribute: (token: string, id: string, data: Partial<AttributeInput>) =>
+    request<AttributeDef>(`/api/admin/attributes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, token),
+
+  deleteAttribute: (token: string, id: string) =>
+    request<void>(`/api/admin/attributes/${id}`, { method: "DELETE" }, token),
+
+  categoryAttributes: (token: string, categoryId: string) =>
+    request<CategoryAttributeLink[]>(`/api/admin/categories/${categoryId}/attributes`, {}, token),
+
+  categoryAttributeSchema: (token: string, categoryId: string) =>
+    request<CategoryAttributeSchema[]>(`/api/admin/categories/${categoryId}/attribute-schema`, {}, token),
+
+  createCategoryAttribute: (token: string, categoryId: string, data: CategoryAttributeInput) =>
+    request<CategoryAttributeLink>(`/api/admin/categories/${categoryId}/attributes`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
+
+  updateCategoryAttribute: (token: string, categoryId: string, linkId: number, data: Partial<CategoryAttributeInput>) =>
+    request<CategoryAttributeLink>(`/api/admin/categories/${categoryId}/attributes/${linkId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, token),
+
+  deleteCategoryAttribute: (token: string, categoryId: string, linkId: number) =>
+    request<void>(`/api/admin/categories/${categoryId}/attributes/${linkId}`, { method: "DELETE" }, token),
 };
 
 export type OrderStatus = "new" | "confirmed" | "completed" | "cancelled";
@@ -221,7 +259,6 @@ export interface Order {
   carModel: string;
   carYear: string;
   carComment?: string;
-  installationConsultationRequested: boolean;
   paymentMethod: string;
   total: number;
   createdAt: string;
@@ -278,6 +315,7 @@ export interface AdminProduct {
   inStock: boolean;
   images: string[];
   specs: Record<string, string>;
+  attributes: Record<string, string | number | boolean | null>;
   compatibility: string[];
 }
 
@@ -292,14 +330,81 @@ export interface ProductInput {
   inStock?: boolean;
   images?: string[];
   specs?: Record<string, string>;
+  attributes?: Record<string, string | number | boolean | null>;
   compatibility?: string[];
+}
+
+export interface AttributeOption {
+  value: string;
+  label: string;
+  sortOrder: number;
+}
+
+export interface AttributeDef {
+  id: string;
+  label: string;
+  valueType: string;
+  unit?: string | null;
+  options: AttributeOption[];
+}
+
+export interface AttributeInput {
+  id: string;
+  label: string;
+  valueType: string;
+  unit?: string | null;
+  options?: AttributeOption[];
+}
+
+export interface CategoryAttributeLink {
+  id: number;
+  categoryId: string;
+  attributeId: string;
+  attributeLabel: string;
+  valueType: string;
+  unit?: string | null;
+  options: AttributeOption[];
+  showInForm: boolean;
+  showInFilters: boolean;
+  showOnCard: boolean;
+  filterType?: string | null;
+  filterMin?: number | null;
+  filterMax?: number | null;
+  filterStep?: number | null;
+  required: boolean;
+  sortOrder: number;
+  groupLabel?: string | null;
+}
+
+export interface CategoryAttributeSchema {
+  attributeId: string;
+  label: string;
+  valueType: string;
+  unit?: string | null;
+  options: AttributeOption[];
+  required: boolean;
+  sortOrder: number;
+  groupLabel?: string | null;
+}
+
+export interface CategoryAttributeInput {
+  attributeId: string;
+  showInForm?: boolean;
+  showInFilters?: boolean;
+  showOnCard?: boolean;
+  filterType?: string | null;
+  filterMin?: number | null;
+  filterMax?: number | null;
+  filterStep?: number | null;
+  required?: boolean;
+  sortOrder?: number;
+  groupLabel?: string | null;
 }
 
 export interface InstallationService {
   id: string;
   title: string;
   description: string;
-  priceRange: string;
   sortOrder: number;
   published: boolean;
 }
@@ -307,7 +412,6 @@ export interface InstallationService {
 export interface InstallationServiceInput {
   title: string;
   description: string;
-  priceRange: string;
   sortOrder?: number;
   published?: boolean;
 }
@@ -349,18 +453,16 @@ export interface BlogPostInput {
   published?: boolean;
 }
 
-export interface TeamMember {
+export interface PortfolioWork {
   id: string;
-  name: string;
-  specialty: string;
+  title: string;
   imageUrl: string;
   sortOrder: number;
   published: boolean;
 }
 
-export interface TeamMemberInput {
-  name: string;
-  specialty: string;
+export interface PortfolioWorkInput {
+  title: string;
   imageUrl: string;
   sortOrder?: number;
   published?: boolean;

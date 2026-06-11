@@ -75,7 +75,6 @@ export interface OrderCreatePayload {
     comment?: string;
   };
   items: Array<{ productId: string; quantity: number }>;
-  installationConsultationRequested: boolean;
   paymentMethod: string;
 }
 
@@ -91,12 +90,16 @@ export const api = {
 
   getProductBrands: () => request<string[]>("/api/products/brands"),
 
+  getCategoryFilters: (categoryId: string) =>
+    request<CategoryFilters>(`/api/categories/${encodeURIComponent(categoryId)}/filters`),
+
   getProducts: (params?: {
     category?: string;
     brand?: string;
     brands?: string[];
     priceMin?: number;
     priceMax?: number;
+    attrQuery?: string;
     sort?: string;
     limit?: number;
     offset?: number;
@@ -113,8 +116,9 @@ export const api = {
     if (params?.sort) search.set("sort", params.sort);
     if (params?.limit != null) search.set("limit", String(params.limit));
     if (params?.offset != null) search.set("offset", String(params.offset));
-    const query = search.toString();
-    return request<ProductList>(`/api/products${query ? `?${query}` : ""}`);
+    const base = search.toString();
+    const attr = params?.attrQuery ? `${base ? `${base}&` : ""}${params.attrQuery}` : base;
+    return request<ProductList>(`/api/products${attr ? `?${attr}` : ""}`);
   },
 
   getProduct: (id: string) =>
@@ -148,7 +152,7 @@ export const api = {
 
   getBlogPost: (id: string) => request<BlogPostDetail>(`/api/blog/${id}`),
 
-  getTeam: () => request<TeamMember[]>("/api/team"),
+  getPortfolio: () => request<PortfolioWork[]>("/api/portfolio"),
 
   getSiteStats: () => request<SiteStats>("/api/site-stats"),
 };
@@ -167,11 +171,37 @@ export interface Category {
   gridTall: boolean;
 }
 
+export interface CategoryFilterOption {
+  value: string;
+  label: string;
+  sortOrder: number;
+}
+
+export interface CategoryFilter {
+  attributeId: string;
+  label: string;
+  valueType: string;
+  filterType: string;
+  unit?: string | null;
+  options: CategoryFilterOption[];
+  filterMin?: number | null;
+  filterMax?: number | null;
+  filterStep?: number | null;
+  groupLabel?: string | null;
+  sortOrder: number;
+}
+
+export interface CategoryFilters {
+  categoryId: string;
+  priceMin: number;
+  priceMax: number;
+  filters: CategoryFilter[];
+}
+
 export interface InstallationService {
   id: string;
   title: string;
   description: string;
-  priceRange: string;
 }
 
 export interface Brand {
@@ -199,9 +229,9 @@ export interface BlogPostDetail {
   createdAt: string;
 }
 
-export interface TeamMember {
+export interface PortfolioWork {
   id: string;
-  name: string;
-  specialty: string;
+  title: string;
   imageUrl: string;
+  sortOrder: number;
 }

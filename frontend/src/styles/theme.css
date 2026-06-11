@@ -2,8 +2,8 @@
 
 :root {
   --font-size: 16px;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Golos Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --background: #0E0E0F;
   --foreground: #F0EDE8;
@@ -12,13 +12,13 @@
   --card-border: #2A2A2A;
   --popover: #181818;
   --popover-foreground: #F0EDE8;
-  --primary: #D4621A;
+  --primary: #E4AF00;
   --primary-foreground: #0E0E0F;
   --secondary: #2A2A2A;
   --secondary-foreground: #F0EDE8;
   --muted: #2A2A2A;
   --muted-foreground: #8A8A8A;
-  --accent: #D4621A;
+  --accent: #E4AF00;
   --accent-foreground: #0E0E0F;
   --destructive: #d4183d;
   --destructive-foreground: #F0EDE8;
@@ -28,7 +28,7 @@
   --switch-background: #2A2A2A;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #D4621A;
+  --ring: #E4AF00;
   --radius: 4px;
 }
 

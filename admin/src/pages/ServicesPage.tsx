@@ -33,7 +33,7 @@ export function ServicesPage() {
           <div key={item.id} className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-4 flex justify-between gap-4">
             <div>
               <div className="font-heading">{item.title}</div>
-              <div className="text-sm text-[var(--muted-foreground)]">от {item.priceRange} BYN</div>
+              <div className="text-sm text-[var(--muted-foreground)] line-clamp-2">{item.description}</div>
             </div>
             <RowActions editTo={`/services/${item.id}/edit`} onDelete={() => remove(item.id)} />
           </div>

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import field_serializer
 
@@ -40,6 +41,7 @@ class ProductDetailOut(CamelModel):
     sale_price: float | None = None
     images: list[str]
     specs: dict[str, str]
+    attributes: dict[str, Any] = {}
     compatibility: list[str]
     reviews: list[ProductReviewPublicOut] = []
     in_stock: bool = True

@@ -3,7 +3,9 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AdminLayout } from "./components/AdminLayout";
 import { BlogPage } from "./pages/BlogPage";
 import { BrandsPage } from "./pages/BrandsPage";
+import { AttributesPage } from "./pages/AttributesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
+import { CategoryAttributesPage } from "./pages/CategoryAttributesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { InstallationRequestsPage } from "./pages/InstallationRequestsPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -12,14 +14,15 @@ import { ProductReviewsPage } from "./pages/ProductReviewsPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { ServiceReviewsPage } from "./pages/ServiceReviewsPage";
 import { ServicesPage } from "./pages/ServicesPage";
-import { TeamPage } from "./pages/TeamPage";
+import { PortfolioPage } from "./pages/PortfolioPage";
 import { BlogFormPage } from "./pages/forms/BlogFormPage";
 import { BrandFormPage } from "./pages/forms/BrandFormPage";
+import { AttributeFormPage } from "./pages/forms/AttributeFormPage";
 import { CategoryFormPage } from "./pages/forms/CategoryFormPage";
 import { ProductFormPage } from "./pages/forms/ProductFormPage";
 import { ServiceFormPage } from "./pages/forms/ServiceFormPage";
 import { ServiceReviewFormPage } from "./pages/forms/ServiceReviewFormPage";
-import { TeamFormPage } from "./pages/forms/TeamFormPage";
+import { PortfolioFormPage } from "./pages/forms/PortfolioFormPage";
 import { SiteStatsPage } from "./pages/SiteStatsPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 
@@ -58,6 +61,10 @@ export default function App() {
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="categories/new" element={<CategoryFormPage />} />
             <Route path="categories/:id/edit" element={<CategoryFormPage />} />
+            <Route path="categories/:id/attributes" element={<CategoryAttributesPage />} />
+            <Route path="attributes" element={<AttributesPage />} />
+            <Route path="attributes/new" element={<AttributeFormPage />} />
+            <Route path="attributes/:id/edit" element={<AttributeFormPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="products/new" element={<ProductFormPage />} />
             <Route path="products/:id/edit" element={<ProductFormPage />} />
@@ -70,9 +77,9 @@ export default function App() {
             <Route path="blog" element={<BlogPage />} />
             <Route path="blog/new" element={<BlogFormPage />} />
             <Route path="blog/:id/edit" element={<BlogFormPage />} />
-            <Route path="team" element={<TeamPage />} />
-            <Route path="team/new" element={<TeamFormPage />} />
-            <Route path="team/:id/edit" element={<TeamFormPage />} />
+            <Route path="portfolio" element={<PortfolioPage />} />
+            <Route path="portfolio/new" element={<PortfolioFormPage />} />
+            <Route path="portfolio/:id/edit" element={<PortfolioFormPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="reviews/product" element={<ProductReviewsPage />} />
             <Route path="reviews/service" element={<ServiceReviewsPage />} />

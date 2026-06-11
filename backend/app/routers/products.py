@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.product import Product
 from app.schemas.product import ProductDetailOut, ProductListOut
+from app.services.attribute_filters import parse_attribute_filters
 from app.services.products import get_product_or_404, list_products, product_to_detail
 
 router = APIRouter(prefix="/api/products", tags=["products"])
@@ -25,6 +26,7 @@ def list_product_brands(db: Annotated[Session, Depends(get_db)]) -> list[str]:
 
 @router.get("", response_model=ProductListOut)
 def list_products_route(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     category: str | None = Query(default=None, max_length=50),
     brand: str | None = Query(default=None, max_length=100),
@@ -48,6 +50,7 @@ def list_products_route(
         year=year,
         price_min=price_min,
         price_max=price_max,
+        attr_filters=parse_attribute_filters(request),
         sort=sort,
         limit=limit,
         offset=offset,
@@ -60,4 +63,4 @@ def get_product(
     db: Annotated[Session, Depends(get_db)],
 ) -> ProductDetailOut:
     product = get_product_or_404(db, product_id)
-    return product_to_detail(product)
+    return product_to_detail(db, product)

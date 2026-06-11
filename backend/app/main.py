@@ -15,6 +15,7 @@ from app.routers.admin import content as admin_content
 from app.routers.admin import dashboard as admin_dashboard
 from app.routers.admin import installation as admin_installation
 from app.routers.admin import orders as admin_orders
+from app.routers.admin import attributes as admin_attributes
 from app.routers.admin import products as admin_products
 from app.routers.admin import reviews as admin_reviews
 from app.routers.admin import site_stats as admin_site_stats
@@ -78,6 +79,7 @@ app.include_router(admin_orders.router)
 app.include_router(admin_reviews.router)
 app.include_router(admin_installation.router)
 app.include_router(admin_products.router)
+app.include_router(admin_attributes.router)
 app.include_router(admin_content.router)
 app.include_router(admin_site_stats.router)
 

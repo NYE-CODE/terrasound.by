@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "../atoms/Button";
 import { CatalogueFiltersPanel } from "./CatalogueFiltersPanel";
-import type { Category } from "../../lib/api";
+import type { AttributeFilterState } from "./AttributeFilters";
+import type { Category, CategoryFilters } from "../../lib/api";
 
 interface CatalogueFiltersDrawerProps {
   isOpen: boolean;
@@ -16,7 +17,11 @@ interface CatalogueFiltersDrawerProps {
   selectedBrands: string[];
   onBrandsChange: (brands: string[]) => void;
   priceRange: number[];
+  priceBounds: [number, number];
   onPriceRangeChange: (range: number[]) => void;
+  categoryFilters: CategoryFilters | null;
+  attributeFilters: AttributeFilterState;
+  onAttributeFiltersChange: (values: AttributeFilterState) => void;
 }
 
 export function CatalogueFiltersDrawer({
@@ -30,7 +35,11 @@ export function CatalogueFiltersDrawer({
   selectedBrands,
   onBrandsChange,
   priceRange,
+  priceBounds,
   onPriceRangeChange,
+  categoryFilters,
+  attributeFilters,
+  onAttributeFiltersChange,
 }: CatalogueFiltersDrawerProps) {
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -96,7 +105,11 @@ export function CatalogueFiltersDrawer({
                 selectedBrands={selectedBrands}
                 onBrandsChange={onBrandsChange}
                 priceRange={priceRange}
+                priceBounds={priceBounds}
                 onPriceRangeChange={onPriceRangeChange}
+                categoryFilters={categoryFilters}
+                attributeFilters={attributeFilters}
+                onAttributeFiltersChange={onAttributeFiltersChange}
               />
             </div>
 

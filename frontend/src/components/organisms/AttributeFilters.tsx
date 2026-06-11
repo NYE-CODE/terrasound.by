@@ -1,0 +1,146 @@
+import type { CategoryFilter, CategoryFilters } from "../../lib/api";
+
+export type AttributeFilterState = Record<string, string | boolean | { min?: number; max?: number }>;
+
+interface AttributeFiltersProps {
+  config: CategoryFilters | null;
+  values: AttributeFilterState;
+  onChange: (values: AttributeFilterState) => void;
+}
+
+export function AttributeFilters({ config, values, onChange }: AttributeFiltersProps) {
+  if (!config || config.filters.length === 0) return null;
+
+  const setValue = (attributeId: string, value: string | boolean | { min?: number; max?: number } | undefined) => {
+    const next = { ...values };
+    if (value === undefined || value === "" || value === false) {
+      delete next[attributeId];
+    } else {
+      next[attributeId] = value;
+    }
+    onChange(next);
+  };
+
+  const groups = config.filters.reduce<Record<string, CategoryFilter[]>>((acc, filter) => {
+    const key = filter.groupLabel || "";
+    acc[key] = acc[key] || [];
+    acc[key].push(filter);
+    return acc;
+  }, {});
+
+  return (
+    <>
+      {Object.entries(groups).map(([group, filters]) => (
+        <div key={group || "default"} className="pt-6 border-t border-border space-y-4">
+          {group && (
+            <h3 className="font-heading text-sm uppercase tracking-wider">{group}</h3>
+          )}
+          {filters.map((filter) => (
+            <FilterField
+              key={filter.attributeId}
+              filter={filter}
+              value={values[filter.attributeId]}
+              onChange={(value) => setValue(filter.attributeId, value)}
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function FilterField({
+  filter,
+  value,
+  onChange,
+}: {
+  filter: CategoryFilter;
+  value: string | boolean | { min?: number; max?: number } | undefined;
+  onChange: (value: string | boolean | { min?: number; max?: number } | undefined) => void;
+}) {
+  if (filter.filterType === "checkbox") {
+    return (
+      <label className="flex items-center gap-2 text-sm cursor-pointer">
+        <input
+          type="checkbox"
+          checked={value === true}
+          onChange={(e) => onChange(e.target.checked ? true : undefined)}
+          className="accent-accent"
+        />
+        {filter.label}
+      </label>
+    );
+  }
+
+  if (filter.filterType === "range") {
+    const range = typeof value === "object" && value ? value : {};
+    const min = filter.filterMin ?? 0;
+    const max = filter.filterMax ?? 100;
+    const currentMax = range.max ?? max;
+    return (
+      <div>
+        <h4 className="font-heading text-sm uppercase tracking-wider mb-3">
+          {filter.label}
+          {filter.unit ? ` (${filter.unit})` : ""}
+        </h4>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={filter.filterStep ?? 1}
+          value={currentMax}
+          onChange={(e) => {
+            const nextMax = Number(e.target.value);
+            onChange(nextMax >= max ? undefined : { min, max: nextMax });
+          }}
+          className="w-full accent-accent"
+        />
+        <div className="flex justify-between text-sm text-muted-foreground mt-2">
+          <span>{min}</span>
+          <span>до {currentMax}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (filter.filterType === "dropdown" || filter.filterType === "multiselect") {
+    return (
+      <div>
+        <h4 className="font-heading text-sm uppercase tracking-wider mb-2">{filter.label}</h4>
+        <select
+          value={typeof value === "string" ? value : ""}
+          onChange={(e) => onChange(e.target.value || undefined)}
+          className="w-full h-10 px-3 bg-input border border-border rounded text-sm"
+        >
+          <option value="">Все</option>
+          {filter.options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export function countAttributeFilters(values: AttributeFilterState) {
+  return Object.keys(values).length;
+}
+
+export function buildAttributeQuery(values: AttributeFilterState): string {
+  const params = new URLSearchParams();
+  for (const [attributeId, value] of Object.entries(values)) {
+    if (typeof value === "boolean") {
+      if (value) params.set(`attr.${attributeId}`, "true");
+    } else if (typeof value === "string") {
+      params.set(`attr.${attributeId}`, value);
+    } else if (value && typeof value === "object") {
+      if (value.min != null) params.set(`attr.${attributeId}.min`, String(value.min));
+      if (value.max != null) params.set(`attr.${attributeId}.max`, String(value.max));
+    }
+  }
+  return params.toString();
+}

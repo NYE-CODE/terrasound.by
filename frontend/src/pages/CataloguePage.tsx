@@ -3,12 +3,14 @@ import { useSearchParams } from "react-router";
 import { ProductCard } from "../components/organisms/ProductCard";
 import { CatalogueFiltersDrawer } from "../components/organisms/CatalogueFiltersDrawer";
 import { CatalogueFiltersPanel, countActiveFilters } from "../components/organisms/CatalogueFiltersPanel";
+import { buildAttributeQuery, type AttributeFilterState } from "../components/organisms/AttributeFilters";
 import { Pagination } from "../components/molecules/Pagination";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { api, type Category, type ProductCard as ProductCardData } from "../lib/api";
+import { api, type Category, type CategoryFilters, type ProductCard as ProductCardData } from "../lib/api";
 
 const PAGE_SIZE = 9;
+const DEFAULT_PRICE_MAX = 5000;
 
 export function CataloguePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,7 +22,10 @@ export function CataloguePage() {
   const [brands, setBrands] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const selectedCategory = categorySlug || "all";
-  const [priceRange, setPriceRange] = useState([0, 2000]);
+  const [priceBounds, setPriceBounds] = useState<[number, number]>([0, DEFAULT_PRICE_MAX]);
+  const [priceRange, setPriceRange] = useState([0, DEFAULT_PRICE_MAX]);
+  const [categoryFilters, setCategoryFilters] = useState<CategoryFilters | null>(null);
+  const [attributeFilters, setAttributeFilters] = useState<AttributeFilterState>({});
   const [sortBy, setSortBy] = useState("popularity");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -42,8 +47,29 @@ export function CataloguePage() {
   }, []);
 
   useEffect(() => {
+    if (selectedCategory === "all") {
+      setCategoryFilters(null);
+      setAttributeFilters({});
+      setPriceBounds([0, DEFAULT_PRICE_MAX]);
+      setPriceRange([0, DEFAULT_PRICE_MAX]);
+      return;
+    }
+
+    api
+      .getCategoryFilters(selectedCategory)
+      .then((config) => {
+        setCategoryFilters(config);
+        setAttributeFilters({});
+        const nextBounds: [number, number] = [config.priceMin, config.priceMax];
+        setPriceBounds(nextBounds);
+        setPriceRange(nextBounds);
+      })
+      .catch(console.error);
+  }, [selectedCategory]);
+
+  useEffect(() => {
     setPage(1);
-  }, [selectedCategory, selectedBrands, priceRange, sortBy]);
+  }, [selectedCategory, selectedBrands, priceRange, sortBy, attributeFilters]);
 
   useEffect(() => {
     const params: Parameters<typeof api.getProducts>[0] = {
@@ -52,6 +78,7 @@ export function CataloguePage() {
       sort: sortBy,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
+      attrQuery: buildAttributeQuery(attributeFilters),
     };
     if (selectedCategory !== "all") params.category = selectedCategory;
     if (selectedBrands.length > 0) params.brands = selectedBrands;
@@ -63,14 +90,20 @@ export function CataloguePage() {
         setTotalItems(total);
       })
       .catch(console.error);
-  }, [selectedCategory, selectedBrands, priceRange, sortBy, page]);
+  }, [selectedCategory, selectedBrands, priceRange, sortBy, page, attributeFilters]);
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const activeFilterCount = countActiveFilters(selectedCategory, selectedBrands, priceRange);
+  const activeFilterCount = countActiveFilters(
+    selectedCategory,
+    selectedBrands,
+    priceRange,
+    priceBounds[1],
+    attributeFilters,
+  );
 
   const selectCategory = (id: string) => {
     if (id === "all") {
@@ -88,7 +121,11 @@ export function CataloguePage() {
     selectedBrands,
     onBrandsChange: setSelectedBrands,
     priceRange,
+    priceBounds,
     onPriceRangeChange: setPriceRange,
+    categoryFilters,
+    attributeFilters,
+    onAttributeFiltersChange: setAttributeFilters,
   };
 
   return (
@@ -142,7 +179,7 @@ export function CataloguePage() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="bg-card border border-card-border rounded p-6 sticky top-32">
+            <div className="bg-card border border-card-border rounded p-6 sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto">
               <CatalogueFiltersPanel {...filterPanelProps} />
             </div>
           </aside>

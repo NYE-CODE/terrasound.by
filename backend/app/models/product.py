@@ -37,6 +37,9 @@ class Product(Base):
     reviews: Mapped[list["ProductReview"]] = relationship(
         back_populates="product", cascade="all, delete-orphan"
     )
+    attribute_values: Mapped[list["ProductAttributeValue"]] = relationship(
+        "ProductAttributeValue", cascade="all, delete-orphan"
+    )
 
 
 class ProductImage(Base):

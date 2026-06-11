@@ -9,7 +9,6 @@ import { api, type InstallationServiceInput } from "../../lib/api";
 const emptyForm: InstallationServiceInput = {
   title: "",
   description: "",
-  priceRange: "",
   sortOrder: 0,
   published: true,
 };
@@ -32,7 +31,6 @@ export function ServiceFormPage() {
         setForm({
           title: item.title,
           description: item.description,
-          priceRange: item.priceRange,
           sortOrder: item.sortOrder,
           published: item.published,
         });
@@ -72,10 +70,7 @@ export function ServiceFormPage() {
       <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
         <input placeholder="Название" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} required />
         <textarea placeholder="Описание" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={textareaClass} required />
-        <div className="grid md:grid-cols-2 gap-4">
-          <input placeholder="Цена (например, 250-450)" value={form.priceRange} onChange={(e) => setForm({ ...form, priceRange: e.target.value })} className={inputClass} required />
-          <input type="number" placeholder="Порядок сортировки" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} className={inputClass} />
-        </div>
+        <input type="number" placeholder="Порядок сортировки" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} className={inputClass} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
           Опубликовано

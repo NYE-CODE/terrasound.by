@@ -1,4 +1,5 @@
-from app.models.content import BlogPost, Brand, Category, InstallationService, TeamMember
+from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, ProductAttributeValue
+from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.admin_account import AdminAccount
 from app.models.site_stats import SiteStats
 from app.models.installation import InstallationRequest
@@ -7,6 +8,10 @@ from app.models.product import Product, ProductCompatibility, ProductImage, Prod
 from app.models.review import ProductReview, ServiceReview
 
 __all__ = [
+    "Attribute",
+    "AttributeOption",
+    "CategoryAttribute",
+    "ProductAttributeValue",
     "Product",
     "ProductImage",
     "ProductSpec",
@@ -21,7 +26,7 @@ __all__ = [
     "InstallationService",
     "Brand",
     "BlogPost",
-    "TeamMember",
+    "PortfolioWork",
     "SiteStats",
     "AdminAccount",
 ]

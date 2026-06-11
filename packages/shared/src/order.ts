@@ -7,7 +7,6 @@ export interface Order {
   contact: Contact;
   car: Car;
   items: CartItem[];
-  installationConsultationRequested: boolean;
   paymentMethod: string;
   total: number;
 }

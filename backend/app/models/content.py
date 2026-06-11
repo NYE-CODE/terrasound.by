@@ -12,7 +12,6 @@ class InstallationService(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    price_range: Mapped[str] = mapped_column(String(50), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     published: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -53,12 +52,11 @@ class Category(Base):
     published: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
-class TeamMember(Base):
-    __tablename__ = "team_members"
+class PortfolioWork(Base):
+    __tablename__ = "portfolio_works"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    specialty: Mapped[str] = mapped_column(String(100), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
     image_url: Mapped[str] = mapped_column(Text, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     published: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

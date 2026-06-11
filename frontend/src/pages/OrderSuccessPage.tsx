@@ -30,10 +30,6 @@ export function OrderSuccessPage() {
                 <Check size={16} className="text-accent mt-0.5 flex-shrink-0" />
                 <span>Если выбрана оплата картой или безналичный расчет — счет будет выслан на указанный email</span>
               </div>
-              <div className="flex gap-3">
-                <Check size={16} className="text-accent mt-0.5 flex-shrink-0" />
-                <span>Если вы запросили консультацию по установке — мы свяжемся с вами и расскажем об услугах и сроках</span>
-              </div>
             </div>
           </div>
 

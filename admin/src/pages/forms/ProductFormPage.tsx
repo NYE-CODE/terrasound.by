@@ -1,10 +1,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ProductAttributeFields } from "../../components/ProductAttributeFields";
 import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { api, type CategoryAdmin, type ProductInput } from "../../lib/api";
+import { api, type CategoryAdmin, type CategoryAttributeSchema, type ProductInput } from "../../lib/api";
 
 const emptyForm: ProductInput = {
   brand: "",
@@ -51,6 +52,8 @@ export function ProductFormPage() {
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<CategoryAdmin[]>([]);
+  const [attributeSchema, setAttributeSchema] = useState<CategoryAttributeSchema[]>([]);
+  const [attributeValues, setAttributeValues] = useState<Record<string, string | number | boolean | null>>({});
 
   useEffect(() => {
     if (!token) return;
@@ -73,8 +76,17 @@ export function ProductFormPage() {
       setImagesText(listToLines(product.images));
       setSpecsText(specsToText(product.specs));
       setCompatibilityText(listToLines(product.compatibility));
+      setAttributeValues(product.attributes ?? {});
     }).catch(console.error).finally(() => setLoading(false));
   }, [token, id]);
+
+  useEffect(() => {
+    if (!token || !form.category) {
+      setAttributeSchema([]);
+      return;
+    }
+    api.categoryAttributeSchema(token, form.category).then(setAttributeSchema).catch(console.error);
+  }, [token, form.category]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -85,6 +97,7 @@ export function ProductFormPage() {
         ...form,
         images: linesToList(imagesText),
         specs: textToSpecs(specsText),
+        attributes: attributeValues,
         compatibility: linesToList(compatibilityText),
       };
       if (isEdit && id) {
@@ -137,7 +150,14 @@ export function ProductFormPage() {
         <input placeholder="URL главного изображения" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={`md:col-span-2 ${inputClass}`} required />
         <input placeholder="Краткие характеристики" value={form.specsShort} onChange={(e) => setForm({ ...form, specsShort: e.target.value })} className={`md:col-span-2 ${inputClass}`} />
         <textarea placeholder="Доп. изображения (по одному URL на строку)" value={imagesText} onChange={(e) => setImagesText(e.target.value)} className={`md:col-span-2 ${textareaClass}`} />
-        <textarea placeholder="Характеристики (ключ: значение)" value={specsText} onChange={(e) => setSpecsText(e.target.value)} className={`md:col-span-2 ${textareaClass}`} />
+        <ProductAttributeFields
+          schema={attributeSchema}
+          values={attributeValues}
+          onChange={(attributeId, value) =>
+            setAttributeValues((prev) => ({ ...prev, [attributeId]: value }))
+          }
+        />
+        <textarea placeholder="Доп. характеристики (ключ: значение)" value={specsText} onChange={(e) => setSpecsText(e.target.value)} className={`md:col-span-2 ${textareaClass}`} />
         <textarea placeholder="Совместимость (по одной модели на строку)" value={compatibilityText} onChange={(e) => setCompatibilityText(e.target.value)} className={`md:col-span-2 ${textareaClass}`} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.inStock} onChange={(e) => setForm({ ...form, inStock: e.target.checked })} />

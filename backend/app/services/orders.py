@@ -50,7 +50,6 @@ def create_order(db: Session, payload: OrderCreate) -> Order:
         car_model=payload.car.model,
         car_year=payload.car.year,
         car_comment=payload.car.comment,
-        installation_consultation_requested=payload.installation_consultation_requested,
         payment_method=payload.payment_method,
         total=round(total, 2),
         items=order_items,

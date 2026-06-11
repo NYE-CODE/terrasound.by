@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin, Instagram } from "lucide-react";
 import { api, type Category } from "../../../lib/api";
-import { ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, SITE_NAME, TAGLINE } from "../../../lib/site";
+import {
+  ADDRESS,
+  ADDRESS_MAPS_URL,
+  COMPANY_NAME,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  CONTACT_PHONE_TEL,
+  INSTAGRAM_URL,
+  SITE_NAME,
+  TAGLINE,
+} from "../../../lib/site";
+import logo from "../../../assets/logo.png";
 
 export function Footer() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -15,22 +26,44 @@ export function Footer() {
       <div className="max-w-[1400px] mx-auto px-6 py-16">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
-            <h3 className="font-heading text-2xl mb-4">{SITE_NAME}</h3>
+            <Link to="/" className="inline-flex mb-4" aria-label={SITE_NAME}>
+              <img src={logo} alt={SITE_NAME} className="h-14 w-auto" />
+            </Link>
             <p className="text-sm text-muted-foreground mb-2">{COMPANY_NAME}</p>
             <p className="text-sm text-muted-foreground mb-6">{TAGLINE}</p>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-3 text-muted-foreground">
+              <a
+                href={`tel:${CONTACT_PHONE_TEL}`}
+                className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+              >
                 <Phone size={16} />
                 <span>{CONTACT_PHONE}</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
+              </a>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+              >
                 <Mail size={16} />
                 <span>{CONTACT_EMAIL}</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
+              </a>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+              >
+                <Instagram size={16} />
+                <span>@terrasound.by</span>
+              </a>
+              <a
+                href={ADDRESS_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+              >
                 <MapPin size={16} />
                 <span>{ADDRESS}</span>
-              </div>
+              </a>
             </div>
           </div>
 

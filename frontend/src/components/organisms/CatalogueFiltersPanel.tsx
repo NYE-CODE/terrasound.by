@@ -1,6 +1,7 @@
 import { FilterCombobox } from "../molecules/FilterCombobox";
 import { BrandMultiSelect } from "../molecules/BrandMultiSelect";
-import type { Category } from "../../lib/api";
+import { AttributeFilters, countAttributeFilters, type AttributeFilterState } from "./AttributeFilters";
+import type { Category, CategoryFilters } from "../../lib/api";
 
 interface CatalogueFiltersPanelProps {
   categories: Category[];
@@ -10,7 +11,11 @@ interface CatalogueFiltersPanelProps {
   selectedBrands: string[];
   onBrandsChange: (brands: string[]) => void;
   priceRange: number[];
+  priceBounds: [number, number];
   onPriceRangeChange: (range: number[]) => void;
+  categoryFilters: CategoryFilters | null;
+  attributeFilters: AttributeFilterState;
+  onAttributeFiltersChange: (values: AttributeFilterState) => void;
 }
 
 export function CatalogueFiltersPanel({
@@ -21,12 +26,18 @@ export function CatalogueFiltersPanel({
   selectedBrands,
   onBrandsChange,
   priceRange,
+  priceBounds,
   onPriceRangeChange,
+  categoryFilters,
+  attributeFilters,
+  onAttributeFiltersChange,
 }: CatalogueFiltersPanelProps) {
   const categoryOptions = categories.map((category) => ({
     value: category.id,
     label: category.name,
   }));
+
+  const [priceMin, priceMax] = priceBounds;
 
   return (
     <div className="space-y-6">
@@ -52,12 +63,12 @@ export function CatalogueFiltersPanel({
         <div className="space-y-4">
           <input
             type="range"
-            min="0"
-            max="2000"
+            min={priceMin}
+            max={priceMax}
             value={priceRange[1]}
             onChange={(e) => {
               const max = parseInt(e.target.value, 10);
-              onPriceRangeChange([priceRange[0], Number.isFinite(max) ? max : 2000]);
+              onPriceRangeChange([priceRange[0], Number.isFinite(max) ? max : priceMax]);
             }}
             className="w-full accent-accent"
           />
@@ -67,6 +78,12 @@ export function CatalogueFiltersPanel({
           </div>
         </div>
       </div>
+
+      <AttributeFilters
+        config={categoryFilters}
+        values={attributeFilters}
+        onChange={onAttributeFiltersChange}
+      />
     </div>
   );
 }
@@ -75,10 +92,13 @@ export function countActiveFilters(
   selectedCategory: string,
   selectedBrands: string[],
   priceRange: number[],
+  priceMax: number,
+  attributeFilters: AttributeFilterState,
 ) {
   let count = 0;
   if (selectedCategory !== "all") count += 1;
   if (selectedBrands.length > 0) count += 1;
-  if (priceRange[1] < 2000) count += 1;
+  if (priceRange[1] < priceMax) count += 1;
+  count += countAttributeFilters(attributeFilters);
   return count;
 }

@@ -46,7 +46,7 @@ export function ProductsPage() {
                   className={`text-xs px-2 py-0.5 rounded shrink-0 ${
                     product.inStock
                       ? "bg-[#22c55e22] text-[#86efac]"
-                      : "bg-[#d4621a22] text-[#ffb07a]"
+                      : "bg-[#E4AF0022] text-[#ffb07a]"
                   }`}
                 >
                   {product.inStock ? "В наличии" : "Под заказ"}
