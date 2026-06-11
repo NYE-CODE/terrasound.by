@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { Menu, Phone, ShoppingCart, X } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { MobileMenu } from "./MobileMenu";
 import { useCart } from "../../../context/CartContext";
 import {
@@ -14,29 +14,15 @@ import logo from "../../../assets/logo.png";
 
 export function Navbar() {
   const location = useLocation();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { items } = useCart();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-[70] transition-[background-color,border-color] duration-300 ${
-          scrolled || mobileMenuOpen ? "bg-background border-b border-border" : "bg-transparent"
-        }`}
-      >
+      <nav className="fixed top-0 left-0 right-0 z-[70] bg-background border-b border-border">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-[var(--site-header-height)]">
             <Link
