@@ -8,7 +8,10 @@ class Settings(BaseSettings):
     secret_key: str = "dev-secret-key-change-in-production"
     admin_username: str = "admin"
     admin_password: str = "admin"
-    cors_origins: str = "http://localhost:5173,http://localhost:5174,http://localhost:5175"
+    cors_origins: str = (
+        "http://localhost:5173,http://localhost:5174,http://localhost:5175,"
+        "https://terrasound.by,https://www.terrasound.by,https://admin.terrasound.by"
+    )
     access_token_expire_minutes: int = 480
     site_origin: str = "https://terrasound.by"
     environment: str = "development"

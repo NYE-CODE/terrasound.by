@@ -10,6 +10,9 @@ from app.schemas.site_stats import SiteStatsOut, SiteStatsUpdate
 from app.services.site_stats import get_or_create_site_stats, site_stats_to_out, update_site_stats
 
 router = APIRouter(prefix="/api/admin/site-stats", tags=["admin-site-stats"])
+
+
+@router.get("", response_model=SiteStatsOut)
 def get_admin_site_stats(
     db: Annotated[Session, Depends(get_db)],
     _: Annotated[AdminUser, Depends(get_current_admin)],

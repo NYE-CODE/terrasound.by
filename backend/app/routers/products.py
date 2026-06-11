@@ -14,13 +14,7 @@ router = APIRouter(prefix="/api/products", tags=["products"])
 
 @router.get("/brands", response_model=list[str])
 def list_product_brands(db: Annotated[Session, Depends(get_db)]) -> list[str]:
-    rows = (
-        db.query(Product.brand)
-        .filter(Product.in_stock.is_(True))
-        .distinct()
-        .order_by(Product.brand)
-        .all()
-    )
+    rows = db.query(Product.brand).distinct().order_by(Product.brand).all()
     return [row[0] for row in rows]
 
 

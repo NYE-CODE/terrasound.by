@@ -112,6 +112,7 @@ API_PORT="${API_PORT:-8000}"
 PNPM="${PNPM:-pnpm}"
 PNPM_INSTALL_FLAGS="${PNPM_INSTALL_FLAGS:---frozen-lockfile}"
 VITE_API_URL="${VITE_API_URL:-}"
+ADMIN_VITE_API_URL="${ADMIN_VITE_API_URL-}"
 VITE_SITE_URL="${VITE_SITE_URL:-https://terrasound.by}"
 PRERENDER_API_URL="${PRERENDER_API_URL:-http://${API_HOST}:${API_PORT}}"
 BUILD_FRONTEND="${BUILD_FRONTEND:-true}"
@@ -234,10 +235,9 @@ fi
 
 # --- Admin build ---
 if [[ "$BUILD_ADMIN" == true && "$SKIP_ADMIN" == false ]]; then
-  [[ -n "$VITE_API_URL" ]] || fail "Задайте VITE_API_URL в deploy/deploy.env"
-  log "Сборка admin (VITE_API_URL=$VITE_API_URL)"
+  log "Сборка admin (VITE_API_URL=${ADMIN_VITE_API_URL:-<same-origin>})"
   cd "$ADMIN_DIR"
-  export VITE_API_URL
+  export VITE_API_URL="$ADMIN_VITE_API_URL"
   $PNPM exec vite build
   cd "$APP_DIR"
   log "admin/dist готов"

@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 import { toast } from "sonner";
+import { Badge } from "../atoms/Badge";
 import { Price } from "../atoms/Price";
 import { ProductImage } from "../atoms/ProductImage";
 import { StarRating } from "../atoms/StarRating";
@@ -51,6 +52,11 @@ export function ProductCard({
       >
         <div className="aspect-square bg-secondary/30 rounded mb-4 overflow-hidden relative">
           <ProductImage src={image} alt={name} />
+          {!inStock && (
+            <div className="absolute top-3 left-3 z-10">
+              <Badge text="Под заказ" variant="muted" />
+            </div>
+          )}
           {inStock && (
             <button
               type="button"

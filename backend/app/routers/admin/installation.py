@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_admin
@@ -23,3 +23,16 @@ def list_installation_requests(
         .all()
     )
     return [InstallationRequestOut.model_validate(item) for item in requests]
+
+
+@router.delete("/{request_id}", status_code=204)
+def delete_installation_request(
+    request_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[AdminUser, Depends(get_current_admin)],
+) -> None:
+    item = db.query(InstallationRequest).filter(InstallationRequest.id == request_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Заявка не найдена")
+    db.delete(item)
+    db.commit()

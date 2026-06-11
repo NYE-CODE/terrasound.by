@@ -3,17 +3,29 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { api, type InstallationRequest } from "../lib/api";
+import { ApiError, api, type InstallationRequest } from "../lib/api";
 
 export function InstallationRequestsPage() {
   const { token } = useAuth();
   const [requests, setRequests] = useState<InstallationRequest[]>([]);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(requests);
 
-  useEffect(() => {
+  const load = () => {
     if (!token) return;
     api.installationRequests(token).then(setRequests).catch(console.error);
-  }, [token]);
+  };
+
+  useEffect(load, [token]);
+
+  const remove = async (requestId: string) => {
+    if (!token || !confirm("Удалить заявку?")) return;
+    try {
+      await api.deleteInstallationRequest(token, requestId);
+      load();
+    } catch (error) {
+      if (error instanceof ApiError) alert(error.message);
+    }
+  };
 
   return (
     <div>
@@ -28,6 +40,7 @@ export function InstallationRequestsPage() {
               <th className="text-left p-4 font-medium">Автомобиль</th>
               <th className="text-left p-4 font-medium">Услуга</th>
               <th className="text-left p-4 font-medium">Дата</th>
+              <th className="text-left p-4 font-medium">Действия</th>
             </tr>
           </thead>
           <tbody>
@@ -39,6 +52,15 @@ export function InstallationRequestsPage() {
                 <td className="p-4">{item.service}</td>
                 <td className="p-4 text-[var(--muted-foreground)]">
                   {new Date(item.createdAt).toLocaleString("ru-RU")}
+                </td>
+                <td className="p-4">
+                  <button
+                    type="button"
+                    onClick={() => remove(item.id)}
+                    className="text-[var(--destructive)] hover:underline"
+                  >
+                    Удалить
+                  </button>
                 </td>
               </tr>
             ))}

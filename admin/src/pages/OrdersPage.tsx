@@ -4,7 +4,7 @@ import { Pagination } from "../components/Pagination";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { api, type Order, type OrderStatus } from "../lib/api";
+import { ApiError, api, type Order, type OrderStatus } from "../lib/api";
 
 const statuses: OrderStatus[] = ["new", "confirmed", "completed", "cancelled"];
 
@@ -25,6 +25,17 @@ export function OrdersPage() {
     if (!token) return;
     await api.updateOrderStatus(token, orderId, status);
     load();
+  };
+
+  const remove = async (orderId: string) => {
+    if (!token || !confirm("Удалить заказ?")) return;
+    try {
+      await api.deleteOrder(token, orderId);
+      if (expandedId === orderId) setExpandedId(null);
+      load();
+    } catch (error) {
+      if (error instanceof ApiError) alert(error.message);
+    }
   };
 
   return (
@@ -73,6 +84,13 @@ export function OrdersPage() {
                         <option key={status} value={status}>{status}</option>
                       ))}
                     </select>
+                    <button
+                      type="button"
+                      onClick={() => remove(order.id)}
+                      className="ml-3 text-[var(--destructive)] hover:underline"
+                    >
+                      Удалить
+                    </button>
                   </td>
                 </tr>
                 {expandedId === order.id && (

@@ -84,9 +84,12 @@ APP_DIR=/var/www/terrasound.by
 GIT_BRANCH=main
 API_SERVICE=terrasound-api
 VITE_API_URL=https://terrasound.by
+ADMIN_VITE_API_URL=
 VITE_SITE_URL=https://terrasound.by
 PRERENDER_API_URL=http://127.0.0.1:8000
 ```
+
+Админка (`admin.terrasound.by`) должна собираться с **пустым** `ADMIN_VITE_API_URL` и проксировать `/api/` через `deploy/nginx/admin.terrasound.by.conf` — иначе браузер ходит на `terrasound.by/api` с другого домена и при ошибках API часто показывает «CORS error».
 
 ## Пример `backend/.env` (production)
 

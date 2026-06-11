@@ -95,8 +95,6 @@ def _apply_product_filters(
     price_max: float | None,
     attr_filters: dict | None = None,
 ):
-    query = query.filter(Product.in_stock.is_(True))
-
     if category:
         query = query.filter(Product.category == category)
     if brands:

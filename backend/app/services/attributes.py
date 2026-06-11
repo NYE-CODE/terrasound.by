@@ -262,7 +262,7 @@ def get_category_filters(db: Session, category_id: str) -> CategoryFiltersOut:
             func.min(effective_price_expr()).label("min_price"),
             func.max(effective_price_expr()).label("max_price"),
         )
-        .filter(Product.category == category_id, Product.in_stock.is_(True))
+        .filter(Product.category == category_id)
         .one()
     )
     price_min = float(price_stats.min_price or 0)

@@ -46,3 +46,16 @@ def update_order_status(
     db.commit()
     db.refresh(order)
     return OrderOut.model_validate(order)
+
+
+@router.delete("/{order_id}", status_code=204)
+def delete_order(
+    order_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    _: Annotated[AdminUser, Depends(get_current_admin)],
+) -> None:
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+    db.delete(order)
+    db.commit()

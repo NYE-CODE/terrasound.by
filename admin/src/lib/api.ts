@@ -68,6 +68,9 @@ export const api = {
       body: JSON.stringify({ status }),
     }, token),
 
+  deleteOrder: (token: string, orderId: string) =>
+    request<void>(`/api/admin/orders/${orderId}`, { method: "DELETE" }, token),
+
   productReviews: (token: string) =>
     request<ProductReview[]>("/api/admin/reviews/product", {}, token),
 
@@ -97,6 +100,9 @@ export const api = {
 
   installationRequests: (token: string) =>
     request<InstallationRequest[]>("/api/admin/installation-requests", {}, token),
+
+  deleteInstallationRequest: (token: string, requestId: string) =>
+    request<void>(`/api/admin/installation-requests/${requestId}`, { method: "DELETE" }, token),
 
   products: (token: string) => request<AdminProduct[]>("/api/admin/products", {}, token),
 
