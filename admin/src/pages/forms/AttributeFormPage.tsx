@@ -11,7 +11,8 @@ import {
   filterTypeHint,
 } from "../../lib/filterTypes";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { ApiError, api, type AttributeInput } from "../../lib/api";
+import { reportFormError } from "../../lib/formError";
+import { api, type AttributeInput } from "../../lib/api";
 
 const emptyForm: AttributeInput = {
   id: "",
@@ -86,8 +87,7 @@ export function AttributeFormPage() {
       }
       navigate("/attributes");
     } catch (error) {
-      console.error(error);
-      if (error instanceof ApiError) alert(error.message);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

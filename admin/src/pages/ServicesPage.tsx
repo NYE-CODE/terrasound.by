@@ -4,6 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type InstallationService } from "../lib/api";
 
 export function ServicesPage() {
@@ -20,8 +21,12 @@ export function ServicesPage() {
 
   const remove = async (id: string) => {
     if (!token || !confirm("Удалить услугу?")) return;
-    await api.deleteService(token, id);
-    load();
+    try {
+      await api.deleteService(token, id);
+      load();
+    } catch (error) {
+      reportActionError(error);
+    }
   };
 
   return (

@@ -4,6 +4,7 @@ import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
+import { reportFormError } from "../../lib/formError";
 import { api, type BlogPostInput } from "../../lib/api";
 
 const emptyForm: BlogPostInput = {
@@ -52,7 +53,7 @@ export function BlogFormPage() {
       }
       navigate("/blog");
     } catch (error) {
-      console.error(error);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

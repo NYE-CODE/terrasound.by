@@ -3,7 +3,10 @@ import logging
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.db_errors import integrity_error_detail, integrity_error_status
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +18,14 @@ async def validation_exception_handler(
     return JSONResponse(
         status_code=422,
         content={"detail": "Некорректные данные запроса"},
+    )
+
+
+async def integrity_exception_handler(_: Request, exc: IntegrityError) -> JSONResponse:
+    logger.warning("Integrity error: %s", exc)
+    return JSONResponse(
+        status_code=integrity_error_status(exc),
+        content={"detail": integrity_error_detail(exc)},
     )
 
 

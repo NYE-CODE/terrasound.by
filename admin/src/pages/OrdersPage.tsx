@@ -4,7 +4,8 @@ import { Pagination } from "../components/Pagination";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { ApiError, api, type Order, type OrderStatus } from "../lib/api";
+import { reportActionError } from "../lib/formError";
+import { api, type Order, type OrderStatus } from "../lib/api";
 
 const statuses: OrderStatus[] = ["new", "confirmed", "completed", "cancelled"];
 
@@ -23,8 +24,12 @@ export function OrdersPage() {
 
   const updateStatus = async (orderId: string, status: OrderStatus) => {
     if (!token) return;
-    await api.updateOrderStatus(token, orderId, status);
-    load();
+    try {
+      await api.updateOrderStatus(token, orderId, status);
+      load();
+    } catch (error) {
+      reportActionError(error, "Не удалось обновить статус заказа.");
+    }
   };
 
   const remove = async (orderId: string) => {
@@ -34,7 +39,7 @@ export function OrdersPage() {
       if (expandedId === orderId) setExpandedId(null);
       load();
     } catch (error) {
-      if (error instanceof ApiError) alert(error.message);
+      reportActionError(error);
     }
   };
 

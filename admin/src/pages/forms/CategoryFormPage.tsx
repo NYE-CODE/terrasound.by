@@ -10,7 +10,8 @@ import {
   type CategoryAttributeDraft,
 } from "../../lib/categoryAttributeDraft";
 import { formCardClass, inputClass } from "../../lib/formStyles";
-import { ApiError, api, type AttributeDef, type CategoryAttributeLink, type CategoryInput, type CategoryUpdateInput } from "../../lib/api";
+import { reportFormError } from "../../lib/formError";
+import { api, type AttributeDef, type CategoryAttributeLink, type CategoryInput, type CategoryUpdateInput } from "../../lib/api";
 
 const emptyForm: CategoryInput = {
   id: "",
@@ -82,8 +83,7 @@ export function CategoryFormPage() {
         navigate(`/categories/${form.id}/edit`);
       }
     } catch (error) {
-      console.error(error);
-      if (error instanceof ApiError) alert(error.message);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

@@ -4,6 +4,7 @@ import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
+import { reportFormError } from "../../lib/formError";
 import { api, type BrandInput } from "../../lib/api";
 
 const emptyForm: BrandInput = {
@@ -54,7 +55,7 @@ export function BrandFormPage() {
       }
       navigate("/brands");
     } catch (error) {
-      console.error(error);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

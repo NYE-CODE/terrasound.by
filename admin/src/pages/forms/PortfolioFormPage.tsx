@@ -4,6 +4,7 @@ import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass } from "../../lib/formStyles";
+import { reportFormError } from "../../lib/formError";
 import { api, type PortfolioWorkInput } from "../../lib/api";
 
 const emptyForm: PortfolioWorkInput = {
@@ -54,7 +55,7 @@ export function PortfolioFormPage() {
       }
       navigate("/portfolio");
     } catch (error) {
-      console.error(error);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

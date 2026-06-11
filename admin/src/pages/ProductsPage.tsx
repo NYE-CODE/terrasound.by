@@ -4,6 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type AdminProduct, type CategoryAdmin } from "../lib/api";
 
 export function ProductsPage() {
@@ -28,8 +29,12 @@ export function ProductsPage() {
 
   const remove = async (productId: string) => {
     if (!token || !confirm("Удалить товар?")) return;
-    await api.deleteProduct(token, productId);
-    load();
+    try {
+      await api.deleteProduct(token, productId);
+      load();
+    } catch (error) {
+      reportActionError(error);
+    }
   };
 
   return (

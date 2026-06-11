@@ -78,6 +78,14 @@ export async function syncCategoryAttributes(
   initial: CategoryAttributeLink[],
   draft: CategoryAttributeDraft[],
 ) {
+  const seen = new Set<string>();
+  for (const item of draft) {
+    if (seen.has(item.attributeId)) {
+      throw new Error(`Характеристика «${item.attributeLabel}» добавлена дважды.`);
+    }
+    seen.add(item.attributeId);
+  }
+
   const draftWithOrder = draft.map((item, index) => ({ ...item, sortOrder: index }));
   const draftIds = new Set(draftWithOrder.filter((item) => item.id).map((item) => item.id!));
 

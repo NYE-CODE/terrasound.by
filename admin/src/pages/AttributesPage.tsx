@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { RowActions } from "../components/RowActions";
 import { useAuth } from "../context/AuthContext";
-import { ApiError, api, type AttributeDef } from "../lib/api";
+import { reportActionError } from "../lib/formError";
+import { api, type AttributeDef } from "../lib/api";
 import { FILTER_TYPE_LABELS, VALUE_TYPE_LABELS } from "../lib/filterTypes";
 
 export function AttributesPage() {
@@ -17,12 +18,12 @@ export function AttributesPage() {
   useEffect(load, [token]);
 
   const remove = async (id: string) => {
-    if (!token) return;
+    if (!token || !confirm("Удалить атрибут?")) return;
     try {
       await api.deleteAttribute(token, id);
       load();
     } catch (error) {
-      if (error instanceof ApiError) alert(error.message);
+      reportActionError(error);
     }
   };
 

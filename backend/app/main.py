@@ -5,7 +5,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.exceptions import unhandled_exception_handler, validation_exception_handler
+from app.exceptions import (
+    integrity_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
+from sqlalchemy.exc import IntegrityError
 from app.rate_limit import RateLimitMiddleware
 from app.database import Base, SessionLocal, engine
 from app.migrations import run_migrations
@@ -45,6 +50,7 @@ app = FastAPI(
 )
 
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(IntegrityError, integrity_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
 app.add_middleware(RateLimitMiddleware)

@@ -4,7 +4,8 @@ import { Pagination } from "../components/Pagination";
 import { RowActions } from "../components/RowActions";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { ApiError, api, type CategoryAdmin } from "../lib/api";
+import { reportActionError } from "../lib/formError";
+import { api, type CategoryAdmin } from "../lib/api";
 
 export function CategoriesPage() {
   const { token } = useAuth();
@@ -32,7 +33,7 @@ export function CategoriesPage() {
       await api.deleteCategory(token, id);
       load();
     } catch (error) {
-      if (error instanceof ApiError) alert(error.message);
+      reportActionError(error);
     }
   };
 

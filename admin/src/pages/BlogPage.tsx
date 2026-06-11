@@ -4,6 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type BlogPost } from "../lib/api";
 
 export function BlogPage() {
@@ -20,8 +21,12 @@ export function BlogPage() {
 
   const remove = async (id: string) => {
     if (!token || !confirm("Удалить статью?")) return;
-    await api.deleteBlogPost(token, id);
-    load();
+    try {
+      await api.deleteBlogPost(token, id);
+      load();
+    } catch (error) {
+      reportActionError(error);
+    }
   };
 
   return (

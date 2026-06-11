@@ -4,6 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type PortfolioWork } from "../lib/api";
 
 export function PortfolioPage() {
@@ -20,8 +21,12 @@ export function PortfolioPage() {
 
   const remove = async (id: string) => {
     if (!token || !confirm("Удалить работу?")) return;
-    await api.deletePortfolioWork(token, id);
-    load();
+    try {
+      await api.deletePortfolioWork(token, id);
+      load();
+    } catch (error) {
+      reportActionError(error);
+    }
   };
 
   return (

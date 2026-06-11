@@ -111,7 +111,20 @@ def get_attribute_or_404(db: Session, attribute_id: str) -> Attribute:
     return attribute
 
 
+def _validate_option_values(options: list) -> None:
+    values = [option.value for option in options]
+    if len(values) != len(set(values)):
+        raise HTTPException(
+            status_code=400,
+            detail="Коды вариантов должны быть уникальными. Укажите латинский код через двоеточие: stock: Штатная АС",
+        )
+    for value in values:
+        if not value or value.strip("_") == "":
+            raise HTTPException(status_code=400, detail="У каждого варианта должен быть непустой код")
+
+
 def _sync_options(db: Session, attribute: Attribute, options: list) -> None:
+    _validate_option_values(options)
     for option in list(attribute.options):
         db.delete(option)
     db.flush()
@@ -130,6 +143,8 @@ def create_attribute(db: Session, payload: AttributeCreate) -> Attribute:
     if db.query(Attribute).filter(Attribute.id == payload.id).first():
         raise HTTPException(status_code=400, detail="Атрибут с таким ID уже существует")
     option_count = len(payload.options) if payload.value_type == "enum" else 0
+    if payload.value_type == "enum" and option_count == 0:
+        raise HTTPException(status_code=400, detail="Добавьте хотя бы один вариант списка")
     filter_type = _resolve_attribute_filter_type(payload.value_type, option_count, payload.filter_type)
     attribute = Attribute(
         id=payload.id,
@@ -187,9 +202,17 @@ def update_attribute(db: Session, attribute_id: str, payload: AttributeUpdate) -
 
 def delete_attribute(db: Session, attribute_id: str) -> None:
     attribute = get_attribute_or_404(db, attribute_id)
-    in_use = db.query(CategoryAttribute).filter(CategoryAttribute.attribute_id == attribute_id).count()
-    if in_use:
+    category_links = db.query(CategoryAttribute).filter(CategoryAttribute.attribute_id == attribute_id).count()
+    if category_links:
         raise HTTPException(status_code=409, detail="Атрибут используется в категориях")
+    product_values = (
+        db.query(ProductAttributeValue).filter(ProductAttributeValue.attribute_id == attribute_id).count()
+    )
+    if product_values:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Атрибут используется в {product_values} товар(ах). Сначала уберите его из товаров.",
+        )
     db.delete(attribute)
     db.commit()
 

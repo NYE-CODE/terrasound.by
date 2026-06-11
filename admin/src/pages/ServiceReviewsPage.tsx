@@ -4,6 +4,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type ServiceReview } from "../lib/api";
 
 export function ServiceReviewsPage() {
@@ -20,14 +21,22 @@ export function ServiceReviewsPage() {
 
   const togglePublished = async (review: ServiceReview) => {
     if (!token) return;
-    await api.updateServiceReview(token, review.id, { published: !review.published });
-    load();
+    try {
+      await api.updateServiceReview(token, review.id, { published: !review.published });
+      load();
+    } catch (error) {
+      reportActionError(error, "Не удалось изменить статус публикации.");
+    }
   };
 
   const remove = async (reviewId: string) => {
     if (!token || !confirm("Удалить отзыв?")) return;
-    await api.deleteServiceReview(token, reviewId);
-    load();
+    try {
+      await api.deleteServiceReview(token, reviewId);
+      load();
+    } catch (error) {
+      reportActionError(error);
+    }
   };
 
   return (

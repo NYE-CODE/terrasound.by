@@ -4,6 +4,7 @@ import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
+import { reportFormError } from "../../lib/formError";
 import { api } from "../../lib/api";
 
 export function ServiceReviewFormPage() {
@@ -23,7 +24,7 @@ export function ServiceReviewFormPage() {
       await api.createServiceReview(token, { author, car: car || undefined, rating, text, published: true });
       navigate("/reviews/service");
     } catch (error) {
-      console.error(error);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

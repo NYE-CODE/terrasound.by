@@ -2,7 +2,18 @@ import type { AttributeOption } from "./api";
 
 /** Одна строка textarea → массив опций для API */
 export function textToOptions(value: string): AttributeOption[] {
-  return splitOptionLines(value).map((line, index) => lineToOption(line, index));
+  const used = new Set<string>();
+  return splitOptionLines(value).map((line, index) => {
+    const option = lineToOption(line, index);
+    let nextValue = option.value;
+    let suffix = 1;
+    while (used.has(nextValue)) {
+      nextValue = `${option.value}_${suffix}`;
+      suffix += 1;
+    }
+    used.add(nextValue);
+    return { ...option, value: nextValue };
+  });
 }
 
 /** Массив опций из API → многострочный текст для textarea */
@@ -73,16 +84,23 @@ function lineToOption(line: string, index: number): AttributeOption {
   if (colon > 0) {
     const code = cleaned.slice(0, colon).trim();
     const label = cleaned.slice(colon + 1).trim();
-    if (code && label && !code.includes(" ")) {
+    if (code && label && !code.includes(" ") && code.replace(/_/g, "").length > 0) {
       return { value: code, label, sortOrder: index };
     }
   }
 
-  const slug =
-    cleaned
-      .toLowerCase()
-      .replace(/\s+/g, "_")
-      .replace(/[^a-z0-9_]/g, "") || `opt_${index}`;
+  const slug = slugFromLabel(cleaned, index);
 
   return { value: slug, label: cleaned, sortOrder: index };
+}
+
+function slugFromLabel(text: string, index: number): string {
+  const ascii = text
+    .toLowerCase()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "")
+    .replace(/^_+|_+$/g, "");
+
+  if (!ascii) return `opt_${index}`;
+  return ascii;
 }

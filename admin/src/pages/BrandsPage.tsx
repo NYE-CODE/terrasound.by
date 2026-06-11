@@ -4,6 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type Brand } from "../lib/api";
 
 export function BrandsPage() {
@@ -20,8 +21,12 @@ export function BrandsPage() {
 
   const remove = async (id: string) => {
     if (!token || !confirm("Удалить бренд?")) return;
-    await api.deleteBrand(token, id);
-    load();
+    try {
+      await api.deleteBrand(token, id);
+      load();
+    } catch (error) {
+      reportActionError(error);
+    }
   };
 
   return (

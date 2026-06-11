@@ -5,6 +5,7 @@ import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
+import { reportFormError } from "../../lib/formError";
 import { api, type CategoryAdmin, type CategoryAttributeSchema, type ProductInput } from "../../lib/api";
 
 const emptyForm: ProductInput = {
@@ -107,7 +108,7 @@ export function ProductFormPage() {
       }
       navigate("/products");
     } catch (error) {
-      console.error(error);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

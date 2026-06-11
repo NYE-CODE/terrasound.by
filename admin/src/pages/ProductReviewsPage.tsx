@@ -3,6 +3,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
+import { reportActionError } from "../lib/formError";
 import { api, type ProductReview } from "../lib/api";
 import { maskEmail } from "../lib/maskEmail";
 
@@ -21,8 +22,12 @@ export function ProductReviewsPage() {
 
   const togglePublished = async (review: ProductReview) => {
     if (!token) return;
-    await api.updateProductReview(token, review.id, !review.published);
-    load();
+    try {
+      await api.updateProductReview(token, review.id, !review.published);
+      load();
+    } catch (error) {
+      reportActionError(error, "Не удалось изменить статус публикации.");
+    }
   };
 
   return (

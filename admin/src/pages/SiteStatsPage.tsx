@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { formCardClass, inputClass } from "../lib/formStyles";
+import { reportFormError } from "../lib/formError";
 import { api, type SiteStats, type SiteStatsInput } from "../lib/api";
 
 const defaultForm: SiteStatsInput = {
@@ -43,7 +44,7 @@ export function SiteStatsPage() {
       });
       setSaved(true);
     } catch (error) {
-      console.error(error);
+      reportFormError(error);
     } finally {
       setSubmitting(false);
     }

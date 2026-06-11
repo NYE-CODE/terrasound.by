@@ -3,7 +3,8 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { ApiError, api, type InstallationRequest } from "../lib/api";
+import { reportActionError } from "../lib/formError";
+import { api, type InstallationRequest } from "../lib/api";
 
 export function InstallationRequestsPage() {
   const { token } = useAuth();
@@ -23,7 +24,7 @@ export function InstallationRequestsPage() {
       await api.deleteInstallationRequest(token, requestId);
       load();
     } catch (error) {
-      if (error instanceof ApiError) alert(error.message);
+      reportActionError(error);
     }
   };
 
