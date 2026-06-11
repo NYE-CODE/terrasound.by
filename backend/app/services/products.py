@@ -93,6 +93,7 @@ def _apply_product_filters(
     year: int | None,
     price_min: float | None,
     price_max: float | None,
+    in_stock: list[bool] | None = None,
     attr_filters: dict | None = None,
 ):
     if category:
@@ -107,6 +108,11 @@ def _apply_product_filters(
         query = query.filter(effective >= price_min)
     if price_max is not None:
         query = query.filter(effective <= price_max)
+
+    if in_stock:
+        unique = set(in_stock)
+        if len(unique) == 1:
+            query = query.filter(Product.in_stock.is_(next(iter(unique))))
 
     query = apply_vehicle_filter(db, query, make, model, year)
     if attr_filters:
@@ -141,6 +147,7 @@ def list_products(
     year: int | None = None,
     price_min: float | None = None,
     price_max: float | None = None,
+    in_stock: list[bool] | None = None,
     attr_filters: dict | None = None,
     sort: str = "popularity",
     limit: int | None = None,
@@ -164,6 +171,7 @@ def list_products(
         year=year,
         price_min=price_min,
         price_max=price_max,
+        in_stock=in_stock,
         attr_filters=attr_filters,
     )
 

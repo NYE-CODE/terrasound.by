@@ -1,5 +1,11 @@
 import { FilterCombobox } from "../molecules/FilterCombobox";
 import { BrandMultiSelect } from "../molecules/BrandMultiSelect";
+import {
+  StockAvailabilityFilter,
+  type AvailabilityOption,
+  isAvailabilityFilterActive,
+} from "../molecules/StockAvailabilityFilter";
+import { AvailabilityFilter, countAvailabilityFilter, type AvailabilityFilter as AvailabilityFilterValue } from "../molecules/AvailabilityFilter";
 import { AttributeFilters, countAttributeFilters, type AttributeFilterState } from "./AttributeFilters";
 import type { Category, CategoryFilters } from "../../lib/api";
 
@@ -16,6 +22,8 @@ interface CatalogueFiltersPanelProps {
   categoryFilters: CategoryFilters | null;
   attributeFilters: AttributeFilterState;
   onAttributeFiltersChange: (values: AttributeFilterState) => void;
+  availabilityFilter: AvailabilityFilterValue;
+  onAvailabilityFilterChange: (values: AvailabilityFilterValue) => void;
 }
 
 export function CatalogueFiltersPanel({
@@ -31,6 +39,8 @@ export function CatalogueFiltersPanel({
   categoryFilters,
   attributeFilters,
   onAttributeFiltersChange,
+  availabilityFilter,
+  onAvailabilityFilterChange,
 }: CatalogueFiltersPanelProps) {
   const categoryOptions = categories.map((category) => ({
     value: category.id,
@@ -50,6 +60,8 @@ export function CatalogueFiltersPanel({
         allLabel="Все категории"
       />
 
+      <AvailabilityFilter selected={availabilityFilter} onChange={onAvailabilityFilterChange} />
+
       <div className="pt-6 border-t border-border">
         <BrandMultiSelect
           brands={brands}
@@ -57,6 +69,8 @@ export function CatalogueFiltersPanel({
           onChange={onBrandsChange}
         />
       </div>
+
+      <StockAvailabilityFilter selected={availability} onChange={onAvailabilityChange} />
 
       <div className="pt-6 border-t border-border">
         <h3 className="font-heading text-sm uppercase tracking-wider mb-4">Ценовой диапазон</h3>

@@ -4,6 +4,10 @@ import { ProductCard } from "../components/organisms/ProductCard";
 import { CatalogueFiltersDrawer } from "../components/organisms/CatalogueFiltersDrawer";
 import { CatalogueFiltersPanel, countActiveFilters } from "../components/organisms/CatalogueFiltersPanel";
 import { buildAttributeQuery, type AttributeFilterState } from "../components/organisms/AttributeFilters";
+import {
+  availabilityToQuery,
+  type AvailabilityOption,
+} from "../components/molecules/StockAvailabilityFilter";
 import { Pagination } from "../components/molecules/Pagination";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { usePageMeta } from "../hooks/usePageMeta";
