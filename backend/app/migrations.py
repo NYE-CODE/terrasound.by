@@ -73,15 +73,19 @@ def _migrate_catalog_categories(engine: Engine) -> None:
         return
 
     inspector = inspect(engine)
-    if "categories" not in inspector.get_table_names():
+    tables = set(inspector.get_table_names())
+    if "categories" not in tables:
         return
 
     renames = [
         ("head-units", "sources", "Источники"),
         ("accessories", "wiring", "Проводка и сопутствующие"),
     ]
+    has_category_attributes = "category_attributes" in tables
+
     with engine.begin() as conn:
         conn.execute(text("UPDATE products SET category = 'speakers' WHERE category = 'subwoofers'"))
+
         for old_id, new_id, new_name in renames:
             exists_old = conn.execute(
                 text("SELECT 1 FROM categories WHERE id = :id"), {"id": old_id}
@@ -89,16 +93,37 @@ def _migrate_catalog_categories(engine: Engine) -> None:
             exists_new = conn.execute(
                 text("SELECT 1 FROM categories WHERE id = :id"), {"id": new_id}
             ).fetchone()
+
             if exists_old and not exists_new:
-                conn.execute(text("UPDATE products SET category = :new WHERE category = :old"), {"new": new_id, "old": old_id})
                 conn.execute(
-                    text("UPDATE categories SET id = :new, name = :name WHERE id = :old"),
-                    {"new": new_id, "name": new_name, "old": old_id},
+                    text(
+                        "INSERT INTO categories (id, name, image_url, sort_order, grid_cols, grid_tall, published) "
+                        "SELECT :new_id, :new_name, image_url, sort_order, grid_cols, grid_tall, published "
+                        "FROM categories WHERE id = :old_id"
+                    ),
+                    {"new_id": new_id, "new_name": new_name, "old_id": old_id},
+                )
+            elif exists_new:
+                conn.execute(
+                    text("UPDATE categories SET name = :name WHERE id = :id"),
+                    {"name": new_name, "id": new_id},
                 )
 
-        conn.execute(
-            text("UPDATE categories SET name = 'Динамики' WHERE id = 'speakers'")
-        )
+            conn.execute(
+                text("UPDATE products SET category = :new WHERE category = :old"),
+                {"new": new_id, "old": old_id},
+            )
+            if has_category_attributes:
+                conn.execute(
+                    text("UPDATE category_attributes SET category_id = :new WHERE category_id = :old"),
+                    {"new": new_id, "old": old_id},
+                )
+
+            if exists_old:
+                conn.execute(text("DELETE FROM categories WHERE id = :old"), {"old": old_id})
+
+        conn.execute(text("UPDATE categories SET name = 'Динамики' WHERE id = 'speakers'"))
+
         processors = conn.execute(
             text("SELECT 1 FROM categories WHERE id = 'processors'")
         ).fetchone()
