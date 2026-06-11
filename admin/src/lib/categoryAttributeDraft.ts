@@ -116,3 +116,18 @@ export function patchDraft(
 export function removeDraft(links: CategoryAttributeDraft[], clientId: string): CategoryAttributeDraft[] {
   return links.filter((link) => link.clientId !== clientId);
 }
+
+export function reorderDraft(
+  links: CategoryAttributeDraft[],
+  fromClientId: string,
+  toClientId: string,
+): CategoryAttributeDraft[] {
+  const fromIndex = links.findIndex((link) => link.clientId === fromClientId);
+  const toIndex = links.findIndex((link) => link.clientId === toClientId);
+  if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return links;
+
+  const next = [...links];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next.map((item, index) => ({ ...item, sortOrder: index }));
+}

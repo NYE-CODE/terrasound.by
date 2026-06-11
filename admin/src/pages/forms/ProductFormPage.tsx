@@ -1,12 +1,12 @@
-import { FormEvent, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ProductAttributeFields } from "../../components/ProductAttributeFields";
 import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
 import { reportFormError } from "../../lib/formError";
-import { api, type CategoryAdmin, type CategoryAttributeSchema, type ProductInput } from "../../lib/api";
+import { api, type Brand, type CategoryAdmin, type CategoryAttributeSchema, type ProductInput } from "../../lib/api";
 
 const emptyForm: ProductInput = {
   brand: "",
@@ -53,13 +53,22 @@ export function ProductFormPage() {
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<CategoryAdmin[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [attributeSchema, setAttributeSchema] = useState<CategoryAttributeSchema[]>([]);
   const [attributeValues, setAttributeValues] = useState<Record<string, string | number | boolean | null>>({});
 
   useEffect(() => {
     if (!token) return;
-    api.categories(token).then(setCategories).catch(console.error);
+    Promise.all([api.categories(token), api.brands(token)])
+      .then(([categoryItems, brandItems]) => {
+        setCategories(categoryItems);
+        setBrands(brandItems);
+      })
+      .catch(console.error);
   }, [token]);
+
+  const brandNames = useMemo(() => new Set(brands.map((brand) => brand.name)), [brands]);
+  const currentBrandMissing = Boolean(form.brand && !brandNames.has(form.brand));
 
   useEffect(() => {
     if (!token || !id) return;
@@ -126,7 +135,29 @@ export function ProductFormPage() {
       />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid md:grid-cols-2 gap-4 max-w-4xl`}>
-        <input placeholder="Бренд" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className={inputClass} required />
+        <div>
+          <label className="block text-sm mb-1">Бренд</label>
+          <select
+            value={form.brand}
+            onChange={(e) => setForm({ ...form, brand: e.target.value })}
+            className={inputClass}
+            required
+          >
+            <option value="">Выберите бренд</option>
+            {brands.map((brand) => (
+              <option key={brand.id} value={brand.name}>
+                {brand.name}
+                {!brand.published ? " (скрыт)" : ""}
+              </option>
+            ))}
+            {currentBrandMissing && (
+              <option value={form.brand}>{form.brand} (нет в справочнике)</option>
+            )}
+          </select>
+          <Link to="/brands/new" className="inline-block mt-1 text-xs text-[var(--accent)] hover:underline">
+            + Новый бренд
+          </Link>
+        </div>
         <input placeholder="Название" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} required />
         <input type="number" step="0.01" placeholder="Цена" value={form.price || ""} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className={inputClass} required />
         <input
