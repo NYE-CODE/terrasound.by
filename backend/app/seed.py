@@ -677,6 +677,8 @@ def _seed_site_stats(db: Session) -> None:
 
 
 def _seed_attributes(db: Session) -> None:
+    from app.filter_types import resolve_default_filter_type
+
     if db.query(Attribute).count() == 0:
         for item in ATTRIBUTE_DEFINITIONS:
             options = item.get("options", [])
@@ -685,6 +687,7 @@ def _seed_attributes(db: Session) -> None:
                 label=item["label"],
                 value_type=item["value_type"],
                 unit=item.get("unit"),
+                filter_type=resolve_default_filter_type(item["value_type"], len(options)),
             )
             db.add(attribute)
             db.flush()

@@ -351,6 +351,7 @@ export interface AttributeDef {
   label: string;
   valueType: string;
   unit?: string | null;
+  filterType?: string | null;
   options: AttributeOption[];
 }
 
@@ -359,6 +360,7 @@ export interface AttributeInput {
   label: string;
   valueType: string;
   unit?: string | null;
+  filterType?: string | null;
   options?: AttributeOption[];
 }
 

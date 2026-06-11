@@ -1,6 +1,9 @@
 import type { CategoryFilter, CategoryFilters } from "../../lib/api";
 
-export type AttributeFilterState = Record<string, string | boolean | { min?: number; max?: number }>;
+export type AttributeFilterState = Record<
+  string,
+  string | string[] | boolean | { min?: number; max?: number }
+>;
 
 interface AttributeFiltersProps {
   config: CategoryFilters | null;
@@ -11,9 +14,17 @@ interface AttributeFiltersProps {
 export function AttributeFilters({ config, values, onChange }: AttributeFiltersProps) {
   if (!config || config.filters.length === 0) return null;
 
-  const setValue = (attributeId: string, value: string | boolean | { min?: number; max?: number } | undefined) => {
+  const setValue = (
+    attributeId: string,
+    value: string | string[] | boolean | { min?: number; max?: number } | undefined,
+  ) => {
     const next = { ...values };
-    if (value === undefined || value === "" || value === false) {
+    if (
+      value === undefined
+      || value === ""
+      || value === false
+      || (Array.isArray(value) && value.length === 0)
+    ) {
       delete next[attributeId];
     } else {
       next[attributeId] = value;
@@ -55,8 +66,8 @@ function FilterField({
   onChange,
 }: {
   filter: CategoryFilter;
-  value: string | boolean | { min?: number; max?: number } | undefined;
-  onChange: (value: string | boolean | { min?: number; max?: number } | undefined) => void;
+  value: string | string[] | boolean | { min?: number; max?: number } | undefined;
+  onChange: (value: string | string[] | boolean | { min?: number; max?: number } | undefined) => void;
 }) {
   if (filter.filterType === "checkbox") {
     return (
@@ -73,7 +84,7 @@ function FilterField({
   }
 
   if (filter.filterType === "range") {
-    const range = typeof value === "object" && value ? value : {};
+    const range = typeof value === "object" && value && !Array.isArray(value) ? value : {};
     const min = filter.filterMin ?? 0;
     const max = filter.filterMax ?? 100;
     const currentMax = range.max ?? max;
@@ -103,7 +114,34 @@ function FilterField({
     );
   }
 
-  if (filter.filterType === "dropdown" || filter.filterType === "multiselect") {
+  if (filter.filterType === "multiselect") {
+    const selected = Array.isArray(value) ? value : value ? [value] : [];
+    return (
+      <div>
+        <h4 className="font-heading text-sm uppercase tracking-wider mb-2">{filter.label}</h4>
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          {filter.options.map((opt) => (
+            <label key={opt.value} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt.value)}
+                onChange={(e) => {
+                  const next = e.target.checked
+                    ? [...selected, opt.value]
+                    : selected.filter((item) => item !== opt.value);
+                  onChange(next.length ? next : undefined);
+                }}
+                className="accent-accent"
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (filter.filterType === "dropdown") {
     return (
       <div>
         <h4 className="font-heading text-sm uppercase tracking-wider mb-2">{filter.label}</h4>
@@ -127,7 +165,10 @@ function FilterField({
 }
 
 export function countAttributeFilters(values: AttributeFilterState) {
-  return Object.keys(values).length;
+  return Object.values(values).reduce((count, value) => {
+    if (Array.isArray(value)) return count + value.length;
+    return count + 1;
+  }, 0);
 }
 
 export function buildAttributeQuery(values: AttributeFilterState): string {
@@ -137,6 +178,10 @@ export function buildAttributeQuery(values: AttributeFilterState): string {
       if (value) params.set(`attr.${attributeId}`, "true");
     } else if (typeof value === "string") {
       params.set(`attr.${attributeId}`, value);
+    } else if (Array.isArray(value)) {
+      for (const item of value) {
+        params.append(`attr.${attributeId}`, item);
+      }
     } else if (value && typeof value === "object") {
       if (value.min != null) params.set(`attr.${attributeId}.min`, String(value.min));
       if (value.max != null) params.set(`attr.${attributeId}.max`, String(value.max));

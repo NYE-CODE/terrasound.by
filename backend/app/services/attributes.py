@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
+from app.filter_types import allowed_filter_types, effective_filter_type, resolve_default_filter_type
 from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, ProductAttributeValue
 from app.models.content import Category
 from app.models.product import Product
@@ -30,17 +31,43 @@ def _options_out(attribute: Attribute) -> list[AttributeOptionOut]:
 
 
 def attribute_to_out(attribute: Attribute) -> AttributeOut:
+    option_count = len(attribute.options)
+    filter_type = attribute.filter_type or resolve_default_filter_type(attribute.value_type, option_count)
     return AttributeOut(
         id=attribute.id,
         label=attribute.label,
         value_type=attribute.value_type,
         unit=attribute.unit,
+        filter_type=filter_type,
         options=_options_out(attribute),
     )
 
 
+def _resolve_attribute_filter_type(
+    value_type: str,
+    option_count: int,
+    filter_type: str | None,
+) -> str | None:
+    if filter_type:
+        allowed = allowed_filter_types(value_type)
+        if filter_type not in allowed:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Вид фильтра «{filter_type}» недоступен для типа «{value_type}»",
+            )
+        return filter_type
+    return resolve_default_filter_type(value_type, option_count)
+
+
 def category_attribute_to_out(link: CategoryAttribute) -> CategoryAttributeOut:
     attr = link.attribute
+    option_count = len(attr.options)
+    filter_type = effective_filter_type(
+        attr.value_type,
+        option_count,
+        attr.filter_type,
+        link.filter_type,
+    )
     return CategoryAttributeOut(
         id=link.id,
         category_id=link.category_id,
@@ -52,7 +79,7 @@ def category_attribute_to_out(link: CategoryAttribute) -> CategoryAttributeOut:
         show_in_form=link.show_in_form,
         show_in_filters=link.show_in_filters,
         show_on_card=link.show_on_card,
-        filter_type=link.filter_type,
+        filter_type=filter_type,
         filter_min=link.filter_min,
         filter_max=link.filter_max,
         filter_step=link.filter_step,
@@ -87,6 +114,7 @@ def get_attribute_or_404(db: Session, attribute_id: str) -> Attribute:
 def _sync_options(db: Session, attribute: Attribute, options: list) -> None:
     for option in list(attribute.options):
         db.delete(option)
+    db.flush()
     for index, option in enumerate(options):
         db.add(
             AttributeOption(
@@ -101,11 +129,14 @@ def _sync_options(db: Session, attribute: Attribute, options: list) -> None:
 def create_attribute(db: Session, payload: AttributeCreate) -> Attribute:
     if db.query(Attribute).filter(Attribute.id == payload.id).first():
         raise HTTPException(status_code=400, detail="Атрибут с таким ID уже существует")
+    option_count = len(payload.options) if payload.value_type == "enum" else 0
+    filter_type = _resolve_attribute_filter_type(payload.value_type, option_count, payload.filter_type)
     attribute = Attribute(
         id=payload.id,
         label=payload.label,
         value_type=payload.value_type,
-        unit=payload.unit,
+        unit=payload.unit if payload.value_type == "number" else None,
+        filter_type=filter_type,
     )
     db.add(attribute)
     db.flush()
@@ -118,13 +149,38 @@ def create_attribute(db: Session, payload: AttributeCreate) -> Attribute:
 def update_attribute(db: Session, attribute_id: str, payload: AttributeUpdate) -> Attribute:
     attribute = get_attribute_or_404(db, attribute_id)
     data = payload.model_dump(exclude_unset=True)
-    options = data.pop("options", None)
-    for field, value in data.items():
-        setattr(attribute, field, value)
-    if options is not None:
+    data.pop("options", None)
+
+    if "label" in data:
+        attribute.label = data["label"]
+    if "value_type" in data:
+        attribute.value_type = data["value_type"]
+
+    option_count = len(attribute.options)
+    if payload.options is not None:
+        option_count = len(payload.options)
+
+    if "filter_type" in data or "value_type" in data or payload.options is not None:
+        requested = data.get("filter_type", attribute.filter_type)
+        attribute.filter_type = _resolve_attribute_filter_type(
+            attribute.value_type,
+            option_count,
+            requested,
+        )
+
+    if "unit" in data or "value_type" in data:
+        if attribute.value_type == "number":
+            attribute.unit = data.get("unit")
+        else:
+            attribute.unit = None
+
+    if payload.options is not None:
         if attribute.value_type != "enum":
             raise HTTPException(status_code=400, detail="Опции доступны только для enum-атрибутов")
-        _sync_options(db, attribute, options)
+        _sync_options(db, attribute, payload.options)
+    elif "value_type" in data and data["value_type"] != "enum":
+        _sync_options(db, attribute, [])
+
     db.commit()
     return get_attribute_or_404(db, attribute_id)
 
@@ -161,7 +217,13 @@ def create_category_attribute(
     db: Session, category_id: str, payload: CategoryAttributeCreate
 ) -> CategoryAttributeOut:
     _ensure_category(db, category_id)
-    get_attribute_or_404(db, payload.attribute_id)
+    attr = get_attribute_or_404(db, payload.attribute_id)
+    filter_type = effective_filter_type(
+        attr.value_type,
+        len(attr.options),
+        attr.filter_type,
+        payload.filter_type,
+    )
     exists = (
         db.query(CategoryAttribute)
         .filter(
@@ -172,7 +234,9 @@ def create_category_attribute(
     )
     if exists:
         raise HTTPException(status_code=400, detail="Атрибут уже привязан к категории")
-    link = CategoryAttribute(category_id=category_id, **payload.model_dump())
+    link_data = payload.model_dump()
+    link_data["filter_type"] = filter_type if payload.show_in_filters else None
+    link = CategoryAttribute(category_id=category_id, **link_data)
     db.add(link)
     db.commit()
     db.refresh(link)
@@ -196,7 +260,20 @@ def update_category_attribute(
     )
     if not link:
         raise HTTPException(status_code=404, detail="Привязка не найдена")
-    for field, value in payload.model_dump(exclude_unset=True).items():
+    patch = payload.model_dump(exclude_unset=True)
+    if patch.get("show_in_filters") is True or (
+        patch.get("show_in_filters") is None and link.show_in_filters
+    ):
+        attr = link.attribute
+        patch["filter_type"] = effective_filter_type(
+            attr.value_type,
+            len(attr.options),
+            attr.filter_type,
+            patch.get("filter_type", link.filter_type),
+        )
+    elif patch.get("show_in_filters") is False:
+        patch["filter_type"] = None
+    for field, value in patch.items():
         setattr(link, field, value)
     db.commit()
     db.refresh(link)

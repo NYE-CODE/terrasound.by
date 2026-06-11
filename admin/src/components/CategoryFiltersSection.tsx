@@ -1,22 +1,13 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {
+  FILTER_TYPE_LABELS,
+  VALUE_TYPE_LABELS,
+  defaultFilterType,
+} from "../lib/filterTypes";
 import { formCardClass, inputClass } from "../lib/formStyles";
 import { ApiError, api, type AttributeDef, type CategoryAttributeInput, type CategoryAttributeLink } from "../lib/api";
-
-const VALUE_TYPE_LABELS: Record<string, string> = {
-  text: "Текст",
-  number: "Число",
-  boolean: "Да / нет",
-  enum: "Список вариантов",
-};
-
-function defaultFilterType(valueType: string): string | null {
-  if (valueType === "boolean") return "checkbox";
-  if (valueType === "number") return "range";
-  if (valueType === "enum") return "dropdown";
-  return null;
-}
 
 interface CategoryFiltersSectionProps {
   categoryId: string;
@@ -55,14 +46,13 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
     e.preventDefault();
     if (!token || !newAttributeId) return;
     const attr = allAttributes.find((a) => a.id === newAttributeId);
+    const canFilter = attr ? defaultFilterType(attr.valueType, attr.options.length) !== null : false;
     setSubmitting(true);
     try {
-      const filterType = attr ? defaultFilterType(attr.valueType) : null;
       const payload: CategoryAttributeInput = {
         attributeId: newAttributeId,
         showInForm: true,
-        showInFilters: filterType !== null,
-        filterType,
+        showInFilters: canFilter,
         sortOrder: links.length,
       };
       await api.createCategoryAttribute(token, categoryId, payload);
@@ -77,14 +67,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
 
   const updateLink = async (link: CategoryAttributeLink, patch: Partial<CategoryAttributeInput>) => {
     if (!token) return;
-    let nextPatch = { ...patch };
-    if (patch.showInFilters === true && !link.filterType && !patch.filterType) {
-      nextPatch.filterType = defaultFilterType(link.valueType);
-    }
-    if (patch.showInFilters === false) {
-      nextPatch.filterType = null;
-    }
-    await api.updateCategoryAttribute(token, categoryId, link.id, nextPatch);
+    await api.updateCategoryAttribute(token, categoryId, link.id, patch);
     load();
   };
 
@@ -104,9 +87,9 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
         <div>
           <h2 className="font-heading text-lg">Поля товара и фильтры каталога</h2>
           <p className="text-sm text-[var(--muted-foreground)] mt-1 max-w-2xl">
-            Выберите характеристики для этой категории. «В форме товара» — при создании товара.
-            «В фильтрах» — в каталоге для посетителей. Справочник атрибутов — в разделе{" "}
-            <Link to="/attributes" className="text-[var(--accent)] hover:underline">Атрибуты</Link>.
+            Привяжите характеристики к категории. <strong>Как выглядит фильтр</strong> (галочки, список, ползунок)
+            задаётся при создании атрибута. Здесь — только включить в форму товара / в каталог / на карточку
+            и для чисел — диапазон ползунка.
           </p>
         </div>
         <Link
@@ -142,109 +125,129 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
         </button>
       </form>
 
-      {links.map((link) => (
-        <div key={link.id} className={`${formCardClass} space-y-3`}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="font-heading">{link.attributeLabel}</div>
-              <div className="text-sm text-[var(--muted-foreground)]">
-                {link.attributeId} · {VALUE_TYPE_LABELS[link.valueType] ?? link.valueType}
-                {link.unit ? ` · ${link.unit}` : ""}
-                {link.options.length > 0 && ` · ${link.options.map((o) => o.label).join(", ")}`}
+      {links.map((link) => {
+        const filterLabel = link.filterType ? FILTER_TYPE_LABELS[link.filterType] : null;
+        const canUseInFilters = defaultFilterType(link.valueType, link.options.length) !== null;
+
+        return (
+          <div key={link.id} className={`${formCardClass} space-y-3`}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="font-heading">{link.attributeLabel}</div>
+                <div className="text-sm text-[var(--muted-foreground)]">
+                  {link.attributeId} · {VALUE_TYPE_LABELS[link.valueType] ?? link.valueType}
+                  {link.unit ? ` · ${link.unit}` : ""}
+                  {filterLabel && link.showInFilters ? ` · фильтр: ${filterLabel}` : ""}
+                </div>
+                {link.options.length > 0 && (
+                  <div className="text-xs text-[var(--muted-foreground)] mt-1">
+                    Варианты: {link.options.map((o) => o.label).join(", ")}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <Link
+                  to={`/attributes/${link.attributeId}/edit`}
+                  className="text-sm text-[var(--accent)] hover:underline"
+                >
+                  Изменить атрибут
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => removeLink(link.id)}
+                  className="text-sm text-red-400 hover:text-red-300"
+                >
+                  Убрать
+                </button>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => removeLink(link.id)}
-              className="text-sm text-red-400 hover:text-red-300 shrink-0"
-            >
-              Убрать
-            </button>
-          </div>
 
-          <div className="grid sm:grid-cols-3 gap-3">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={link.showInForm}
-                onChange={(e) => updateLink(link, { showInForm: e.target.checked })}
-              />
-              В форме товара
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={link.showInFilters}
-                onChange={(e) => updateLink(link, { showInFilters: e.target.checked })}
-              />
-              В фильтрах каталога
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={link.showOnCard}
-                onChange={(e) => updateLink(link, { showOnCard: e.target.checked })}
-              />
-              На карточке товара
-            </label>
-          </div>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={link.showInForm}
+                  onChange={(e) => updateLink(link, { showInForm: e.target.checked })}
+                />
+                В форме товара
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={link.showInFilters}
+                  disabled={!canUseInFilters}
+                  onChange={(e) => updateLink(link, { showInFilters: e.target.checked })}
+                />
+                В фильтрах каталога
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={link.showOnCard}
+                  onChange={(e) => updateLink(link, { showOnCard: e.target.checked })}
+                />
+                На карточке товара
+              </label>
+            </div>
 
-          {link.showInFilters && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-[var(--border)]">
-              <div>
-                <label className="block text-xs mb-1">Вид фильтра</label>
-                <select
-                  value={link.filterType ?? ""}
-                  onChange={(e) => updateLink(link, { filterType: e.target.value || null })}
-                  className={inputClass}
-                >
-                  <option value="">Не выбран</option>
-                  <option value="checkbox">Чекбокс</option>
-                  <option value="dropdown">Выпадающий список</option>
-                  <option value="multiselect">Несколько значений</option>
-                  <option value="range">Ползунок (число)</option>
-                </select>
+            {!canUseInFilters && (
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Текстовые атрибуты нельзя использовать в фильтрах каталога.
+              </p>
+            )}
+
+            {link.showInFilters && link.valueType === "number" && (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 border-t border-[var(--border)]">
+                <div>
+                  <label className="block text-xs mb-1">Мин. ползунка</label>
+                  <input
+                    type="number"
+                    value={link.filterMin ?? ""}
+                    onChange={(e) =>
+                      updateLink(link, { filterMin: e.target.value === "" ? null : Number(e.target.value) })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1">Макс. ползунка</label>
+                  <input
+                    type="number"
+                    value={link.filterMax ?? ""}
+                    onChange={(e) =>
+                      updateLink(link, { filterMax: e.target.value === "" ? null : Number(e.target.value) })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1">Группа в фильтрах</label>
+                  <input
+                    type="text"
+                    placeholder="напр. Мощность"
+                    value={link.groupLabel ?? ""}
+                    onChange={(e) => updateLink(link, { groupLabel: e.target.value || null })}
+                    className={inputClass}
+                  />
+                </div>
               </div>
-              {link.valueType === "number" && (
-                <>
-                  <div>
-                    <label className="block text-xs mb-1">Мин. (ползунок)</label>
-                    <input
-                      type="number"
-                      value={link.filterMin ?? ""}
-                      onChange={(e) =>
-                        updateLink(link, { filterMin: e.target.value === "" ? null : Number(e.target.value) })
-                      }
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs mb-1">Макс. (ползунок)</label>
-                    <input
-                      type="number"
-                      value={link.filterMax ?? ""}
-                      onChange={(e) =>
-                        updateLink(link, { filterMax: e.target.value === "" ? null : Number(e.target.value) })
-                      }
-                      className={inputClass}
-                    />
-                  </div>
-                </>
-              )}
-              <div>
-                <label className="block text-xs mb-1">Группа в фильтрах</label>
+            )}
+
+            {link.showInFilters && link.valueType !== "number" && (
+              <div className="pt-2 border-t border-[var(--border)]">
+                <label className="block text-xs mb-1">Группа в фильтрах (необязательно)</label>
                 <input
                   type="text"
-                  placeholder="напр. Мощность"
+                  placeholder="напр. Подключение"
                   value={link.groupLabel ?? ""}
                   onChange={(e) => updateLink(link, { groupLabel: e.target.value || null })}
                   className={inputClass}
                 />
               </div>
-            </div>
-          )}
-        </div>
-      ))}
+            )}
+          </div>
+        );
+      })}
 
       {links.length === 0 && (
         <p className="text-sm text-[var(--muted-foreground)]">

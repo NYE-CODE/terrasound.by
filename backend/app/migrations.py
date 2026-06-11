@@ -66,6 +66,22 @@ def run_migrations(engine: Engine) -> None:
             conn.execute(text(statement))
 
     _migrate_catalog_categories(engine)
+    _migrate_attributes_filter_type(engine)
+
+
+def _migrate_attributes_filter_type(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "attributes" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("attributes")}
+    if "filter_type" not in columns:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE attributes ADD COLUMN filter_type VARCHAR(20)"))
+
 
 
 def _migrate_catalog_categories(engine: Engine) -> None:

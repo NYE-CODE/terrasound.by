@@ -15,6 +15,7 @@ class AttributeOut(CamelModel):
     label: str
     value_type: str
     unit: str | None = None
+    filter_type: str | None = None
     options: list[AttributeOptionOut] = []
 
 
@@ -32,7 +33,8 @@ class AttributeCreate(BaseModel):
     id: str = Field(min_length=1, max_length=80, pattern=r"^[a-z0-9]+(?:_[a-z0-9]+)*$")
     label: str = Field(min_length=1)
     value_type: str = Field(pattern=r"^(enum|number|boolean|text)$")
-    unit: str | None = None
+    unit: str | None = Field(default=None, max_length=30)
+    filter_type: str | None = Field(default=None, pattern=r"^(checkbox|dropdown|multiselect|range)$")
     options: list[AttributeOptionInput] = []
 
 
@@ -41,7 +43,8 @@ class AttributeUpdate(BaseModel):
 
     label: str | None = None
     value_type: str | None = Field(default=None, pattern=r"^(enum|number|boolean|text)$")
-    unit: str | None = None
+    unit: str | None = Field(default=None, max_length=30)
+    filter_type: str | None = Field(default=None, pattern=r"^(checkbox|dropdown|multiselect|range)$")
     options: list[AttributeOptionInput] | None = None
 
 

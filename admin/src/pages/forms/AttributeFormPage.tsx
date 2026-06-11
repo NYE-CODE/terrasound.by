@@ -1,47 +1,32 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
+import { optionsTextForEdit, textToOptions } from "../../lib/attributeOptions";
+import {
+  FILTER_TYPE_LABELS,
+  allowedFilterTypes,
+  defaultFilterType,
+  filterTypeHint,
+} from "../../lib/filterTypes";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { api, type AttributeInput } from "../../lib/api";
+import { ApiError, api, type AttributeInput } from "../../lib/api";
 
 const emptyForm: AttributeInput = {
   id: "",
   label: "",
   valueType: "enum",
   unit: "",
+  filterType: "multiselect",
   options: [],
 };
 
-function optionsToText(options: AttributeInput["options"]) {
-  return (options ?? []).map((opt) => (opt.value === opt.label ? opt.label : `${opt.value}: ${opt.label}`)).join("\n");
-}
-
-function textToOptions(value: string) {
-  return value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line, index) => {
-      const colon = line.indexOf(":");
-      if (colon <= 0) {
-        const slug = line.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
-        return { value: slug || `opt_${index}`, label: line, sortOrder: index };
-      }
-      return {
-        value: line.slice(0, colon).trim(),
-        label: line.slice(colon + 1).trim(),
-        sortOrder: index,
-      };
-    });
-}
-
 const TYPE_HINTS: Record<string, string> = {
-  enum: "Выпадающий список или фильтр с вариантами (тип магнитолы, типоразмер и т.д.)",
-  number: "Числовое значение (мощность, толщина). Можно задать ползунок в фильтрах категории.",
-  boolean: "Да / нет (Bluetooth, оптический вход и т.п.)",
-  text: "Произвольный текст без фиксированных вариантов",
+  enum: "Фиксированный набор значений: тип магнитолы, типоразмер, материал.",
+  number: "Число с единицей измерения: мощность, толщина, диаметр.",
+  boolean: "Да / нет: Bluetooth, оптический вход, USB.",
+  text: "Свободный текст — только в карточке товара, не в фильтрах.",
 };
 
 export function AttributeFormPage() {
@@ -55,21 +40,28 @@ export function AttributeFormPage() {
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
 
+  const optionCount = useMemo(
+    () => (form.valueType === "enum" ? textToOptions(optionsText).length : 0),
+    [form.valueType, optionsText],
+  );
+
   useEffect(() => {
     if (!token || !id) return;
-    api.attributes(token).then((items) => {
-      const item = items.find((attr) => attr.id === id);
-      if (item) {
+    api
+      .attribute(token, id)
+      .then((item) => {
         setForm({
           id: item.id,
           label: item.label,
           valueType: item.valueType,
-          unit: item.unit ?? "",
+          unit: item.valueType === "number" ? (item.unit ?? "") : "",
+          filterType: item.filterType ?? defaultFilterType(item.valueType, item.options.length),
           options: item.options,
         });
-        setOptionsText(optionsToText(item.options));
-      }
-    }).catch(console.error).finally(() => setLoading(false));
+        setOptionsText(optionsTextForEdit(item.options, item.valueType, item.unit));
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [token, id]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -77,10 +69,14 @@ export function AttributeFormPage() {
     if (!token) return;
     setSubmitting(true);
     try {
+      const options = form.valueType === "enum" ? textToOptions(optionsText) : [];
       const payload: AttributeInput = {
         ...form,
-        unit: form.unit || null,
-        options: form.valueType === "enum" ? textToOptions(optionsText) : [],
+        unit: form.valueType === "number" ? (form.unit?.trim() || null) : null,
+        filterType: defaultFilterType(form.valueType, options.length) === null
+          ? null
+          : (form.filterType ?? defaultFilterType(form.valueType, options.length)),
+        options,
       };
       if (isEdit && id) {
         const { id: _id, ...update } = payload;
@@ -91,10 +87,14 @@ export function AttributeFormPage() {
       navigate("/attributes");
     } catch (error) {
       console.error(error);
+      if (error instanceof ApiError) alert(error.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const optionLineCount = optionsText.split("\n").filter((line) => line.trim()).length;
+  const filterChoices = allowedFilterTypes(form.valueType);
 
   if (loading) {
     return <div className="text-[var(--muted-foreground)]">Загрузка...</div>;
@@ -134,7 +134,19 @@ export function AttributeFormPage() {
           <label className="block text-sm mb-1">Тип значения</label>
           <select
             value={form.valueType}
-            onChange={(e) => setForm({ ...form, valueType: e.target.value })}
+            onChange={(e) => {
+              const valueType = e.target.value;
+              const count = valueType === "enum" ? optionCount : 0;
+              setForm({
+                ...form,
+                valueType,
+                unit: valueType === "number" ? form.unit : "",
+                filterType: defaultFilterType(valueType, count),
+              });
+              if (valueType === "enum" && !optionsText.trim() && form.options?.length) {
+                setOptionsText(optionsTextForEdit(form.options, valueType, form.unit));
+              }
+            }}
             className={inputClass}
           >
             <option value="enum">Список вариантов</option>
@@ -164,14 +176,40 @@ export function AttributeFormPage() {
               placeholder={"Твитеры\nСреднечастотники\nСабвуферы\n\nили с кодом:\ntweeters: Твитеры"}
               value={optionsText}
               onChange={(e) => setOptionsText(e.target.value)}
-              className={textareaClass}
-              rows={6}
+              className={`${textareaClass} whitespace-pre-wrap`}
+              rows={Math.max(6, optionLineCount + 1)}
               required
             />
             <p className="text-xs text-[var(--muted-foreground)] mt-1">
-              По одному варианту на строку. Для списка «Тип динамика» выберите тип «Список вариантов», не «Текст».
+              По одному варианту на строку.
             </p>
           </div>
+        )}
+
+        {filterChoices.length > 0 && (
+          <div>
+            <label className="block text-sm mb-1">Вид в фильтрах каталога</label>
+            {filterChoices.length === 1 ? (
+              <p className="text-sm">{FILTER_TYPE_LABELS[filterChoices[0]]}</p>
+            ) : (
+              <select
+                value={form.filterType ?? filterChoices[0]}
+                onChange={(e) => setForm({ ...form, filterType: e.target.value })}
+                className={inputClass}
+              >
+                {filterChoices.map((type) => (
+                  <option key={type} value={type}>
+                    {FILTER_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </select>
+            )}
+            <p className="text-xs text-[var(--muted-foreground)] mt-1">{filterTypeHint(form.valueType)}</p>
+          </div>
+        )}
+
+        {form.valueType === "text" && (
+          <p className="text-sm text-[var(--muted-foreground)]">{filterTypeHint("text")}</p>
         )}
 
         <FormActions cancelTo="/attributes" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />

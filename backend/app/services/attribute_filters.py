@@ -25,8 +25,25 @@ def parse_attribute_filters(request: Request) -> dict[str, Any]:
         elif value.lower() in {"true", "false"}:
             filters[body] = value.lower() == "true"
         else:
-            filters[body] = value
+            _append_filter_value(filters, body, value)
     return filters
+
+
+def _append_filter_value(filters: dict[str, Any], attr_id: str, value: str) -> None:
+    if "," in value and attr_id not in filters:
+        parts = [part.strip() for part in value.split(",") if part.strip()]
+        if len(parts) > 1:
+            filters[attr_id] = parts
+            return
+    existing = filters.get(attr_id)
+    if existing is None:
+        filters[attr_id] = value
+    elif isinstance(existing, list):
+        existing.append(value)
+    elif isinstance(existing, dict):
+        filters[attr_id] = value
+    else:
+        filters[attr_id] = [existing, value]
 
 
 def apply_attribute_filters(db: Session, query: Query, attr_filters: dict[str, Any]) -> Query:
@@ -41,6 +58,9 @@ def apply_attribute_filters(db: Session, query: Query, attr_filters: dict[str, A
                 subq = subq.filter(ProductAttributeValue.value_number <= filter_value["max"])
         elif isinstance(filter_value, bool):
             subq = subq.filter(ProductAttributeValue.value_bool.is_(filter_value))
+        elif isinstance(filter_value, list):
+            values = [str(item) for item in filter_value]
+            subq = subq.filter(ProductAttributeValue.value_string.in_(values))
         else:
             conditions = [ProductAttributeValue.value_string == str(filter_value)]
             try:

@@ -11,6 +11,7 @@ class Attribute(Base):
     label: Mapped[str] = mapped_column(String(150), nullable=False)
     value_type: Mapped[str] = mapped_column(String(20), nullable=False)  # enum | number | boolean | text
     unit: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    filter_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # checkbox | dropdown | multiselect | range
 
     options: Mapped[list["AttributeOption"]] = relationship(
         back_populates="attribute", cascade="all, delete-orphan", order_by="AttributeOption.sort_order"

@@ -3,13 +3,7 @@ import { PageHeader } from "../components/PageHeader";
 import { RowActions } from "../components/RowActions";
 import { useAuth } from "../context/AuthContext";
 import { ApiError, api, type AttributeDef } from "../lib/api";
-
-const VALUE_TYPE_LABELS: Record<string, string> = {
-  text: "Текст",
-  number: "Число",
-  boolean: "Да / нет",
-  enum: "Список",
-};
+import { FILTER_TYPE_LABELS, VALUE_TYPE_LABELS } from "../lib/filterTypes";
 
 export function AttributesPage() {
   const { token } = useAuth();
@@ -52,6 +46,7 @@ export function AttributesPage() {
               <div className="text-sm text-[var(--muted-foreground)]">
                 {item.id} · {VALUE_TYPE_LABELS[item.valueType] ?? item.valueType}
                 {item.unit ? ` · ${item.unit}` : ""}
+                {item.filterType ? ` · ${FILTER_TYPE_LABELS[item.filterType] ?? item.filterType}` : ""}
                 {item.options.length > 0 && ` · ${item.options.map((o) => o.label).join(", ")}`}
               </div>
             </div>
