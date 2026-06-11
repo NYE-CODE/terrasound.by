@@ -42,8 +42,15 @@ class ProductDetailOut(CamelModel):
     images: list[str]
     specs: dict[str, str]
     attributes: dict[str, Any] = {}
+    attribute_specs: list["ProductAttributeSpecOut"] = []
     compatibility: list[str]
     reviews: list[ProductReviewPublicOut] = []
     in_stock: bool = True
     rating_avg: float | None = None
     review_count: int = 0
+
+
+class ProductAttributeSpecOut(CamelModel):
+    label: str
+    value: str
+    sort_order: int = 0

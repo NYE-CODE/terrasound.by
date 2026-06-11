@@ -394,6 +394,67 @@ def product_attributes_dict(db: Session, product_id: str) -> dict[str, Any]:
     return {row.attribute_id: attribute_value_to_api(row) for row in rows}
 
 
+def attribute_value_is_filled(value: ProductAttributeValue, attr: Attribute) -> bool:
+    if attr.value_type == "boolean":
+        return value.value_bool is not None
+    if attr.value_type == "number":
+        return value.value_number is not None
+    if value.value_string is not None and value.value_string.strip() != "":
+        return True
+    return False
+
+
+def format_attribute_display(attr: Attribute, raw: Any) -> str | None:
+    if raw is None or raw == "":
+        return None
+    if attr.value_type == "boolean":
+        return "Да" if raw else "Нет"
+    if attr.value_type == "enum":
+        for opt in attr.options:
+            if opt.value == raw:
+                return opt.label
+        return str(raw).strip() or None
+    if attr.value_type == "number":
+        if isinstance(raw, float) and raw.is_integer():
+            text = str(int(raw))
+        else:
+            text = str(raw)
+        return f"{text} {attr.unit}".strip() if attr.unit else text
+    text = str(raw).strip()
+    return text or None
+
+
+def product_attribute_specs(db: Session, product: Product) -> list:
+    from app.schemas.product import ProductAttributeSpecOut
+
+    links = (
+        db.query(CategoryAttribute)
+        .options(joinedload(CategoryAttribute.attribute).joinedload(Attribute.options))
+        .filter(CategoryAttribute.category_id == product.category)
+        .order_by(CategoryAttribute.sort_order)
+        .all()
+    )
+    values = {value.attribute_id: value for value in product.attribute_values}
+    specs: list[ProductAttributeSpecOut] = []
+
+    for link in links:
+        row = values.get(link.attribute_id)
+        if not row or not attribute_value_is_filled(row, link.attribute):
+            continue
+        display = format_attribute_display(link.attribute, attribute_value_to_api(row))
+        if not display or not str(display).strip():
+            continue
+        specs.append(
+            ProductAttributeSpecOut(
+                label=link.attribute.label,
+                value=display,
+                sort_order=link.sort_order,
+            )
+        )
+
+    return specs
+
+
 def validate_and_normalize_attributes(
     db: Session,
     category_id: str,

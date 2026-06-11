@@ -103,11 +103,18 @@ export function ProductFormPage() {
     if (!token) return;
     setSubmitting(true);
     try {
+      const attributes = { ...attributeValues };
+      for (const field of attributeSchema) {
+        if (field.valueType === "boolean" && attributes[field.attributeId] === undefined) {
+          attributes[field.attributeId] = false;
+        }
+      }
+
       const payload: ProductInput = {
         ...form,
         images: linesToList(imagesText),
         specs: textToSpecs(specsText),
-        attributes: attributeValues,
+        attributes,
         compatibility: linesToList(compatibilityText),
       };
       if (isEdit && id) {

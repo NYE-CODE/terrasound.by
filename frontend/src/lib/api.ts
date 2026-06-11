@@ -38,6 +38,12 @@ export interface ProductCard {
   createdAt?: string | null;
 }
 
+export interface ProductAttributeSpec {
+  label: string;
+  value: string;
+  sortOrder?: number;
+}
+
 export interface ProductDetail {
   id: string;
   brand: string;
@@ -46,6 +52,8 @@ export interface ProductDetail {
   salePrice?: number | null;
   images: string[];
   specs: Record<string, string>;
+  attributes?: Record<string, string | number | boolean | null>;
+  attributeSpecs?: ProductAttributeSpec[];
   compatibility: string[];
   inStock: boolean;
   reviews: ProductReview[];

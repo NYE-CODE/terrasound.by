@@ -6,7 +6,7 @@ from app.models.review import ProductReview
 from app.schemas.product import ProductCardOut, ProductDetailOut, ProductListOut
 from app.schemas.review import ProductReviewPublicOut
 from app.services.attribute_filters import apply_attribute_filters
-from app.services.attributes import product_attributes_dict
+from app.services.attributes import product_attribute_specs, product_attributes_dict
 from app.services.compatibility import apply_vehicle_filter
 
 SORT_OPTIONS = frozenset({"popularity", "price-low", "price-high", "new", "rating"})
@@ -212,6 +212,7 @@ def product_to_detail(
         images=images,
         specs={spec.key: spec.value for spec in product.specs},
         attributes=product_attributes_dict(db, product.id),
+        attribute_specs=product_attribute_specs(db, product),
         compatibility=[item.vehicle for item in product.compatibility],
         reviews=[ProductReviewPublicOut.model_validate(r) for r in review_list],
         in_stock=product.in_stock,

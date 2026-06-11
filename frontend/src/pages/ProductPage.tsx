@@ -254,16 +254,34 @@ export function ProductPage() {
             ))}
           </div>
 
-          {activeTab === "specs" && (
-            <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
-              {Object.entries(product.specs).map(([key, value]) => (
-                <div key={key} className="flex justify-between py-3 border-b border-border">
-                  <span className="text-muted-foreground">{key}</span>
-                  <span className="font-heading">{value}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          {activeTab === "specs" && (() => {
+            const attributeSpecs = (product.attributeSpecs ?? []).filter(
+              (spec) => spec.value.trim().length > 0,
+            );
+            const legacySpecs = Object.entries(product.specs).filter(
+              ([, value]) => value.trim().length > 0,
+            );
+
+            return (
+              <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
+                {attributeSpecs.map((spec) => (
+                  <div key={spec.label} className="flex justify-between py-3 border-b border-border gap-4">
+                    <span className="text-muted-foreground">{spec.label}</span>
+                    <span className="font-heading text-right">{spec.value}</span>
+                  </div>
+                ))}
+                {legacySpecs.map(([key, value]) => (
+                  <div key={key} className="flex justify-between py-3 border-b border-border gap-4">
+                    <span className="text-muted-foreground">{key}</span>
+                    <span className="font-heading text-right">{value}</span>
+                  </div>
+                ))}
+                {attributeSpecs.length === 0 && legacySpecs.length === 0 && (
+                  <p className="text-muted-foreground md:col-span-2">Характеристики не указаны.</p>
+                )}
+              </div>
+            );
+          })()}
 
           {activeTab === "compatibility" && (
             <div>
