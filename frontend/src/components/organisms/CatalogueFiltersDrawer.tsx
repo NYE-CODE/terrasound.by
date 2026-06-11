@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "../atoms/Button";
-import { CatalogueFiltersPanel } from "./CatalogueFiltersPanel";
+import { CatalogueFiltersPanel, type AvailabilityOption } from "./CatalogueFiltersPanel";
 import type { AttributeFilterState } from "./AttributeFilters";
 import type { Category, CategoryFilters } from "../../lib/api";
 
@@ -19,6 +19,8 @@ interface CatalogueFiltersDrawerProps {
   priceRange: number[];
   priceBounds: [number, number];
   onPriceRangeChange: (range: number[]) => void;
+  availability: AvailabilityOption[];
+  onAvailabilityChange: (values: AvailabilityOption[]) => void;
   categoryFilters: CategoryFilters | null;
   attributeFilters: AttributeFilterState;
   onAttributeFiltersChange: (values: AttributeFilterState) => void;
@@ -37,6 +39,8 @@ export function CatalogueFiltersDrawer({
   priceRange,
   priceBounds,
   onPriceRangeChange,
+  availability,
+  onAvailabilityChange,
   categoryFilters,
   attributeFilters,
   onAttributeFiltersChange,
@@ -107,6 +111,8 @@ export function CatalogueFiltersDrawer({
                 priceRange={priceRange}
                 priceBounds={priceBounds}
                 onPriceRangeChange={onPriceRangeChange}
+                availability={availability}
+                onAvailabilityChange={onAvailabilityChange}
                 categoryFilters={categoryFilters}
                 attributeFilters={attributeFilters}
                 onAttributeFiltersChange={onAttributeFiltersChange}

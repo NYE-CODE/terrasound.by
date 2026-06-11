@@ -2,12 +2,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { ProductCard } from "../components/organisms/ProductCard";
 import { CatalogueFiltersDrawer } from "../components/organisms/CatalogueFiltersDrawer";
-import { CatalogueFiltersPanel, countActiveFilters } from "../components/organisms/CatalogueFiltersPanel";
+import { CatalogueFiltersPanel, availabilityToQuery, countActiveFilters, type AvailabilityOption } from "../components/organisms/CatalogueFiltersPanel";
 import { buildAttributeQuery, type AttributeFilterState } from "../components/organisms/AttributeFilters";
-import {
-  availabilityToQuery,
-  type AvailabilityOption,
-} from "../components/molecules/StockAvailabilityFilter";
 import { Pagination } from "../components/molecules/Pagination";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -30,6 +26,7 @@ export function CataloguePage() {
   const [priceRange, setPriceRange] = useState([0, DEFAULT_PRICE_MAX]);
   const [categoryFilters, setCategoryFilters] = useState<CategoryFilters | null>(null);
   const [attributeFilters, setAttributeFilters] = useState<AttributeFilterState>({});
+  const [availability, setAvailability] = useState<AvailabilityOption[]>([]);
   const [sortBy, setSortBy] = useState("popularity");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -73,9 +70,10 @@ export function CataloguePage() {
 
   useEffect(() => {
     setPage(1);
-  }, [selectedCategory, selectedBrands, priceRange, sortBy, attributeFilters]);
+  }, [selectedCategory, selectedBrands, availability, priceRange, sortBy, attributeFilters]);
 
   useEffect(() => {
+    const inStock = availabilityToQuery(availability);
     const params: Parameters<typeof api.getProducts>[0] = {
       priceMin: priceRange[0],
       priceMax: priceRange[1],
@@ -84,6 +82,7 @@ export function CataloguePage() {
       offset: (page - 1) * PAGE_SIZE,
       attrQuery: buildAttributeQuery(attributeFilters),
     };
+    if (inStock) params.inStock = inStock;
     if (selectedCategory !== "all") params.category = selectedCategory;
     if (selectedBrands.length > 0) params.brands = selectedBrands;
 
@@ -94,7 +93,7 @@ export function CataloguePage() {
         setTotalItems(total);
       })
       .catch(console.error);
-  }, [selectedCategory, selectedBrands, priceRange, sortBy, page, attributeFilters]);
+  }, [selectedCategory, selectedBrands, availability, priceRange, sortBy, page, attributeFilters]);
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
@@ -104,6 +103,7 @@ export function CataloguePage() {
   const activeFilterCount = countActiveFilters(
     selectedCategory,
     selectedBrands,
+    availability,
     priceRange,
     priceBounds[1],
     attributeFilters,
@@ -124,6 +124,8 @@ export function CataloguePage() {
     onCategoryChange: selectCategory,
     selectedBrands,
     onBrandsChange: setSelectedBrands,
+    availability,
+    onAvailabilityChange: setAvailability,
     priceRange,
     priceBounds,
     onPriceRangeChange: setPriceRange,

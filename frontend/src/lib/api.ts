@@ -97,6 +97,7 @@ export const api = {
     category?: string;
     brand?: string;
     brands?: string[];
+    inStock?: boolean[];
     priceMin?: number;
     priceMax?: number;
     attrQuery?: string;
@@ -111,6 +112,7 @@ export const api = {
     } else if (params?.brand) {
       search.set("brand", params.brand);
     }
+    params?.inStock?.forEach((value) => search.append("inStock", String(value)));
     if (params?.priceMin != null) search.set("priceMin", String(params.priceMin));
     if (params?.priceMax != null) search.set("priceMax", String(params.priceMax));
     if (params?.sort) search.set("sort", params.sort);
