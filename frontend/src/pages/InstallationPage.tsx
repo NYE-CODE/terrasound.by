@@ -81,9 +81,9 @@ export function InstallationPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="pt-[var(--site-header-height)] min-h-screen">
       {/* Hero Header */}
-      <section className="relative isolate -mt-[var(--site-header-height)] pt-[var(--site-header-height)] h-[70vh] flex items-center justify-center overflow-hidden">
+      <section className="relative isolate h-[70vh] flex items-center justify-center overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80"
           alt="Студия"

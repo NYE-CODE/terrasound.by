@@ -41,9 +41,9 @@ export function HomePage() {
   });
 
   return (
-    <div>
+    <div className="pt-[var(--site-header-height)]">
       {/* Hero Section */}
-      <section className="relative isolate -mt-[var(--site-header-height)] pt-[var(--site-header-height)] min-h-[90vh] flex items-center overflow-hidden">
+      <section className="relative isolate min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none lg:hidden" aria-hidden>
           <img
             src={HERO_IMAGE}

@@ -33,10 +33,8 @@ export function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-[70] transition-[background-color,border-color,backdrop-filter] duration-300 ${
-          scrolled || mobileMenuOpen
-            ? "bg-background border-b border-border"
-            : "max-lg:bg-background/85 max-lg:backdrop-blur-sm bg-transparent"
+        className={`fixed top-0 left-0 right-0 z-[70] transition-[background-color,border-color] duration-300 ${
+          scrolled || mobileMenuOpen ? "bg-background border-b border-border" : "bg-transparent"
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-6">
