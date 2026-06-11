@@ -672,7 +672,7 @@ def _seed_admin_account(db: Session) -> None:
 def _seed_site_stats(db: Session) -> None:
     if db.query(SiteStats).filter(SiteStats.id == 1).first():
         return
-    db.add(SiteStats(id=1, installations_completed=1200, years_expertise=8))
+    db.add(SiteStats(id=1, installations_completed="1200+", years_expertise="8"))
     db.commit()
 
 

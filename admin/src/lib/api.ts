@@ -231,13 +231,13 @@ export interface DashboardStats {
 }
 
 export interface SiteStats {
-  installationsCompleted: number;
-  yearsExpertise: number;
+  installationsCompleted: string;
+  yearsExpertise: string;
 }
 
 export interface SiteStatsInput {
-  installationsCompleted: number;
-  yearsExpertise: number;
+  installationsCompleted: string;
+  yearsExpertise: string;
 }
 
 export interface ChangePasswordInput {

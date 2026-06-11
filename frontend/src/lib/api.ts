@@ -168,8 +168,8 @@ export const api = {
 };
 
 export interface SiteStats {
-  installationsCompleted: number;
-  yearsExpertise: number;
+  installationsCompleted: string;
+  yearsExpertise: string;
 }
 
 export interface Category {

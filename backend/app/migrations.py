@@ -67,6 +67,50 @@ def run_migrations(engine: Engine) -> None:
 
     _migrate_catalog_categories(engine)
     _migrate_attributes_filter_type(engine)
+    _migrate_site_stats_to_text(engine)
+
+
+def _migrate_site_stats_to_text(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_stats" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"]: col for col in inspector.get_columns("site_stats")}
+    if "installations_completed" not in columns:
+        return
+
+    col_type = str(columns["installations_completed"]["type"]).upper()
+    if "INT" not in col_type:
+        return
+
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE site_stats_new (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    installations_completed VARCHAR(64) NOT NULL DEFAULT '1200+',
+                    years_expertise VARCHAR(64) NOT NULL DEFAULT '8'
+                )
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                INSERT INTO site_stats_new (id, installations_completed, years_expertise)
+                SELECT id,
+                       CAST(installations_completed AS TEXT) || '+',
+                       CAST(years_expertise AS TEXT)
+                FROM site_stats
+                """
+            )
+        )
+        conn.execute(text("DROP TABLE site_stats"))
+        conn.execute(text("ALTER TABLE site_stats_new RENAME TO site_stats"))
 
 
 def _migrate_attributes_filter_type(engine: Engine) -> None:

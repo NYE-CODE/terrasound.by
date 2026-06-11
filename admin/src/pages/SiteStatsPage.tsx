@@ -6,8 +6,8 @@ import { reportFormError } from "../lib/formError";
 import { api, type SiteStats, type SiteStatsInput } from "../lib/api";
 
 const defaultForm: SiteStatsInput = {
-  installationsCompleted: 1200,
-  yearsExpertise: 8,
+  installationsCompleted: "1200+",
+  yearsExpertise: "8",
 };
 
 export function SiteStatsPage() {
@@ -59,42 +59,41 @@ export function SiteStatsPage() {
       <PageHeader title="Статистика сайта" />
 
       <p className="text-sm text-[var(--muted-foreground)] mb-6 max-w-2xl">
-        Цифры отображаются в блоке статистики на главной. Количество подобранных систем показывается
-        с суффиксом «+». Третий блок («100% — Профессионалы своего дела») задаётся в коде сайта.
+        Значения отображаются на главной странице как есть — можно использовать цифры, текст и
+        символы (например, «1200+» или «8 лет»). Третий блок («100% — Профессионалы своего дела»)
+        задаётся в коде сайта.
       </p>
 
       <form onSubmit={handleSubmit} className={`${formCardClass} max-w-xl space-y-4`}>
         <div>
           <label className="block text-sm mb-2">Подобранных систем</label>
           <input
-            type="number"
-            min={0}
-            max={1000000}
+            type="text"
+            maxLength={64}
             value={form.installationsCompleted}
             onChange={(e) =>
-              setForm({ ...form, installationsCompleted: Number(e.target.value) })
+              setForm({ ...form, installationsCompleted: e.target.value })
             }
             className={inputClass}
             required
           />
           <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            На сайте: {form.installationsCompleted.toLocaleString("ru-RU")}+ — Подобранных систем
+            На сайте: {form.installationsCompleted || "…"} — Подобранных систем
           </p>
         </div>
 
         <div>
           <label className="block text-sm mb-2">Опыт установки и подбора систем</label>
           <input
-            type="number"
-            min={0}
-            max={200}
+            type="text"
+            maxLength={64}
             value={form.yearsExpertise}
-            onChange={(e) => setForm({ ...form, yearsExpertise: Number(e.target.value) })}
+            onChange={(e) => setForm({ ...form, yearsExpertise: e.target.value })}
             className={inputClass}
             required
           />
           <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            На сайте: {form.yearsExpertise} — Опыт установки и подбора систем
+            На сайте: {form.yearsExpertise || "…"} — Опыт установки и подбора систем
           </p>
         </div>
 

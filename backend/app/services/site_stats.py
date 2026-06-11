@@ -4,8 +4,8 @@ from app.cache import SITE_STATS, site_stats_cache
 from app.models.site_stats import SiteStats
 from app.schemas.site_stats import SiteStatsOut, SiteStatsUpdate
 
-DEFAULT_INSTALLATIONS = 1200
-DEFAULT_YEARS = 8
+DEFAULT_INSTALLATIONS = "1200+"
+DEFAULT_YEARS = "8"
 
 
 def get_or_create_site_stats(db: Session) -> SiteStats:

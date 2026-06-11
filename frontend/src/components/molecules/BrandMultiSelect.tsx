@@ -60,7 +60,7 @@ export function BrandMultiSelect({ brands, selected, onChange }: BrandMultiSelec
             <ChevronsUpDown size={14} className="shrink-0 text-muted-foreground" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[90]" align="start">
           <Command>
             <CommandInput placeholder="Поиск бренда..." />
             <CommandList>

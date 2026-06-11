@@ -7,6 +7,7 @@ import { ReviewCard } from "../components/organisms/ReviewCard";
 import { api, type Category, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { TAGLINE } from "../lib/site";
+import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
 
 const brands = ["INCAR", "Ural", "Hertz", "JL Audio", "Focal", "Pioneer", "Alpine"];
@@ -20,8 +21,8 @@ export function HomePage() {
   const [portfolioWorks, setPortfolioWorks] = useState<PortfolioWork[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [siteStats, setSiteStats] = useState<SiteStats>({
-    installationsCompleted: 1200,
-    yearsExpertise: 8,
+    installationsCompleted: "1200+",
+    yearsExpertise: "8",
   });
 
   useEffect(() => {
@@ -97,8 +98,12 @@ export function HomePage() {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
-                <h3 className="relative w-full text-left font-heading text-lg leading-tight md:text-xl">
-                  {category.name}
+                <h3
+                  className="relative w-full text-center font-heading text-lg leading-tight md:text-left md:text-xl"
+                  title={category.name}
+                >
+                  <span className="md:hidden">{abbreviateLongWords(category.name)}</span>
+                  <span className="hidden md:inline">{category.name}</span>
                 </h3>
               </Link>
             ))}
@@ -126,7 +131,7 @@ export function HomePage() {
           <div className="grid md:grid-cols-3 gap-12">
             <div>
               <div className="font-heading text-4xl sm:text-5xl md:text-6xl mb-4 text-accent">
-                {siteStats.installationsCompleted.toLocaleString("ru-RU")}+
+                {siteStats.installationsCompleted}
               </div>
               <div className="text-muted-foreground">Подобранных систем</div>
             </div>

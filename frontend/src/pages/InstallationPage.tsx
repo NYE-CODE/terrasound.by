@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { FormField } from "../components/molecules/FormField";
-import { Check } from "lucide-react";
+import { Info } from "lucide-react";
 import { toast } from "sonner";
 import { api, type InstallationService } from "../lib/api";
 import { CONTACT_PHONE } from "../lib/site";
@@ -179,7 +179,7 @@ export function InstallationPage() {
               Запросить консультацию
             </Button>
             <div className="flex items-start gap-3 pt-4 text-sm text-muted-foreground">
-              <Check size={16} className="text-accent mt-1 flex-shrink-0" />
+              <Info size={16} className="text-accent mt-1 flex-shrink-0" />
               <span>Мы свяжемся с вами в течение 24 часов для записи на консультацию</span>
             </div>
           </form>
