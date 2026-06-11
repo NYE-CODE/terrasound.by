@@ -52,7 +52,7 @@ export function FilterCombobox({
             type="button"
             role="combobox"
             aria-expanded={open}
-            className="w-full h-10 px-3 bg-input border border-border rounded text-sm flex items-center justify-between gap-2 hover:border-accent/50 transition-colors"
+            className="w-full h-10 px-3 bg-input border border-border rounded text-sm flex items-center justify-between gap-2 hover:border-accent/50 transition-colors cursor-pointer"
           >
             <span className={cn("truncate", value === allValue && "text-muted-foreground")}>
               {displayLabel}

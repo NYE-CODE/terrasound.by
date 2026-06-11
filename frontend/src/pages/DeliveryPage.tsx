@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageContentPy } from "../lib/pageLayout";
 export function DeliveryPage() {
   usePageMeta({
     title: "Доставка и оплата",
@@ -10,7 +11,7 @@ export function DeliveryPage() {
 
   return (
     <div className="pt-20 min-h-screen">
-      <div className="max-w-3xl mx-auto px-6 py-12">
+      <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <h1 className="font-heading text-4xl sm:text-5xl mb-8">Доставка и оплата</h1>
 
         <div className="space-y-8 text-muted-foreground">

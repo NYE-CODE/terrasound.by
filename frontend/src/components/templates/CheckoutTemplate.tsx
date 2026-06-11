@@ -1,4 +1,5 @@
 import { FormEvent, ReactNode } from "react";
+import { pageContentPy } from "../../lib/pageLayout";
 
 export interface CheckoutTemplateProps {
   title: string;
@@ -10,7 +11,7 @@ export interface CheckoutTemplateProps {
 export function CheckoutTemplate({ title, form, summary, onSubmit }: CheckoutTemplateProps) {
   return (
     <div className="pt-20 min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-8 md:mb-12">{title}</h1>
 
         <form onSubmit={onSubmit}>

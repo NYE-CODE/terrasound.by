@@ -7,6 +7,7 @@ import { ReviewCard } from "../components/organisms/ReviewCard";
 import { api, type Category, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { TAGLINE } from "../lib/site";
+import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
 import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
 
@@ -53,7 +54,7 @@ export function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
         </div>
 
-        <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full py-12 lg:py-0">
+        <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full py-8 md:py-12 lg:py-0">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-8 leading-tight">
@@ -80,7 +81,7 @@ export function HomePage() {
       </section>
 
       {/* Category Grid */}
-      <section className="py-20 bg-background">
+      <section className={`${pageSectionPy} bg-background`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Категории</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -112,7 +113,7 @@ export function HomePage() {
       </section>
 
       {/* Featured Products */}
-      <section className="py-20 bg-card/50">
+      <section className={`${pageSectionPy} bg-card/50`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Популярные товары</h2>
           <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
@@ -126,7 +127,7 @@ export function HomePage() {
       </section>
 
       {/* Facts Section */}
-      <section className="py-20 bg-background">
+      <section className={`${pageSectionPy} bg-background`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-12">
             <div>
@@ -150,7 +151,7 @@ export function HomePage() {
       </section>
 
       {/* Portfolio */}
-      <section className="py-20 bg-card/50">
+      <section className={`${pageSectionPy} bg-card/50`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Наши работы</h2>
           {portfolioWorks.length > 0 ? (
@@ -171,7 +172,7 @@ export function HomePage() {
       </section>
 
       {/* Reviews */}
-      <section className="py-20 bg-background">
+      <section className={`${pageSectionPy} bg-background`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Отзывы клиентов</h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -183,7 +184,7 @@ export function HomePage() {
       </section>
 
       {/* Brands Strip */}
-      <section className="py-12 border-t border-border">
+      <section className="py-8 md:py-12 border-t border-border">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex gap-12 justify-center items-center flex-wrap">
             {brands.map((brand) => (

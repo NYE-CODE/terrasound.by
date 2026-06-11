@@ -1,9 +1,11 @@
 import { COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "../lib/site";
 
+import { pageContentPy } from "../lib/pageLayout";
+
 export function TermsPage() {
   return (
     <div className="pt-20 min-h-screen">
-      <div className="max-w-3xl mx-auto px-6 py-12">
+      <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <h1 className="font-heading text-5xl mb-8">Условия использования</h1>
 
         <div className="space-y-6 text-muted-foreground">

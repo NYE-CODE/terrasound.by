@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { api, type BlogPostDetail } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageContentPy } from "../lib/pageLayout";
 
 export function BlogPostPage() {
   const { id } = useParams();
@@ -50,7 +51,7 @@ export function BlogPostPage() {
 
   return (
     <div className="pt-20 min-h-screen">
-      <article className="max-w-3xl mx-auto px-6 py-12">
+      <article className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <Link
           to="/blog"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors duration-300 mb-8"

@@ -22,7 +22,7 @@ export function Pagination({ page, totalPages, totalItems, pageSize, onPageChang
           type="button"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
-          className="h-10 px-4 rounded border border-border text-sm font-heading uppercase tracking-wider disabled:opacity-40 hover:border-accent hover:text-accent transition-colors"
+          className="h-10 px-4 rounded border border-border text-sm font-heading uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed hover:border-accent hover:text-accent transition-colors cursor-pointer"
         >
           Назад
         </button>
@@ -33,7 +33,7 @@ export function Pagination({ page, totalPages, totalItems, pageSize, onPageChang
           type="button"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
-          className="h-10 px-4 rounded border border-border text-sm font-heading uppercase tracking-wider disabled:opacity-40 hover:border-accent hover:text-accent transition-colors"
+          className="h-10 px-4 rounded border border-border text-sm font-heading uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed hover:border-accent hover:text-accent transition-colors cursor-pointer"
         >
           Вперёд
         </button>

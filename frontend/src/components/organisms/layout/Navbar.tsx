@@ -3,6 +3,12 @@ import { Menu, Phone, ShoppingCart, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { MobileMenu } from "./MobileMenu";
 import { useCart } from "../../../context/CartContext";
+import {
+  activeNavLinkClass,
+  inactiveNavLinkClass,
+  isPrimaryNavLinkActive,
+  primaryNavLinks,
+} from "../../../lib/navLinks";
 import { CONTACT_PHONE, CONTACT_PHONE_TEL, SITE_BRAND_TAGLINE, SITE_BRAND_TITLE } from "../../../lib/site";
 import logo from "../../../assets/logo.png";
 
@@ -16,17 +22,10 @@ export function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const navLinks = [
-    { path: "/catalogue", label: "Каталог" },
-    { path: "/installation", label: "Услуги" },
-    { path: "/about", label: "О нас" },
-    { path: "/brands", label: "Бренды" },
-    { path: "/blog", label: "Блог" },
-  ];
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
@@ -57,19 +56,21 @@ export function Navbar() {
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`font-heading text-sm uppercase tracking-wider relative transition-colors duration-300 ${
-                    location.pathname === link.path
-                      ? "text-foreground after:absolute after:bottom-[-8px] after:left-0 after:right-0 after:h-[2px] after:bg-accent"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {primaryNavLinks.map((link) => {
+                const isActive = isPrimaryNavLinkActive(location.pathname, link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`font-heading text-sm uppercase tracking-wider relative transition-colors duration-300 ${
+                      isActive ? activeNavLinkClass : inactiveNavLinkClass
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </div>
 
             <div className="flex items-center gap-6">

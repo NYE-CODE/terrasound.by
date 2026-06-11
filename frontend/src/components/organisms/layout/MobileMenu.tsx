@@ -2,20 +2,13 @@ import { Link, useLocation } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { MapPin, Phone } from "lucide-react";
 import { ADDRESS, CONTACT_PHONE, CONTACT_PHONE_TEL } from "../../../lib/site";
+import { isPrimaryNavLinkActive, primaryNavLinks } from "../../../lib/navLinks";
 import { useEffect, useRef } from "react";
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const navLinks = [
-  { path: "/catalogue", label: "Каталог" },
-  { path: "/installation", label: "Услуги" },
-  { path: "/about", label: "О нас" },
-  { path: "/brands", label: "Бренды" },
-  { path: "/blog", label: "Блог" },
-];
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const location = useLocation();
@@ -45,7 +38,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[60] md:hidden" role="dialog" aria-modal="true" aria-label="Мобильное меню">
+        <div className="fixed inset-0 z-[65] md:hidden" role="dialog" aria-modal="true" aria-label="Мобильное меню">
           <motion.button
             type="button"
             aria-label="Закрыть меню"
@@ -66,13 +59,14 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           >
             <div className="bg-card border border-card-border rounded-lg shadow-2xl overflow-hidden">
               <nav className="divide-y divide-border">
-                {navLinks.map((link) => {
-                  const isActive = location.pathname === link.path;
+                {primaryNavLinks.map((link) => {
+                  const isActive = isPrimaryNavLinkActive(location.pathname, link.path);
                   return (
                     <Link
                       key={link.path}
                       to={link.path}
                       onClick={onClose}
+                      aria-current={isActive ? "page" : undefined}
                       className={`block px-6 py-5 font-heading text-lg uppercase tracking-wider transition-colors duration-200 ${
                         isActive
                           ? "text-accent bg-accent/5"

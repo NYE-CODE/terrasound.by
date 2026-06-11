@@ -1,4 +1,5 @@
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageContentPy } from "../lib/pageLayout";
 import { ADDRESS, CONTACT_PHONE, SITE_NAME, WORKING_HOURS } from "../lib/site";
 
 export function AboutPage() {
@@ -10,7 +11,7 @@ export function AboutPage() {
 
   return (
     <div className="pt-20 min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <section>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>

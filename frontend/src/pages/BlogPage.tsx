@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api, type BlogPostCard } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { pageContentPy } from "../lib/pageLayout";
 
 export function BlogPage() {
   const [posts, setPosts] = useState<BlogPostCard[]>([]);
@@ -18,7 +19,7 @@ export function BlogPage() {
 
   return (
     <div className="pt-20 min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <div className="mb-12">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">Блог</h1>
           <p className="text-muted-foreground text-lg">

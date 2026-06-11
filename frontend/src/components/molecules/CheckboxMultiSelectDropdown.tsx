@@ -75,7 +75,7 @@ export function CheckboxMultiSelectDropdown({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full min-h-10 px-3 py-2 bg-input border border-border rounded text-sm flex items-center justify-between gap-2 hover:border-accent/50 transition-colors",
+              "w-full min-h-10 px-3 py-2 bg-input border border-border rounded text-sm flex items-center justify-between gap-2 hover:border-accent/50 transition-colors cursor-pointer",
               selected.length > 0 && "border-accent/40",
             )}
           >

@@ -1,10 +1,11 @@
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { ADDRESS, COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE, WORKING_HOURS } from "../lib/site";
+import { pageContentPy } from "../lib/pageLayout";
 
 export function ContactPage() {
   return (
     <div className="pt-20 min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-6 py-12">
+      <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <h1 className="font-heading text-5xl mb-12">Контакты</h1>
 
         <div className="grid md:grid-cols-2 gap-12">

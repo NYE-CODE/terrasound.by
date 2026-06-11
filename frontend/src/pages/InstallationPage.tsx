@@ -10,11 +10,13 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { cn } from "../components/ui/utils";
+import { formControlClass, formSelectTriggerClass } from "../lib/formControlStyles";
 import { Info } from "lucide-react";
 import { toast } from "sonner";
 import { api, type InstallationService } from "../lib/api";
 import { CONTACT_PHONE } from "../lib/site";
 import { scrollToHash } from "../lib/scrollToHash";
+import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
 
 const timeline = [
   {
@@ -97,12 +99,12 @@ export function InstallationPage() {
       </section>
 
       {/* Services */}
-      <section className="py-20 bg-background">
+      <section className={`${pageSectionPy} bg-background`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Наши услуги</h2>
           <div className="space-y-6">
             {services.map((service, index) => (
-              <div key={service.id} className="bg-card border border-card-border rounded p-6 hover:border-accent transition-all duration-300">
+              <div key={service.id} className="bg-card border border-card-border rounded p-6">
                 <div className="flex items-baseline gap-3 sm:gap-4 mb-2">
                   <span className="font-heading text-xl sm:text-2xl text-accent shrink-0">{String(index + 1).padStart(2, '0')}</span>
                   <h3 className="font-heading text-lg sm:text-xl">{service.title}</h3>
@@ -115,7 +117,7 @@ export function InstallationPage() {
       </section>
 
       {/* Process Timeline */}
-      <section className="py-20 bg-card/50">
+      <section className={`${pageSectionPy} bg-card/50`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Как мы работаем</h2>
           <div className="grid md:grid-cols-4 gap-8">
@@ -138,7 +140,7 @@ export function InstallationPage() {
       </section>
 
       {/* Booking Form */}
-      <section id="consultation" className="py-20 bg-card/50 scroll-mt-20">
+      <section id="consultation" className={`${pageSectionPy} bg-card/50 scroll-mt-20`}>
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-heading text-4xl mb-4 text-center">Записаться на консультацию</h2>
           <p className="text-center text-muted-foreground mb-12">
@@ -177,15 +179,7 @@ export function InstallationPage() {
                 value={formData.service || undefined}
                 onValueChange={(value) => setFormData({ ...formData, service: value })}
               >
-                <SelectTrigger
-                  className={cn(
-                    "!h-12 min-h-12 data-[size=default]:!h-12 w-full px-4 py-0",
-                    "bg-input border border-border rounded text-base text-foreground",
-                    "shadow-none transition-all duration-300",
-                    "focus:border-accent focus-visible:border-accent focus-visible:ring-0",
-                    "dark:bg-input dark:hover:bg-input",
-                  )}
-                >
+                <SelectTrigger size="lg" className={cn(formControlClass, formSelectTriggerClass, "py-0 text-base dark:bg-input dark:hover:bg-input")}>
                   <SelectValue placeholder="Выберите услугу" />
                 </SelectTrigger>
                 <SelectContent>
