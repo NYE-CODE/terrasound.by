@@ -124,7 +124,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            © 2026 {COMPANY_NAME}. {SITE_NAME} — премиальный автозвук в Гродно.
+            © 2026 {COMPANY_NAME}
           </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link to="/privacy" className="hover:text-accent transition-colors duration-300">
