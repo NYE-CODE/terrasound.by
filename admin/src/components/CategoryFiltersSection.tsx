@@ -1,95 +1,52 @@
-import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import {
   FILTER_TYPE_LABELS,
   VALUE_TYPE_LABELS,
   defaultFilterType,
 } from "../lib/filterTypes";
 import { formCardClass, inputClass } from "../lib/formStyles";
-import { ApiError, api, type AttributeDef, type CategoryAttributeInput, type CategoryAttributeLink } from "../lib/api";
+import {
+  attributeToDraft,
+  patchDraft,
+  removeDraft,
+  type CategoryAttributeDraft,
+} from "../lib/categoryAttributeDraft";
+import type { AttributeDef } from "../lib/api";
 
 interface CategoryFiltersSectionProps {
-  categoryId: string;
+  links: CategoryAttributeDraft[];
+  allAttributes: AttributeDef[];
+  onChange: (links: CategoryAttributeDraft[]) => void;
 }
 
-export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionProps) {
-  const { token } = useAuth();
-  const [links, setLinks] = useState<CategoryAttributeLink[]>([]);
-  const [allAttributes, setAllAttributes] = useState<AttributeDef[]>([]);
-  const [newAttributeId, setNewAttributeId] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const load = () => {
-    if (!token || !categoryId) return;
-    setLoading(true);
-    Promise.all([
-      api.categoryAttributes(token, categoryId),
-      api.attributes(token),
-    ])
-      .then(([categoryLinks, attributes]) => {
-        setLinks(categoryLinks);
-        setAllAttributes(attributes);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, [token, categoryId]);
-
+export function CategoryFiltersSection({ links, allAttributes, onChange }: CategoryFiltersSectionProps) {
   const availableAttributes = allAttributes.filter(
     (attr) => !links.some((link) => link.attributeId === attr.id),
   );
 
-  const addLink = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!token || !newAttributeId) return;
-    const attr = allAttributes.find((a) => a.id === newAttributeId);
-    const canFilter = attr ? defaultFilterType(attr.valueType, attr.options.length) !== null : false;
-    setSubmitting(true);
-    try {
-      const payload: CategoryAttributeInput = {
-        attributeId: newAttributeId,
-        showInForm: true,
-        showInFilters: canFilter,
-        sortOrder: links.length,
-      };
-      await api.createCategoryAttribute(token, categoryId, payload);
-      setNewAttributeId("");
-      load();
-    } catch (error) {
-      if (error instanceof ApiError) alert(error.message);
-    } finally {
-      setSubmitting(false);
-    }
+  const addAttribute = (attributeId: string) => {
+    const attr = allAttributes.find((item) => item.id === attributeId);
+    if (!attr) return;
+    onChange([...links, attributeToDraft(attr, links.length)]);
   };
 
-  const updateLink = async (link: CategoryAttributeLink, patch: Partial<CategoryAttributeInput>) => {
-    if (!token) return;
-    await api.updateCategoryAttribute(token, categoryId, link.id, patch);
-    load();
+  const updateLink = (clientId: string, patch: Partial<CategoryAttributeDraft>) => {
+    onChange(patchDraft(links, clientId, patch));
   };
 
-  const removeLink = async (linkId: number) => {
-    if (!token || !confirm("Убрать атрибут из этой категории?")) return;
-    await api.deleteCategoryAttribute(token, categoryId, linkId);
-    load();
+  const removeLink = (clientId: string, label: string) => {
+    if (!confirm(`Убрать «${label}» из этой категории?`)) return;
+    onChange(removeDraft(links, clientId));
   };
-
-  if (loading) {
-    return <p className="text-sm text-[var(--muted-foreground)]">Загрузка полей и фильтров…</p>;
-  }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-heading text-lg">Поля товара и фильтры каталога</h2>
           <p className="text-sm text-[var(--muted-foreground)] mt-1 max-w-2xl">
-            Привяжите характеристики к категории. <strong>Как выглядит фильтр</strong> (галочки, список, ползунок)
-            задаётся при создании атрибута. Здесь — только включить в форму товара / в каталог / на карточку
-            и для чисел — диапазон ползунка.
+            Характеристики для товаров этой категории. Вид фильтра задаётся в атрибуте — здесь
+            только где показывать и диапазон для чисел. Изменения сохранятся вместе с категорией.
           </p>
         </div>
         <Link
@@ -100,37 +57,37 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
         </Link>
       </div>
 
-      <form onSubmit={addLink} className={`${formCardClass} flex flex-wrap gap-3 items-end`}>
-        <div className="flex-1 min-w-[220px]">
-          <label className="block text-sm mb-1">Добавить характеристику</label>
-          <select
-            value={newAttributeId}
-            onChange={(e) => setNewAttributeId(e.target.value)}
-            className={inputClass}
-          >
-            <option value="">Выберите из справочника</option>
-            {availableAttributes.map((attr) => (
-              <option key={attr.id} value={attr.id}>
-                {attr.label} — {VALUE_TYPE_LABELS[attr.valueType] ?? attr.valueType}
-              </option>
-            ))}
-          </select>
+      {availableAttributes.length > 0 && (
+        <div className={`${formCardClass} flex flex-wrap gap-3 items-end`}>
+          <div className="flex-1 min-w-[220px]">
+            <label className="block text-sm mb-1">Добавить характеристику</label>
+            <select
+              defaultValue=""
+              onChange={(e) => {
+                const value = e.target.value;
+                if (!value) return;
+                addAttribute(value);
+                e.target.value = "";
+              }}
+              className={inputClass}
+            >
+              <option value="">Выберите из справочника</option>
+              {availableAttributes.map((attr) => (
+                <option key={attr.id} value={attr.id}>
+                  {attr.label} — {VALUE_TYPE_LABELS[attr.valueType] ?? attr.valueType}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <button
-          type="submit"
-          disabled={!newAttributeId || submitting}
-          className="h-10 px-4 bg-[var(--accent)] text-[var(--accent-foreground)] rounded disabled:opacity-50"
-        >
-          Добавить
-        </button>
-      </form>
+      )}
 
       {links.map((link) => {
         const filterLabel = link.filterType ? FILTER_TYPE_LABELS[link.filterType] : null;
         const canUseInFilters = defaultFilterType(link.valueType, link.options.length) !== null;
 
         return (
-          <div key={link.id} className={`${formCardClass} space-y-3`}>
+          <div key={link.clientId} className={`${formCardClass} space-y-3`}>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="font-heading">{link.attributeLabel}</div>
@@ -154,7 +111,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                 </Link>
                 <button
                   type="button"
-                  onClick={() => removeLink(link.id)}
+                  onClick={() => removeLink(link.clientId, link.attributeLabel)}
                   className="text-sm text-red-400 hover:text-red-300"
                 >
                   Убрать
@@ -167,7 +124,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                 <input
                   type="checkbox"
                   checked={link.showInForm}
-                  onChange={(e) => updateLink(link, { showInForm: e.target.checked })}
+                  onChange={(e) => updateLink(link.clientId, { showInForm: e.target.checked })}
                 />
                 В форме товара
               </label>
@@ -176,7 +133,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                   type="checkbox"
                   checked={link.showInFilters}
                   disabled={!canUseInFilters}
-                  onChange={(e) => updateLink(link, { showInFilters: e.target.checked })}
+                  onChange={(e) => updateLink(link.clientId, { showInFilters: e.target.checked })}
                 />
                 В фильтрах каталога
               </label>
@@ -184,7 +141,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                 <input
                   type="checkbox"
                   checked={link.showOnCard}
-                  onChange={(e) => updateLink(link, { showOnCard: e.target.checked })}
+                  onChange={(e) => updateLink(link.clientId, { showOnCard: e.target.checked })}
                 />
                 На карточке товара
               </label>
@@ -204,7 +161,9 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                     type="number"
                     value={link.filterMin ?? ""}
                     onChange={(e) =>
-                      updateLink(link, { filterMin: e.target.value === "" ? null : Number(e.target.value) })
+                      updateLink(link.clientId, {
+                        filterMin: e.target.value === "" ? null : Number(e.target.value),
+                      })
                     }
                     className={inputClass}
                   />
@@ -215,7 +174,9 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                     type="number"
                     value={link.filterMax ?? ""}
                     onChange={(e) =>
-                      updateLink(link, { filterMax: e.target.value === "" ? null : Number(e.target.value) })
+                      updateLink(link.clientId, {
+                        filterMax: e.target.value === "" ? null : Number(e.target.value),
+                      })
                     }
                     className={inputClass}
                   />
@@ -226,7 +187,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                     type="text"
                     placeholder="напр. Мощность"
                     value={link.groupLabel ?? ""}
-                    onChange={(e) => updateLink(link, { groupLabel: e.target.value || null })}
+                    onChange={(e) => updateLink(link.clientId, { groupLabel: e.target.value || null })}
                     className={inputClass}
                   />
                 </div>
@@ -240,7 +201,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
                   type="text"
                   placeholder="напр. Подключение"
                   value={link.groupLabel ?? ""}
-                  onChange={(e) => updateLink(link, { groupLabel: e.target.value || null })}
+                  onChange={(e) => updateLink(link.clientId, { groupLabel: e.target.value || null })}
                   className={inputClass}
                 />
               </div>
@@ -251,7 +212,7 @@ export function CategoryFiltersSection({ categoryId }: CategoryFiltersSectionPro
 
       {links.length === 0 && (
         <p className="text-sm text-[var(--muted-foreground)]">
-          Характеристики не привязаны. Добавьте из справочника или создайте новый атрибут.
+          Характеристики не привязаны. Выберите из справочника выше или создайте новый атрибут.
         </p>
       )}
     </div>
