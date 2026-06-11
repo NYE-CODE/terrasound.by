@@ -62,7 +62,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-x-0 top-20 mx-4"
+            className="absolute inset-x-0 top-[var(--site-header-height)] mx-4"
           >
             <div className="bg-card border border-card-border rounded-lg shadow-2xl overflow-hidden">
               <nav className="divide-y divide-border">

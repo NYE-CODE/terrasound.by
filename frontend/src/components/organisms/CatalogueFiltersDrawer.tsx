@@ -65,7 +65,7 @@ export function CatalogueFiltersDrawer({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 lg:hidden"
+          className="fixed inset-0 z-[80] lg:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Фильтры каталога"
@@ -86,7 +86,7 @@ export function CatalogueFiltersDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="absolute bottom-0 left-0 right-0 max-h-[88vh] bg-card border-t border-card-border rounded-t-2xl flex flex-col shadow-2xl"
+            className="absolute bottom-0 left-0 right-0 max-h-[calc(100dvh-var(--site-header-height))] bg-card border-t border-card-border rounded-t-2xl flex flex-col shadow-2xl"
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
               <h2 className="font-heading text-lg uppercase tracking-wider">Фильтры</h2>

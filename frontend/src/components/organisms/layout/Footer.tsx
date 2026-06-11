@@ -74,7 +74,7 @@ export function Footer() {
                 <Link
                   key={category.id}
                   to={`/catalogue?category=${category.id}`}
-                  className="block hover:text-accent transition-colors duration-300"
+                  className="block w-fit hover:text-accent transition-colors duration-300"
                 >
                   {category.name}
                 </Link>
@@ -85,16 +85,16 @@ export function Footer() {
           <div>
             <h4 className="font-heading text-sm uppercase tracking-wider mb-4">Услуги</h4>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <Link to="/installation" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
                 Установка
               </Link>
-              <Link to="/installation" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
                 Акустическая калибровка
               </Link>
-              <Link to="/installation" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
                 Шумоизоляция
               </Link>
-              <Link to="/installation" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
                 Консультация
               </Link>
             </div>
@@ -103,19 +103,19 @@ export function Footer() {
           <div>
             <h4 className="font-heading text-sm uppercase tracking-wider mb-4">Компания</h4>
             <div className="space-y-3 text-sm text-muted-foreground">
-              <Link to="/about" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/about" className="block w-fit hover:text-accent transition-colors duration-300">
                 О нас
               </Link>
-              <Link to="/blog" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/blog" className="block w-fit hover:text-accent transition-colors duration-300">
                 Блог
               </Link>
-              <Link to="/brands" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/brands" className="block w-fit hover:text-accent transition-colors duration-300">
                 Бренды
               </Link>
-              <Link to="/delivery" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/delivery" className="block w-fit hover:text-accent transition-colors duration-300">
                 Доставка
               </Link>
-              <Link to="/contact" className="block hover:text-accent transition-colors duration-300">
+              <Link to="/contact" className="block w-fit hover:text-accent transition-colors duration-300">
                 Контакты
               </Link>
             </div>

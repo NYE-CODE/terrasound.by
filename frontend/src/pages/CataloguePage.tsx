@@ -135,7 +135,7 @@ export function CataloguePage() {
   };
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className="pt-[var(--site-header-height)] min-h-screen">
       <div className="max-w-[1400px] mx-auto px-6 py-12">
         <div className="mb-6 lg:mb-8">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">
@@ -144,8 +144,9 @@ export function CataloguePage() {
           <p className="text-muted-foreground">Премиальное автозвуковое оборудование для энтузиастов</p>
         </div>
 
-        <div className="lg:hidden sticky top-20 z-40 -mx-6 px-6 py-3 mb-3 bg-background/95 backdrop-blur-md border-b border-border/40">
-          <div className="flex gap-3">
+        {!filtersOpen && (
+          <div className="lg:hidden sticky top-[var(--site-header-height)] z-[60] -mx-6 px-6 py-3 mb-3 bg-background border-b border-border">
+            <div className="flex gap-3">
             <button
               type="button"
               onClick={() => setFiltersOpen(true)}
@@ -173,8 +174,9 @@ export function CataloguePage() {
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
             </div>
+            </div>
           </div>
-        </div>
+        )}
 
         <CatalogueFiltersDrawer
           isOpen={filtersOpen}

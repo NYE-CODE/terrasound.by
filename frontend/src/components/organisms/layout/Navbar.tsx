@@ -39,7 +39,7 @@ export function Navbar() {
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-[var(--site-header-height)]">
             <Link
               to="/"
               className="flex items-center gap-3 shrink-0 text-foreground"

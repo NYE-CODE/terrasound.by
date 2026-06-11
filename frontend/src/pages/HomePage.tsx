@@ -87,10 +87,9 @@ export function HomePage() {
               <Link
                 key={category.id}
                 to={`/catalogue?category=${category.id}`}
-                className={`relative overflow-hidden rounded border border-card-border hover:border-accent transition-all duration-300 flex items-end p-6 ${
+                className={`relative overflow-hidden rounded border border-card-border hover:border-accent transition-all duration-300 flex items-end p-4 md:p-6 min-h-[160px] row-span-1 col-span-1 md:min-h-[180px] ${
                   category.gridCols === 2 ? "md:col-span-2" : ""
-                } ${category.gridTall ? "row-span-2" : ""}`}
-                style={{ minHeight: category.gridTall ? "400px" : "180px" }}
+                } ${category.gridTall ? "md:row-span-2 md:min-h-[400px]" : ""}`}
               >
                 <img
                   src={category.imageUrl}
@@ -98,7 +97,9 @@ export function HomePage() {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
-                <h3 className="relative font-heading text-xl">{category.name}</h3>
+                <h3 className="relative w-full text-left font-heading text-lg leading-tight md:text-xl">
+                  {category.name}
+                </h3>
               </Link>
             ))}
           </div>
