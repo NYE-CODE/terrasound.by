@@ -11,5 +11,5 @@ export const CONTACT_PHONE = "+375 33 917 7444";
 export const CONTACT_PHONE_TEL = "+375339177444";
 export const ADDRESS = "г. Гродно, Озерское шоссе, 14";
 export const WORKING_HOURS = "Пн–Пт, 10:00–18:00, обед 14:00–15:00";
-export const ADDRESS_MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ADDRESS}, Беларусь`)}`;
+export const ADDRESS_MAPS_URL = `https://yandex.by/maps/?text=${encodeURIComponent(`${ADDRESS}, Беларусь`)}`;
 export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";

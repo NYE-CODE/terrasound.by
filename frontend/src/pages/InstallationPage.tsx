@@ -81,16 +81,16 @@ export function InstallationPage() {
   };
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className="min-h-screen">
       {/* Hero Header */}
-      <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background/50 to-background z-10" />
+      <section className="relative isolate -mt-[var(--site-header-height)] pt-[var(--site-header-height)] h-[70vh] flex items-center justify-center overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80"
           alt="Студия"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 z-0 w-full h-full object-cover pointer-events-none"
         />
-        <div className="relative z-20 text-center max-w-3xl px-6">
+        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/50 to-background pointer-events-none" />
+        <div className="relative z-[2] text-center max-w-3xl px-6">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl mb-6">Профессиональная установка</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
             Экспертная установка и акустическая калибровка в нашей студии в Гродно

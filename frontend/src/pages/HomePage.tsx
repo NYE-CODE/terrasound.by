@@ -41,20 +41,20 @@ export function HomePage() {
   });
 
   return (
-    <div className="pt-20">
+    <div>
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0 lg:hidden" aria-hidden>
+      <section className="relative isolate -mt-[var(--site-header-height)] pt-[var(--site-header-height)] min-h-[90vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none lg:hidden" aria-hidden>
           <img
             src={HERO_IMAGE}
             alt=""
-            className="w-full h-full object-cover"
+            className="absolute inset-0 z-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-background/75" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
+          <div className="absolute inset-0 z-[1] bg-background/75" />
+          <div className="absolute inset-0 z-[1] bg-gradient-to-t from-background via-background/50 to-background/30" />
         </div>
 
-        <div className="relative z-10 max-w-[1400px] mx-auto px-6 w-full py-8 md:py-12 lg:py-0">
+        <div className="relative z-[2] max-w-[1400px] mx-auto px-6 w-full py-8 md:py-12 lg:py-0">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-8 leading-tight">

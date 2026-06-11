@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { MapPin, Phone } from "lucide-react";
-import { ADDRESS, CONTACT_PHONE, CONTACT_PHONE_TEL } from "../../../lib/site";
+import { ADDRESS, ADDRESS_MAPS_URL, CONTACT_PHONE, CONTACT_PHONE_TEL } from "../../../lib/site";
 import { isPrimaryNavLinkActive, primaryNavLinks } from "../../../lib/navLinks";
 import { useEffect, useRef } from "react";
 
@@ -87,10 +87,15 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   <Phone size={18} className="shrink-0" />
                   {CONTACT_PHONE}
                 </a>
-                <div className="flex items-center gap-3 text-muted-foreground">
+                <a
+                  href={ADDRESS_MAPS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors"
+                >
                   <MapPin size={18} className="shrink-0" />
                   {ADDRESS}
-                </div>
+                </a>
               </div>
             </div>
           </motion.div>
