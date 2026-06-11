@@ -30,7 +30,7 @@ const navItems = [
   { to: "/reviews/product", label: "Отзывы о товарах", icon: MessageSquare },
   { to: "/reviews/service", label: "Отзывы о магазине", icon: Star },
   { to: "/installation", label: "Заявки на установку", icon: Wrench },
-  { to: "/settings/stats", label: "Статистика сайта", icon: BarChart3 },
+  { to: "/settings/stats", label: "Наши достижения", icon: BarChart3 },
   { to: "/settings/password", label: "Смена пароля", icon: KeyRound },
 ];
 

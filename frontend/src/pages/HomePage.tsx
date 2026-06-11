@@ -4,14 +4,12 @@ import { ProductCard } from "../components/organisms/ProductCard";
 import Masonry from "react-responsive-masonry";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "../components/organisms/ReviewCard";
-import { api, type Category, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
+import { api, type Brand, type Category, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { TAGLINE } from "../lib/site";
 import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
 import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
-
-const brands = ["INCAR", "Ural", "Hertz", "JL Audio", "Focal", "Pioneer", "Alpine"];
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80";
@@ -21,6 +19,7 @@ export function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<ProductCardData[]>([]);
   const [portfolioWorks, setPortfolioWorks] = useState<PortfolioWork[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [siteStats, setSiteStats] = useState<SiteStats>({
     installationsCompleted: "1200+",
     yearsExpertise: "8",
@@ -31,6 +30,7 @@ export function HomePage() {
     api.getProducts({ limit: 3 }).then(({ items }) => setFeaturedProducts(items)).catch(console.error);
     api.getPortfolio().then(setPortfolioWorks).catch(console.error);
     api.getCategories().then(setCategories).catch(console.error);
+    api.getBrands().then(setBrands).catch(console.error);
     api.getSiteStats().then(setSiteStats).catch(console.error);
   }, []);
 
@@ -183,18 +183,19 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Brands Strip */}
-      <section className="py-8 md:py-12 border-t border-border">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="flex gap-12 justify-center items-center flex-wrap">
-            {brands.map((brand) => (
-              <div key={brand} className="font-heading text-xl text-muted-foreground opacity-60">
-                {brand}
-              </div>
-            ))}
+      {brands.length > 0 && (
+        <section className="py-8 md:py-12 border-t border-border">
+          <div className="max-w-[1400px] mx-auto px-6">
+            <div className="flex gap-12 justify-center items-center flex-wrap">
+              {brands.map((brand) => (
+                <div key={brand.id} className="font-heading text-xl text-muted-foreground opacity-60">
+                  {brand.name}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

@@ -56,7 +56,7 @@ export function SiteStatsPage() {
 
   return (
     <div>
-      <PageHeader title="Статистика сайта" />
+      <PageHeader title="Наши достижения" />
 
       <p className="text-sm text-[var(--muted-foreground)] mb-6 max-w-2xl">
         Значения отображаются на главной странице как есть — можно использовать цифры, текст и
