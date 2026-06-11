@@ -105,8 +105,6 @@ export function CatalogueFiltersPanel({
         allLabel="Все категории"
       />
 
-      <StockAvailabilityFilter selected={availability} onChange={onAvailabilityChange} />
-
       <div className="pt-6 border-t border-border">
         <BrandMultiSelect
           brands={brands}
@@ -114,6 +112,14 @@ export function CatalogueFiltersPanel({
           onChange={onBrandsChange}
         />
       </div>
+
+      <AttributeFilters
+        config={categoryFilters}
+        values={attributeFilters}
+        onChange={onAttributeFiltersChange}
+      />
+
+      <StockAvailabilityFilter selected={availability} onChange={onAvailabilityChange} />
 
       <div className="pt-6 border-t border-border">
         <h3 className="font-heading text-sm uppercase tracking-wider mb-4">Ценовой диапазон</h3>
@@ -135,12 +141,6 @@ export function CatalogueFiltersPanel({
           </div>
         </div>
       </div>
-
-      <AttributeFilters
-        config={categoryFilters}
-        values={attributeFilters}
-        onChange={onAttributeFiltersChange}
-      />
     </div>
   );
 }
