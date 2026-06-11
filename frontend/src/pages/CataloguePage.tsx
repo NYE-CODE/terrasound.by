@@ -185,7 +185,7 @@ export function CataloguePage() {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="hidden lg:block w-80 flex-shrink-0">
-            <div className="bg-card border border-card-border rounded p-6 sticky top-32 max-h-[calc(100vh-10rem)] overflow-y-auto">
+            <div className="bg-card border border-card-border rounded p-6 sticky top-32">
               <CatalogueFiltersPanel {...filterPanelProps} />
             </div>
           </aside>
