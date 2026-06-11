@@ -54,7 +54,7 @@ export function ProductCard({
           <ProductImage src={image} alt={name} />
           {!inStock && (
             <div className="absolute top-3 left-3 z-10">
-              <Badge text="Под заказ" variant="muted" />
+              <Badge text="Под заказ" variant="preorder" />
             </div>
           )}
           {inStock && (

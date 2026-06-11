@@ -4,6 +4,11 @@ export interface CarInfoFieldsProps {
   make: string;
   model: string;
   year: string;
+  errors?: {
+    make?: string;
+    model?: string;
+    year?: string;
+  };
   onMakeChange: (value: string) => void;
   onModelChange: (value: string) => void;
   onYearChange: (value: string) => void;
@@ -13,6 +18,7 @@ export function CarInfoFields({
   make,
   model,
   year,
+  errors,
   onMakeChange,
   onModelChange,
   onYearChange,
@@ -24,6 +30,7 @@ export function CarInfoFields({
         type="text"
         value={make}
         onChange={(e) => onMakeChange(e.target.value)}
+        error={errors?.make}
         placeholder="BMW"
       />
 
@@ -32,6 +39,7 @@ export function CarInfoFields({
         type="text"
         value={model}
         onChange={(e) => onModelChange(e.target.value)}
+        error={errors?.model}
         placeholder="5 Series"
       />
 

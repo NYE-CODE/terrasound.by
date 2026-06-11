@@ -1,20 +1,31 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator
 
 from app.schemas.common import CamelModel
 from app.models.order import OrderStatus
+from app.validation import validate_car_model, validate_person_name, validate_phone_number
 
 PaymentMethod = Literal["cash", "card", "bank"]
 
 
 class ContactIn(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    phone: str = Field(min_length=1, max_length=30)
+    name: str = Field(max_length=100)
+    phone: str = Field(max_length=30)
     email: EmailStr
     city: str = Field(default="", max_length=100)
     address: str = Field(min_length=1, max_length=500)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        return validate_person_name(value)
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def validate_phone(cls, value: str) -> str:
+        return validate_phone_number(value)
 
 
 class CarIn(BaseModel):
@@ -22,6 +33,16 @@ class CarIn(BaseModel):
     model: str = Field(default="", max_length=100)
     year: str = Field(default="", max_length=10)
     comment: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("make", mode="before")
+    @classmethod
+    def validate_make(cls, value: str) -> str:
+        return validate_car_model(value or "", required=False)
+
+    @field_validator("model", mode="before")
+    @classmethod
+    def validate_model(cls, value: str) -> str:
+        return validate_car_model(value or "", required=False)
 
 
 class OrderItemIn(BaseModel):

@@ -13,8 +13,13 @@ import { cn } from "../components/ui/utils";
 import { formControlClass, formSelectTriggerClass } from "../lib/formControlStyles";
 import { Info } from "lucide-react";
 import { toast } from "sonner";
+import {
+  PHONE_INPUT_PLACEHOLDER,
+  validateCarModel,
+  validatePersonName,
+  validatePhone,
+} from "@terrasound/shared";
 import { api, type InstallationService } from "../lib/api";
-import { CONTACT_PHONE } from "../lib/site";
 import { scrollToHash } from "../lib/scrollToHash";
 import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
 
@@ -50,6 +55,7 @@ export function InstallationPage() {
     carModel: "",
     service: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     api.getServices().then(setServices).catch(console.error);
@@ -62,19 +68,31 @@ export function InstallationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.service.trim()) {
-      toast.error("Выберите услугу");
-      return;
-    }
+
+    const nextErrors: Record<string, string> = {};
+    const nameResult = validatePersonName(formData.name);
+    const phoneResult = validatePhone(formData.phone);
+    const carModelResult = validateCarModel(formData.carModel);
+
+    if (!nameResult.ok) nextErrors.name = nameResult.error;
+    if (!phoneResult.ok) nextErrors.phone = phoneResult.error;
+    if (!carModelResult.ok) nextErrors.carModel = carModelResult.error;
+    if (!formData.service.trim()) nextErrors.service = "Выберите услугу";
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    if (!nameResult.ok || !phoneResult.ok || !carModelResult.ok) return;
+
     try {
       await api.createInstallationRequest({
-        name: formData.name,
-        phone: formData.phone,
-        carModel: formData.carModel,
+        name: nameResult.value,
+        phone: phoneResult.value,
+        carModel: carModelResult.value,
         service: formData.service,
       });
       toast.success("Заявка отправлена! Мы свяжемся с вами в течение 24 часов.");
       setFormData({ name: "", phone: "", carModel: "", service: "" });
+      setErrors({});
     } catch {
       toast.error("Не удалось отправить заявку");
     }
@@ -153,6 +171,7 @@ export function InstallationPage() {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              error={errors.name}
               placeholder="Введите ваше имя"
             />
             <FormField
@@ -161,7 +180,8 @@ export function InstallationPage() {
               required
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder={CONTACT_PHONE}
+              error={errors.phone}
+              placeholder={PHONE_INPUT_PLACEHOLDER}
             />
             <FormField
               label="Модель автомобиля"
@@ -169,7 +189,8 @@ export function InstallationPage() {
               required
               value={formData.carModel}
               onChange={(e) => setFormData({ ...formData, carModel: e.target.value })}
-              placeholder="например, BMW 5 Series 2020"
+              error={errors.carModel}
+              placeholder="например, BMW 5 Series 2020 или БМВ 5"
             />
             <div>
               <label className="block font-heading text-sm uppercase tracking-wider mb-2">
@@ -179,7 +200,7 @@ export function InstallationPage() {
                 value={formData.service || undefined}
                 onValueChange={(value) => setFormData({ ...formData, service: value })}
               >
-                <SelectTrigger size="lg" className={cn(formControlClass, formSelectTriggerClass, "py-0 text-base dark:bg-input dark:hover:bg-input")}>
+                <SelectTrigger size="lg" className={cn(formControlClass, formSelectTriggerClass, "py-0 text-base dark:bg-input dark:hover:bg-input", errors.service && "border-destructive")}>
                   <SelectValue placeholder="Выберите услугу" />
                 </SelectTrigger>
                 <SelectContent>
@@ -190,6 +211,7 @@ export function InstallationPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.service && <p className="text-xs text-destructive mt-1">{errors.service}</p>}
             </div>
             <Button type="submit" variant="primary" className="w-full">
               Запросить консультацию

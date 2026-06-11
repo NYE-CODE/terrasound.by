@@ -180,7 +180,7 @@ export function ProductPage() {
           <div className="mb-6">
             <Badge
               text={product.inStock ? "В наличии" : "Под заказ"}
-              variant={product.inStock ? "success" : "muted"}
+              variant={product.inStock ? "success" : "preorder"}
               size="md"
             />
           </div>

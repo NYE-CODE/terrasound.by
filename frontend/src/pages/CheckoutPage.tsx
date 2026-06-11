@@ -10,7 +10,11 @@ import { CheckoutTemplate } from "../components/templates/CheckoutTemplate";
 import { api } from "../lib/api";
 import { clampQuantity } from "../lib/cart";
 import { getEffectivePrice } from "../lib/price";
-import { CONTACT_PHONE } from "../lib/site";
+import {
+  validateOptionalCarModel,
+  validatePersonName,
+  validatePhone,
+} from "@terrasound/shared";
 import { toast } from "sonner";
 
 const paymentOptions = [
@@ -133,46 +137,72 @@ export function CheckoutPage() {
     [items],
   );
 
-  const validateForm = () => {
+  const validateForm = (): {
+    ok: boolean;
+    normalized?: {
+      name: string;
+      phone: string;
+      carMake: string;
+      carModel: string;
+    };
+  } => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Укажите имя";
-    if (!formData.phone.trim()) newErrors.phone = "Укажите телефон";
+    const nameResult = validatePersonName(formData.name);
+    const phoneResult = validatePhone(formData.phone);
+    const makeResult = validateOptionalCarModel(formData.carMake);
+    const modelResult = validateOptionalCarModel(formData.carModel);
+
+    if (!nameResult.ok) newErrors.name = nameResult.error;
+    if (!phoneResult.ok) newErrors.phone = phoneResult.error;
     if (!formData.email.trim()) newErrors.email = "Укажите email";
     if (!formData.address.trim()) newErrors.address = "Укажите адрес доставки";
+    if (!makeResult.ok) newErrors.carMake = makeResult.error;
+    if (!modelResult.ok) newErrors.carModel = modelResult.error;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = "Неверный формат email";
     }
 
-    const phoneRegex = /^\+375[\s-]?\d{2}[\s-]?\d{3}[\s-]?(?:\d{4}|\d{2}[\s-]?\d{2})$/;
-    if (formData.phone && !phoneRegex.test(formData.phone)) {
-      newErrors.phone = `Формат: ${CONTACT_PHONE}`;
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      return { ok: false };
+    }
+    if (!nameResult.ok || !phoneResult.ok || !makeResult.ok || !modelResult.ok) {
+      return { ok: false };
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return {
+      ok: true,
+      normalized: {
+        name: nameResult.value,
+        phone: phoneResult.value,
+        carMake: makeResult.value,
+        carModel: modelResult.value,
+      },
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (syncing) return;
-    if (!validateForm()) return;
+    const validation = validateForm();
+    if (!validation.ok || !validation.normalized) return;
 
     try {
       const order = await api.createOrder({
         contact: {
-          name: formData.name,
-          phone: formData.phone,
+          name: validation.normalized.name,
+          phone: validation.normalized.phone,
           email: formData.email,
           city: formData.city,
           address: formData.address,
         },
         car: {
-          make: formData.carMake,
-          model: formData.carModel,
+          make: validation.normalized.carMake,
+          model: validation.normalized.carModel,
           year: formData.carYear,
           comment: formData.carComment || undefined,
         },
@@ -236,6 +266,10 @@ export function CheckoutPage() {
               make={formData.carMake}
               model={formData.carModel}
               year={formData.carYear}
+              errors={{
+                make: errors.carMake,
+                model: errors.carModel,
+              }}
               onMakeChange={(value) => setFormData({ ...formData, carMake: value })}
               onModelChange={(value) => setFormData({ ...formData, carModel: value })}
               onYearChange={(value) => setFormData({ ...formData, carYear: value })}

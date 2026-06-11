@@ -1,5 +1,5 @@
 import { FormField } from "../molecules/FormField";
-import { CONTACT_PHONE } from "../../lib/site";
+import { PHONE_INPUT_PLACEHOLDER } from "@terrasound/shared";
 
 export interface ContactFormData {
   name: string;
@@ -39,7 +39,7 @@ export function ContactForm({ heading, values, errors, onChange }: ContactFormPr
             value={values.phone}
             onChange={(e) => onChange("phone", e.target.value)}
             error={errors.phone}
-            placeholder={CONTACT_PHONE}
+            placeholder={PHONE_INPUT_PLACEHOLDER}
           />
 
           <FormField

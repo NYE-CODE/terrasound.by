@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export interface BadgeProps {
   text: string;
-  variant?: "accent" | "success" | "muted";
+  variant?: "accent" | "success" | "preorder" | "muted";
   size?: "sm" | "md";
   icon?: ReactNode;
   className?: string;
@@ -12,6 +12,7 @@ export function Badge({ text, variant = "accent", size = "sm", icon, className =
   const variantStyles = {
     accent: "bg-accent/10 text-accent",
     success: "bg-emerald-500/10 text-emerald-400",
+    preorder: "bg-amber-500/15 text-amber-400 border border-amber-500/30",
     muted: "bg-secondary text-muted-foreground border border-border",
   };
 
