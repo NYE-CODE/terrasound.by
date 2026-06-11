@@ -154,11 +154,22 @@ export function ProductFormPage() {
               <option value={form.brand}>{form.brand} (нет в справочнике)</option>
             )}
           </select>
-          <Link to="/brands/new" className="inline-block mt-1 text-xs text-[var(--accent)] hover:underline">
-            + Новый бренд
-          </Link>
         </div>
-        <input placeholder="Название" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} required />
+        <div>
+          <label className="block text-sm mb-1">Название</label>
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </div>
+        <Link
+          to="/brands/new"
+          className="md:col-span-2 -mt-2 text-xs text-[var(--accent)] hover:underline w-fit"
+        >
+          + Новый бренд
+        </Link>
         <input type="number" step="0.01" placeholder="Цена" value={form.price || ""} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className={inputClass} required />
         <input
           type="number"
