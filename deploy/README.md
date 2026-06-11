@@ -53,6 +53,13 @@ sudo rm -f /etc/nginx/sites-enabled/api.terrasound.by
 sudo nginx -t && sudo systemctl reload nginx
 curl -s http://terrasound.by/api/health
 
+# nginx — админка: admin.terrasound.by + /api/ → backend (обязательно для логина)
+sudo cp deploy/nginx/admin.terrasound.by.conf /etc/nginx/sites-available/admin.terrasound.by
+sudo ln -sf /etc/nginx/sites-available/admin.terrasound.by /etc/nginx/sites-enabled/
+sudo certbot --nginx -d admin.terrasound.by   # если ещё нет SSL
+sudo nginx -t && sudo systemctl reload nginx
+curl -s https://admin.terrasound.by/api/health   # должен быть JSON, не HTML
+
 chmod +x deploy/deploy.sh
 ./deploy/deploy.sh
 

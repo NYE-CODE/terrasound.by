@@ -118,6 +118,9 @@ PRERENDER_API_URL="${PRERENDER_API_URL:-http://${API_HOST}:${API_PORT}}"
 BUILD_FRONTEND="${BUILD_FRONTEND:-true}"
 BUILD_ADMIN="${BUILD_ADMIN:-true}"
 NGINX_RELOAD="${NGINX_RELOAD:-true}"
+NGINX_SYNC_CONFIGS="${NGINX_SYNC_CONFIGS:-true}"
+NGINX_SITES_AVAILABLE="${NGINX_SITES_AVAILABLE:-/etc/nginx/sites-available}"
+NGINX_SITES_ENABLED="${NGINX_SITES_ENABLED:-/etc/nginx/sites-enabled}"
 SUDO="${SUDO:-sudo}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-30}"
 SKIP_API_RESTART="${SKIP_API_RESTART:-false}"
@@ -245,12 +248,32 @@ else
   log "Сборка admin пропущена"
 fi
 
-# --- Nginx reload ---
+# --- Nginx configs + reload ---
 if [[ "$NGINX_RELOAD" == true && "$SKIP_NGINX" == false ]]; then
   if command -v nginx >/dev/null 2>&1; then
+    if [[ "$NGINX_SYNC_CONFIGS" == true && -d "$NGINX_SITES_AVAILABLE" ]]; then
+      log "Копирование nginx-конфигов из deploy/nginx/"
+      $SUDO cp "$SCRIPT_DIR/nginx/terrasound.by.conf" "$NGINX_SITES_AVAILABLE/terrasound.by"
+      $SUDO cp "$SCRIPT_DIR/nginx/admin.terrasound.by.conf" "$NGINX_SITES_AVAILABLE/admin.terrasound.by"
+      $SUDO ln -sf "$NGINX_SITES_AVAILABLE/terrasound.by" "$NGINX_SITES_ENABLED/terrasound.by"
+      $SUDO ln -sf "$NGINX_SITES_AVAILABLE/admin.terrasound.by" "$NGINX_SITES_ENABLED/admin.terrasound.by"
+    elif [[ "$NGINX_SYNC_CONFIGS" == true ]]; then
+      warn "Каталог $NGINX_SITES_AVAILABLE не найден — nginx-конфиги не обновлены"
+    fi
+
     log "Перезагрузка nginx"
     $SUDO nginx -t
     $SUDO systemctl reload nginx
+
+    if command -v curl >/dev/null 2>&1; then
+      admin_api_probe="$(curl -sf --max-time 10 "https://admin.terrasound.by/api/health" 2>/dev/null || true)"
+      if [[ "$admin_api_probe" == *'"status"'* ]]; then
+        log "admin.terrasound.by/api/health — OK"
+      else
+        warn "admin.terrasound.by/api не проксируется на backend (ожидался JSON /api/health)."
+        warn "Проверьте: $NGINX_SITES_AVAILABLE/admin.terrasound.by и ADMIN_VITE_API_URL= в deploy.env"
+      fi
+    fi
   else
     warn "nginx не найден — пропуск reload"
   fi
