@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { FormField } from "../components/molecules/FormField";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { cn } from "../components/ui/utils";
 import { Info } from "lucide-react";
 import { toast } from "sonner";
 import { api, type InstallationService } from "../lib/api";
@@ -52,6 +60,10 @@ export function InstallationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.service.trim()) {
+      toast.error("Выберите услугу");
+      return;
+    }
     try {
       await api.createInstallationRequest({
         name: formData.name,
@@ -161,19 +173,29 @@ export function InstallationPage() {
               <label className="block font-heading text-sm uppercase tracking-wider mb-2">
                 Интересующая услуга
               </label>
-              <select
-                required
-                value={formData.service}
-                onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                className="w-full h-12 px-4 bg-input border border-border rounded text-foreground focus:border-accent focus:outline-none transition-all duration-300"
+              <Select
+                value={formData.service || undefined}
+                onValueChange={(value) => setFormData({ ...formData, service: value })}
               >
-                <option value="">Выберите услугу</option>
-                {services.map((service) => (
-                  <option key={service.id} value={service.title}>
-                    {service.title}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  className={cn(
+                    "!h-12 min-h-12 data-[size=default]:!h-12 w-full px-4 py-0",
+                    "bg-input border border-border rounded text-base text-foreground",
+                    "shadow-none transition-all duration-300",
+                    "focus:border-accent focus-visible:border-accent focus-visible:ring-0",
+                    "dark:bg-input dark:hover:bg-input",
+                  )}
+                >
+                  <SelectValue placeholder="Выберите услугу" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.title}>
+                      {service.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Button type="submit" variant="primary" className="w-full">
               Запросить консультацию
