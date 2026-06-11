@@ -140,17 +140,4 @@ def _migrate_catalog_categories(engine: Engine) -> None:
 
         conn.execute(text("UPDATE categories SET name = 'Динамики' WHERE id = 'speakers'"))
 
-        processors = conn.execute(
-            text("SELECT 1 FROM categories WHERE id = 'processors'")
-        ).fetchone()
-        if not processors:
-            conn.execute(
-                text(
-                    "INSERT INTO categories (id, name, image_url, sort_order, grid_cols, grid_tall, published) "
-                    "VALUES ('processors', 'Процессоры', "
-                    "'https://images.unsplash.com/photo-1545226685-5e8a2f1d1b8e?w=800&q=80', "
-                    "2, 1, 0, 1)"
-                )
-            )
-
         conn.execute(text("DELETE FROM categories WHERE id = 'subwoofers'"))
