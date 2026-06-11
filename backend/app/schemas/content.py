@@ -1,10 +1,19 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 from pydantic.alias_generators import to_camel
 
 from app.schemas.common import CamelModel
+
+
+def normalize_sale_price(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    numeric = float(value)
+    if numeric <= 0:
+        return None
+    return numeric
 
 
 class InstallationServiceOut(CamelModel):
@@ -240,6 +249,11 @@ class ProductCreate(BaseModel):
     attributes: dict[str, Any] = {}
     compatibility: list[str] = []
 
+    @field_validator("sale_price", mode="before")
+    @classmethod
+    def normalize_create_sale_price(cls, value: Any) -> float | None:
+        return normalize_sale_price(value)
+
 
 class ProductUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
@@ -256,3 +270,8 @@ class ProductUpdate(BaseModel):
     specs: dict[str, str] | None = None
     attributes: dict[str, Any] | None = None
     compatibility: list[str] | None = None
+
+    @field_validator("sale_price", mode="before")
+    @classmethod
+    def normalize_update_sale_price(cls, value: Any) -> float | None:
+        return normalize_sale_price(value)

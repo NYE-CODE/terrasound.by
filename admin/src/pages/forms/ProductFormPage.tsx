@@ -186,7 +186,10 @@ export function ProductFormPage() {
           onChange={(e) =>
             setForm({
               ...form,
-              salePrice: e.target.value === "" ? null : Number(e.target.value),
+              salePrice:
+                e.target.value === "" || Number(e.target.value) <= 0
+                  ? null
+                  : Number(e.target.value),
             })
           }
           className={inputClass}
