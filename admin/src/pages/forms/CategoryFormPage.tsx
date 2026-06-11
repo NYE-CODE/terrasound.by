@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { CategoryFiltersSection } from "../../components/CategoryFiltersSection";
 import { FormActions } from "../../components/FormActions";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
@@ -56,10 +57,11 @@ export function CategoryFormPage() {
           published: form.published,
         };
         await api.updateCategory(token, id, payload);
+        navigate("/categories");
       } else {
         await api.createCategory(token, form);
+        navigate(`/categories/${form.id}/edit`);
       }
-      navigate("/categories");
     } catch (error) {
       console.error(error);
     } finally {
@@ -72,13 +74,13 @@ export function CategoryFormPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-8 max-w-4xl">
       <PageHeader
         title={isEdit ? "Редактирование категории" : "Новая категория"}
         backTo="/categories"
       />
 
-      <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
+      <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4`}>
         {!isEdit && (
           <input
             placeholder="Slug (например, speakers)"
@@ -111,8 +113,20 @@ export function CategoryFormPage() {
           <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
           Опубликована
         </label>
-        <FormActions cancelTo="/categories" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />
+        <FormActions
+          cancelTo="/categories"
+          submitLabel={isEdit ? "Сохранить категорию" : "Создать и настроить фильтры"}
+          isSubmitting={submitting}
+        />
       </form>
+
+      {isEdit && id ? (
+        <CategoryFiltersSection categoryId={id} />
+      ) : (
+        <p className="text-sm text-[var(--muted-foreground)]">
+          После создания категории здесь появится настройка полей товара и фильтров каталога.
+        </p>
+      )}
     </div>
   );
 }

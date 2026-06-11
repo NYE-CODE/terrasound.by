@@ -5,7 +5,6 @@ import { BlogPage } from "./pages/BlogPage";
 import { BrandsPage } from "./pages/BrandsPage";
 import { AttributesPage } from "./pages/AttributesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
-import { CategoryAttributesPage } from "./pages/CategoryAttributesPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { InstallationRequestsPage } from "./pages/InstallationRequestsPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -61,7 +60,6 @@ export default function App() {
             <Route path="categories" element={<CategoriesPage />} />
             <Route path="categories/new" element={<CategoryFormPage />} />
             <Route path="categories/:id/edit" element={<CategoryFormPage />} />
-            <Route path="categories/:id/attributes" element={<CategoryAttributesPage />} />
             <Route path="attributes" element={<AttributesPage />} />
             <Route path="attributes/new" element={<AttributeFormPage />} />
             <Route path="attributes/:id/edit" element={<AttributeFormPage />} />

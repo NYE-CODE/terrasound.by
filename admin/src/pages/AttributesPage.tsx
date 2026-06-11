@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
 import { RowActions } from "../components/RowActions";
 import { useAuth } from "../context/AuthContext";
 import { ApiError, api, type AttributeDef } from "../lib/api";
+
+const VALUE_TYPE_LABELS: Record<string, string> = {
+  text: "Текст",
+  number: "Число",
+  boolean: "Да / нет",
+  enum: "Список",
+};
 
 export function AttributesPage() {
   const { token } = useAuth();
@@ -30,6 +36,11 @@ export function AttributesPage() {
     <div>
       <PageHeader title="Атрибуты" createTo="/attributes/new" createLabel="Добавить атрибут" />
 
+      <p className="text-sm text-[var(--muted-foreground)] mb-6 max-w-2xl">
+        Общий справочник характеристик (тип, мощность, Bluetooth…). Привязка к категории и настройка
+        фильтров — в форме редактирования категории.
+      </p>
+
       <div className="space-y-3">
         {items.map((item) => (
           <div
@@ -39,9 +50,9 @@ export function AttributesPage() {
             <div>
               <div className="font-heading">{item.label}</div>
               <div className="text-sm text-[var(--muted-foreground)]">
-                {item.id} · {item.valueType}
+                {item.id} · {VALUE_TYPE_LABELS[item.valueType] ?? item.valueType}
                 {item.unit ? ` · ${item.unit}` : ""}
-                {item.options.length > 0 ? ` · ${item.options.length} вариантов` : ""}
+                {item.options.length > 0 && ` · ${item.options.map((o) => o.label).join(", ")}`}
               </div>
             </div>
             <RowActions editTo={`/attributes/${item.id}/edit`} onDelete={() => remove(item.id)} />
@@ -49,14 +60,6 @@ export function AttributesPage() {
         ))}
         {items.length === 0 && <p className="text-[var(--muted-foreground)]">Атрибутов пока нет</p>}
       </div>
-
-      <p className="mt-6 text-sm text-[var(--muted-foreground)]">
-        Привязка атрибутов к категориям — в разделе{" "}
-        <Link to="/categories" className="text-[var(--accent)] hover:underline">
-          Категории
-        </Link>
-        .
-      </p>
     </div>
   );
 }

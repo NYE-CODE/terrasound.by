@@ -9,13 +9,13 @@ import { api, type AttributeInput } from "../../lib/api";
 const emptyForm: AttributeInput = {
   id: "",
   label: "",
-  valueType: "text",
+  valueType: "enum",
   unit: "",
   options: [],
 };
 
 function optionsToText(options: AttributeInput["options"]) {
-  return (options ?? []).map((opt) => `${opt.value}: ${opt.label}`).join("\n");
+  return (options ?? []).map((opt) => (opt.value === opt.label ? opt.label : `${opt.value}: ${opt.label}`)).join("\n");
 }
 
 function textToOptions(value: string) {
@@ -25,7 +25,10 @@ function textToOptions(value: string) {
     .filter(Boolean)
     .map((line, index) => {
       const colon = line.indexOf(":");
-      if (colon <= 0) return { value: line, label: line, sortOrder: index };
+      if (colon <= 0) {
+        const slug = line.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+        return { value: slug || `opt_${index}`, label: line, sortOrder: index };
+      }
       return {
         value: line.slice(0, colon).trim(),
         label: line.slice(colon + 1).trim(),
@@ -33,6 +36,13 @@ function textToOptions(value: string) {
       };
     });
 }
+
+const TYPE_HINTS: Record<string, string> = {
+  enum: "Выпадающий список или фильтр с вариантами (тип магнитолы, типоразмер и т.д.)",
+  number: "Числовое значение (мощность, толщина). Можно задать ползунок в фильтрах категории.",
+  boolean: "Да / нет (Bluetooth, оптический вход и т.п.)",
+  text: "Произвольный текст без фиксированных вариантов",
+};
 
 export function AttributeFormPage() {
   const { id } = useParams();
@@ -95,46 +105,75 @@ export function AttributeFormPage() {
       <PageHeader title={isEdit ? "Редактирование атрибута" : "Новый атрибут"} backTo="/attributes" />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
-        <input
-          placeholder="ID (slug, напр. optical_input)"
-          value={form.id}
-          onChange={(e) => setForm({ ...form, id: e.target.value })}
-          className={inputClass}
-          required
-          disabled={isEdit}
-          pattern="^[a-z0-9]+(?:_[a-z0-9]+)*$"
-        />
-        <input
-          placeholder="Название"
-          value={form.label}
-          onChange={(e) => setForm({ ...form, label: e.target.value })}
-          className={inputClass}
-          required
-        />
-        <select
-          value={form.valueType}
-          onChange={(e) => setForm({ ...form, valueType: e.target.value })}
-          className={inputClass}
-        >
-          <option value="text">Текст</option>
-          <option value="number">Число</option>
-          <option value="boolean">Да/нет</option>
-          <option value="enum">Список</option>
-        </select>
-        <input
-          placeholder="Единица измерения (необязательно)"
-          value={form.unit ?? ""}
-          onChange={(e) => setForm({ ...form, unit: e.target.value })}
-          className={inputClass}
-        />
-        {form.valueType === "enum" && (
-          <textarea
-            placeholder="Варианты (value: подпись, по одному на строку)"
-            value={optionsText}
-            onChange={(e) => setOptionsText(e.target.value)}
-            className={textareaClass}
+        <div>
+          <label className="block text-sm mb-1">Код (латиница, без пробелов)</label>
+          <input
+            placeholder="tip_dinamiki"
+            value={form.id}
+            onChange={(e) => setForm({ ...form, id: e.target.value })}
+            className={inputClass}
+            required
+            disabled={isEdit}
+            pattern="^[a-z0-9]+(?:_[a-z0-9]+)*$"
           />
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">Используется в системе, не показывается покупателю</p>
+        </div>
+
+        <div>
+          <label className="block text-sm mb-1">Название</label>
+          <input
+            placeholder="Тип"
+            value={form.label}
+            onChange={(e) => setForm({ ...form, label: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-1">Тип значения</label>
+          <select
+            value={form.valueType}
+            onChange={(e) => setForm({ ...form, valueType: e.target.value })}
+            className={inputClass}
+          >
+            <option value="enum">Список вариантов</option>
+            <option value="number">Число</option>
+            <option value="boolean">Да / нет</option>
+            <option value="text">Текст</option>
+          </select>
+          <p className="text-xs text-[var(--muted-foreground)] mt-1">{TYPE_HINTS[form.valueType]}</p>
+        </div>
+
+        {form.valueType === "number" && (
+          <div>
+            <label className="block text-sm mb-1">Единица измерения</label>
+            <input
+              placeholder="Вт, мм, Ом…"
+              value={form.unit ?? ""}
+              onChange={(e) => setForm({ ...form, unit: e.target.value })}
+              className={inputClass}
+            />
+          </div>
         )}
+
+        {form.valueType === "enum" && (
+          <div>
+            <label className="block text-sm mb-1">Варианты списка</label>
+            <textarea
+              placeholder={"Твитеры\nСреднечастотники\nСабвуферы\n\nили с кодом:\ntweeters: Твитеры"}
+              value={optionsText}
+              onChange={(e) => setOptionsText(e.target.value)}
+              className={textareaClass}
+              rows={6}
+              required
+            />
+            <p className="text-xs text-[var(--muted-foreground)] mt-1">
+              По одному варианту на строку. Для списка «Тип динамика» выберите тип «Список вариантов», не «Текст».
+            </p>
+          </div>
+        )}
+
         <FormActions cancelTo="/attributes" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />
       </form>
     </div>
