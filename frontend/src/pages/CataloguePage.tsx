@@ -5,7 +5,8 @@ import { CatalogueFiltersDrawer } from "../components/organisms/CatalogueFilters
 import { CatalogueFiltersPanel, availabilityToQuery, countActiveFilters, type AvailabilityOption } from "../components/organisms/CatalogueFiltersPanel";
 import { buildAttributeQuery, type AttributeFilterState } from "../components/organisms/AttributeFilters";
 import { Pagination } from "../components/molecules/Pagination";
-import { ChevronDown, SlidersHorizontal } from "lucide-react";
+import { CatalogueSortSelect } from "../components/molecules/CatalogueSortSelect";
+import { SlidersHorizontal } from "lucide-react";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { api, type Category, type CategoryFilters, type ProductCard as ProductCardData } from "../lib/api";
 import { pageContentPy } from "../lib/pageLayout";
@@ -161,19 +162,8 @@ export function CataloguePage() {
                 </span>
               )}
             </button>
-            <div className="relative flex-1">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full h-11 px-4 bg-input border border-border rounded text-sm appearance-none cursor-pointer pr-10"
-              >
-                <option value="popularity">По названию</option>
-                <option value="rating">По рейтингу</option>
-                <option value="price-low">Цена ↑</option>
-                <option value="price-high">Цена ↓</option>
-                <option value="new">Новинки</option>
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
+            <div className="flex-1 min-w-0">
+              <CatalogueSortSelect value={sortBy} onChange={setSortBy} compact />
             </div>
             </div>
           </div>
@@ -196,20 +186,7 @@ export function CataloguePage() {
           <div className="flex-1 min-w-0">
             <div className="hidden lg:flex items-center justify-between gap-4 mb-6">
               <div className="text-muted-foreground">{totalItems} товаров</div>
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="h-10 px-4 bg-input border border-border rounded text-sm appearance-none cursor-pointer pr-10"
-                >
-                  <option value="popularity">По названию</option>
-                  <option value="rating">По рейтингу</option>
-                  <option value="price-low">Цена: по возрастанию</option>
-                  <option value="price-high">Цена: по убыванию</option>
-                  <option value="new">Новинки</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
-              </div>
+              <CatalogueSortSelect value={sortBy} onChange={setSortBy} className="min-w-[220px]" />
             </div>
 
             <div className="lg:hidden text-muted-foreground text-sm mb-4">
