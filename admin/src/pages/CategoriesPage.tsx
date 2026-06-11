@@ -20,13 +20,19 @@ export function CategoriesPage() {
 
   const remove = async (id: string) => {
     if (!token) return;
+    const item = items.find((entry) => entry.id === id);
+    if (item && item.productCount > 0) {
+      alert(
+        `Категорию «${item.name}» нельзя удалить: в ней ${item.productCount} товар(ов). Сначала перенесите или удалите товары.`,
+      );
+      return;
+    }
+    if (!confirm(`Удалить категорию «${item?.name ?? id}»?`)) return;
     try {
       await api.deleteCategory(token, id);
       load();
     } catch (error) {
-      if (error instanceof ApiError) {
-        alert(error.message);
-      }
+      if (error instanceof ApiError) alert(error.message);
     }
   };
 

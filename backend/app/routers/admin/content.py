@@ -4,11 +4,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth import get_current_admin
 from app.cache import CONTENT_BRANDS, CONTENT_CATEGORIES, CONTENT_SERVICES, content_cache
 from app.database import get_db
+from app.models.attribute import CategoryAttribute
 from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.product import Product
 from app.schemas.auth import AdminUser
@@ -293,14 +295,29 @@ def delete_category_admin(
     item = db.query(Category).filter(Category.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Категория не найдена")
-    count = db.query(Product).filter(Product.category == item_id).count()
-    if count > 0:
+
+    product_count = db.query(Product).filter(Product.category == item_id).count()
+    if product_count > 0:
         raise HTTPException(
             status_code=409,
-            detail=f"Нельзя удалить категорию: в ней {count} товар(ов). Перенесите товары в другую категорию.",
+            detail=(
+                f"Нельзя удалить категорию: в ней {product_count} товар(ов). "
+                "Перенесите товары в другую категорию или удалите их."
+            ),
         )
-    db.delete(item)
-    db.commit()
+
+    db.query(CategoryAttribute).filter(CategoryAttribute.category_id == item_id).delete()
+
+    try:
+        db.delete(item)
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Нельзя удалить категорию: есть связанные данные.",
+        ) from exc
+
     content_cache.invalidate(CONTENT_CATEGORIES)
 
 
