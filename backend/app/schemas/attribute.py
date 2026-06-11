@@ -34,7 +34,10 @@ class AttributeCreate(BaseModel):
     label: str = Field(min_length=1)
     value_type: str = Field(pattern=r"^(enum|number|boolean|text)$")
     unit: str | None = Field(default=None, max_length=30)
-    filter_type: str | None = Field(default=None, pattern=r"^(checkbox|dropdown|multiselect|range)$")
+    filter_type: str | None = Field(
+        default=None,
+        pattern=r"^(checkbox|dropdown|dropdown_multiselect|multiselect|range)$",
+    )
     options: list[AttributeOptionInput] = []
 
 
@@ -44,7 +47,10 @@ class AttributeUpdate(BaseModel):
     label: str | None = None
     value_type: str | None = Field(default=None, pattern=r"^(enum|number|boolean|text)$")
     unit: str | None = Field(default=None, max_length=30)
-    filter_type: str | None = Field(default=None, pattern=r"^(checkbox|dropdown|multiselect|range)$")
+    filter_type: str | None = Field(
+        default=None,
+        pattern=r"^(checkbox|dropdown|dropdown_multiselect|multiselect|range)$",
+    )
     options: list[AttributeOptionInput] | None = None
 
 
@@ -75,7 +81,10 @@ class CategoryAttributeCreate(BaseModel):
     show_in_form: bool = True
     show_in_filters: bool = False
     show_on_card: bool = False
-    filter_type: str | None = Field(default=None, pattern=r"^(checkbox|dropdown|multiselect|range)$")
+    filter_type: str | None = Field(
+        default=None,
+        pattern=r"^(checkbox|dropdown|dropdown_multiselect|multiselect|range)$",
+    )
     filter_min: float | None = None
     filter_max: float | None = None
     filter_step: float | None = None
@@ -90,7 +99,10 @@ class CategoryAttributeUpdate(BaseModel):
     show_in_form: bool | None = None
     show_in_filters: bool | None = None
     show_on_card: bool | None = None
-    filter_type: str | None = Field(default=None, pattern=r"^(checkbox|dropdown|multiselect|range)$")
+    filter_type: str | None = Field(
+        default=None,
+        pattern=r"^(checkbox|dropdown|dropdown_multiselect|multiselect|range)$",
+    )
     filter_min: float | None = None
     filter_max: float | None = None
     filter_step: float | None = None

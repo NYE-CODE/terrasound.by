@@ -1,7 +1,8 @@
 export const FILTER_TYPE_LABELS: Record<string, string> = {
   checkbox: "Галочка (да/нет)",
   multiselect: "Список с галочками",
-  dropdown: "Выпадающий список",
+  dropdown_multiselect: "Выпадающий список с галочками",
+  dropdown: "Выпадающий список (одно значение)",
   range: "Ползунок «до…»",
 };
 
@@ -22,7 +23,7 @@ export function defaultFilterType(valueType: string, optionCount = 0): string | 
 export function allowedFilterTypes(valueType: string): string[] {
   if (valueType === "boolean") return ["checkbox"];
   if (valueType === "number") return ["range"];
-  if (valueType === "enum") return ["multiselect", "dropdown"];
+  if (valueType === "enum") return ["multiselect", "dropdown_multiselect", "dropdown"];
   return [];
 }
 
@@ -33,7 +34,7 @@ export function filterTypeHint(valueType: string): string {
     case "number":
       return "В каталоге — ползунок «до N». Диапазон min/max настраивается в категории.";
     case "enum":
-      return "Список с галочками — как бренд или тип на Ozon (можно выбрать несколько). Выпадающий — если вариантов много.";
+      return "Список с галочками — компактно в боковой панели. Выпадающий с галочками — если вариантов много и нужен выбор нескольких. Обычный выпадающий — только одно значение.";
     default:
       return "Текстовые атрибуты в фильтрах каталога не используются.";
   }

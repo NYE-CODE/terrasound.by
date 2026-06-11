@@ -11,7 +11,7 @@ class Attribute(Base):
     label: Mapped[str] = mapped_column(String(150), nullable=False)
     value_type: Mapped[str] = mapped_column(String(20), nullable=False)  # enum | number | boolean | text
     unit: Mapped[str | None] = mapped_column(String(30), nullable=True)
-    filter_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # checkbox | dropdown | multiselect | range
+    filter_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # checkbox | dropdown | dropdown_multiselect | multiselect | range
 
     options: Mapped[list["AttributeOption"]] = relationship(
         back_populates="attribute", cascade="all, delete-orphan", order_by="AttributeOption.sort_order"
@@ -44,7 +44,7 @@ class CategoryAttribute(Base):
     show_in_form: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     show_in_filters: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     show_on_card: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    filter_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # checkbox | dropdown | multiselect | range
+    filter_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # checkbox | dropdown | dropdown_multiselect | multiselect | range
     filter_min: Mapped[float | None] = mapped_column(Float, nullable=True)
     filter_max: Mapped[float | None] = mapped_column(Float, nullable=True)
     filter_step: Mapped[float | None] = mapped_column(Float, nullable=True)

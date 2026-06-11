@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-FILTER_TYPES = frozenset({"checkbox", "dropdown", "multiselect", "range"})
+FILTER_TYPES = frozenset({"checkbox", "dropdown", "dropdown_multiselect", "multiselect", "range"})
 
 FILTER_TYPE_LABELS = {
     "checkbox": "Галочка (да/нет)",
     "multiselect": "Список с галочками (несколько значений)",
+    "dropdown_multiselect": "Выпадающий список с галочками (несколько значений)",
     "dropdown": "Выпадающий список (одно значение)",
     "range": "Ползунок «до…» (число)",
 }
@@ -30,7 +31,7 @@ def allowed_filter_types(value_type: str) -> list[str]:
     if value_type == "number":
         return ["range"]
     if value_type == "enum":
-        return ["multiselect", "dropdown"]
+        return ["multiselect", "dropdown_multiselect", "dropdown"]
     return []
 
 

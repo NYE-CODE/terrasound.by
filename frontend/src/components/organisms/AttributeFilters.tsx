@@ -1,3 +1,4 @@
+import { CheckboxMultiSelectDropdown } from "../molecules/CheckboxMultiSelectDropdown";
 import type { CategoryFilter, CategoryFilters } from "../../lib/api";
 
 const filterGroupTitleClass = "font-heading text-[13px] uppercase tracking-wide leading-snug";
@@ -140,6 +141,23 @@ function FilterField({
             </label>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (filter.filterType === "dropdown_multiselect") {
+    const selected = Array.isArray(value) ? value : value ? [String(value)] : [];
+    return (
+      <div>
+        <h4 className={`${filterFieldTitleClass} mb-2`}>{filter.label}</h4>
+        <CheckboxMultiSelectDropdown
+          options={filter.options.map((opt) => ({ value: opt.value, label: opt.label }))}
+          selected={selected}
+          onChange={(next) => onChange(next.length ? next : undefined)}
+          placeholder="Все"
+          searchPlaceholder="Поиск..."
+          showSearch={filter.options.length > 6}
+        />
       </div>
     );
   }
