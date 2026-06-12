@@ -2,21 +2,30 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
-import { usePagination } from "../hooks/usePagination";
-import { reportActionError, reportLoadError} from "../lib/formError";
+import { PAGE_SIZE } from "../hooks/usePagination";
+import { reportActionError, reportLoadError } from "../lib/formError";
 import { api, type InstallationRequest } from "../lib/api";
 
 export function InstallationRequestsPage() {
   const { token } = useAuth();
   const [requests, setRequests] = useState<InstallationRequest[]>([]);
-  const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(requests);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const load = () => {
     if (!token) return;
-    api.installationRequests(token).then(setRequests).catch(reportLoadError);
+    const offset = (page - 1) * PAGE_SIZE;
+    api
+      .installationRequests(token, { limit: PAGE_SIZE, offset })
+      .then((result) => {
+        setRequests(result.data);
+        setTotalItems(result.meta.total);
+      })
+      .catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [token, page]);
 
   const remove = async (requestId: string) => {
     if (!token || !confirm("Удалить заявку?")) return;
@@ -45,7 +54,7 @@ export function InstallationRequestsPage() {
             </tr>
           </thead>
           <tbody>
-            {paginatedItems.map((item) => (
+            {requests.map((item) => (
               <tr key={item.id} className="border-b border-[var(--border)] hover:bg-[#1f1f1f]">
                 <td className="p-4">{item.name}</td>
                 <td className="p-4">{item.phone}</td>
@@ -72,7 +81,13 @@ export function InstallationRequestsPage() {
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
