@@ -69,6 +69,7 @@ interface CatalogueFiltersPanelProps {
   categoryFilters: CategoryFilters | null;
   attributeFilters: AttributeFilterState;
   onAttributeFiltersChange: (values: AttributeFilterState) => void;
+  showPriceFilter?: boolean;
 }
 
 export function CatalogueFiltersPanel({
@@ -86,6 +87,7 @@ export function CatalogueFiltersPanel({
   categoryFilters,
   attributeFilters,
   onAttributeFiltersChange,
+  showPriceFilter = true,
 }: CatalogueFiltersPanelProps) {
   const categoryOptions = categories.map((category) => ({
     value: category.id,
@@ -121,6 +123,7 @@ export function CatalogueFiltersPanel({
 
       <StockAvailabilityFilter selected={availability} onChange={onAvailabilityChange} />
 
+      {showPriceFilter && priceMax > priceMin && (
       <div className="pt-6 border-t border-border">
         <h3 className="font-heading text-[13px] uppercase tracking-wide leading-snug mb-4">Ценовой диапазон</h3>
         <div className="space-y-4">
@@ -141,8 +144,23 @@ export function CatalogueFiltersPanel({
           </div>
         </div>
       </div>
+      )}
     </div>
   );
+}
+
+export function isPriceFilterActive(priceRange: number[], priceBounds: [number, number]): boolean {
+  return priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1];
+}
+
+export function appendPriceQueryParams(
+  params: { priceMin?: number; priceMax?: number },
+  priceRange: number[],
+  priceBounds: [number, number],
+): void {
+  if (!isPriceFilterActive(priceRange, priceBounds)) return;
+  params.priceMin = priceRange[0];
+  params.priceMax = priceRange[1];
 }
 
 export function countActiveFilters(
@@ -152,12 +170,13 @@ export function countActiveFilters(
   priceRange: number[],
   priceMax: number,
   attributeFilters: AttributeFilterState,
+  priceMin = 0,
 ) {
   let count = 0;
   if (selectedCategory !== "all") count += 1;
   if (selectedBrands.length > 0) count += 1;
   if (isAvailabilityFilterActive(availability)) count += 1;
-  if (priceRange[1] < priceMax) count += 1;
+  if (isPriceFilterActive(priceRange, [priceMin, priceMax])) count += 1;
   count += countAttributeFilters(attributeFilters);
   return count;
 }

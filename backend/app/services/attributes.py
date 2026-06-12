@@ -536,10 +536,7 @@ def get_category_filters(db: Session, category_id: str) -> CategoryFiltersOut:
         .filter(Product.category == category_id)
         .one()
     )
-    price_min = float(price_stats.min_price or 0)
-    price_max = float(price_stats.max_price or 5000)
-    if price_max <= price_min:
-        price_max = max(price_min + 100, 5000)
+    price_min, price_max = _category_price_bounds(price_stats.min_price, price_stats.max_price)
 
     return CategoryFiltersOut(
         category_id=category_id,
@@ -547,6 +544,17 @@ def get_category_filters(db: Session, category_id: str) -> CategoryFiltersOut:
         price_max=price_max,
         filters=filters,
     )
+
+
+def _category_price_bounds(min_price: float | None, max_price: float | None) -> tuple[float, float]:
+    """Границы слайдера цены по фактическим ценам категории (без magic number)."""
+    lo = float(min_price or 0)
+    if max_price is None:
+        return lo, lo
+    hi = float(max_price)
+    if hi <= lo:
+        return lo, lo + 100.0 if lo > 0 else 0.0
+    return lo, math.ceil(hi / 100) * 100
 
 
 def attribute_value_to_api(value: ProductAttributeValue) -> Any:

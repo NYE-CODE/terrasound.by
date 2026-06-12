@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
 import { ProductCard } from "../components/organisms/ProductCard";
 import { CatalogueFiltersDrawer } from "../components/organisms/CatalogueFiltersDrawer";
-import { CatalogueFiltersPanel, availabilityToQuery, countActiveFilters, type AvailabilityOption } from "../components/organisms/CatalogueFiltersPanel";
+import {
+  CatalogueFiltersPanel,
+  appendPriceQueryParams,
+  availabilityToQuery,
+  countActiveFilters,
+  type AvailabilityOption,
+} from "../components/organisms/CatalogueFiltersPanel";
 import { buildAttributeQuery, type AttributeFilterState } from "../components/organisms/AttributeFilters";
 import { Pagination } from "../components/molecules/Pagination";
 import { CatalogueSortSelect } from "../components/molecules/CatalogueSortSelect";
@@ -13,7 +19,6 @@ import { reportLoadError } from "../lib/loadError";
 import { pageContentPy } from "../lib/pageLayout";
 
 const PAGE_SIZE = 9;
-const DEFAULT_PRICE_MAX = 5000;
 
 export function CataloguePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,9 +30,10 @@ export function CataloguePage() {
   const [brands, setBrands] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const selectedCategory = categorySlug || "all";
-  const [priceBounds, setPriceBounds] = useState<[number, number]>([0, DEFAULT_PRICE_MAX]);
-  const [priceRange, setPriceRange] = useState([0, DEFAULT_PRICE_MAX]);
+  const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 0]);
+  const [priceRange, setPriceRange] = useState([0, 0]);
   const [categoryFilters, setCategoryFilters] = useState<CategoryFilters | null>(null);
+  const [categoryFiltersReady, setCategoryFiltersReady] = useState(true);
   const [attributeFilters, setAttributeFilters] = useState<AttributeFilterState>({});
   const [availability, setAvailability] = useState<AvailabilityOption[]>([]);
   const [sortBy, setSortBy] = useState("popularity");
@@ -36,6 +42,8 @@ export function CataloguePage() {
 
   const activeCategoryName = categories.find((c) => c.id === selectedCategory)?.name;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const showPriceFilter = selectedCategory !== "all" && categoryFiltersReady;
+  const productsLoading = selectedCategory !== "all" && !categoryFiltersReady;
 
   usePageMeta({
     title: activeCategoryName ?? "Каталог",
@@ -54,21 +62,28 @@ export function CataloguePage() {
     if (selectedCategory === "all") {
       setCategoryFilters(null);
       setAttributeFilters({});
-      setPriceBounds([0, DEFAULT_PRICE_MAX]);
-      setPriceRange([0, DEFAULT_PRICE_MAX]);
+      setPriceBounds([0, 0]);
+      setPriceRange([0, 0]);
+      setCategoryFiltersReady(true);
       return;
     }
+
+    setCategoryFiltersReady(false);
+    setCategoryFilters(null);
+    setAttributeFilters({});
+    setProducts([]);
+    setTotalItems(0);
 
     api
       .getCategoryFilters(selectedCategory)
       .then((config) => {
         setCategoryFilters(config);
-        setAttributeFilters({});
         const nextBounds: [number, number] = [config.priceMin, config.priceMax];
         setPriceBounds(nextBounds);
         setPriceRange(nextBounds);
       })
-      .catch(reportLoadError);
+      .catch(reportLoadError)
+      .finally(() => setCategoryFiltersReady(true));
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -76,15 +91,16 @@ export function CataloguePage() {
   }, [selectedCategory, selectedBrands, availability, priceRange, sortBy, attributeFilters]);
 
   useEffect(() => {
+    if (!categoryFiltersReady) return;
+
     const inStock = availabilityToQuery(availability);
     const params: Parameters<typeof api.getProducts>[0] = {
-      priceMin: priceRange[0],
-      priceMax: priceRange[1],
       sort: sortBy,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
       attrQuery: buildAttributeQuery(attributeFilters),
     };
+    appendPriceQueryParams(params, priceRange, priceBounds);
     if (inStock) params.inStock = inStock;
     if (selectedCategory !== "all") params.category = selectedCategory;
     if (selectedBrands.length > 0) params.brands = selectedBrands;
@@ -96,7 +112,17 @@ export function CataloguePage() {
         setTotalItems(meta.total);
       })
       .catch(reportLoadError);
-  }, [selectedCategory, selectedBrands, availability, priceRange, sortBy, page, attributeFilters]);
+  }, [
+    selectedCategory,
+    selectedBrands,
+    availability,
+    priceRange,
+    priceBounds,
+    sortBy,
+    page,
+    attributeFilters,
+    categoryFiltersReady,
+  ]);
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
@@ -110,6 +136,7 @@ export function CataloguePage() {
     priceRange,
     priceBounds[1],
     attributeFilters,
+    priceBounds[0],
   );
 
   const selectCategory = (id: string) => {
@@ -135,6 +162,7 @@ export function CataloguePage() {
     categoryFilters,
     attributeFilters,
     onAttributeFiltersChange: setAttributeFilters,
+    showPriceFilter,
   };
 
   return (
@@ -194,7 +222,9 @@ export function CataloguePage() {
               {totalItems} товаров
             </div>
 
-            {totalItems === 0 ? (
+            {productsLoading ? (
+              <div className="text-center py-16 text-muted-foreground">Загрузка...</div>
+            ) : totalItems === 0 ? (
               <div className="text-center py-16 text-muted-foreground">
                 Товары не найдены
               </div>

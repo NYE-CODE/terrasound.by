@@ -156,7 +156,7 @@ class CategoryFilterOut(CamelModel):
 class CategoryFiltersOut(CamelModel):
     category_id: str
     price_min: float = 0
-    price_max: float = 5000
+    price_max: float = 0
     filters: list[CategoryFilterOut] = []
 
 
