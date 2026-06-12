@@ -116,6 +116,8 @@ export const api = {
 
   getProductBrands: () => request<string[]>(`${API_V1}/catalog/brands`),
 
+  getCatalogPriceBounds: () => request<PriceBounds>(`${API_V1}/catalog/price-bounds`),
+
   getCategoryFilters: (categoryId: string) =>
     request<CategoryFilters>(`${API_V1}/categories/${encodeURIComponent(categoryId)}/filters`),
 
@@ -236,6 +238,11 @@ export interface CategoryFilter {
   filterStep?: number | null;
   groupLabel?: string | null;
   sortOrder: number;
+}
+
+export interface PriceBounds {
+  priceMin: number;
+  priceMax: number;
 }
 
 export interface CategoryFilters {

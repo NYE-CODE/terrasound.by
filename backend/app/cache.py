@@ -8,6 +8,7 @@ CONTENT_CATEGORIES = "content:categories"
 CONTENT_BRANDS = "content:brands"
 CONTENT_SERVICES = "content:services"
 PRODUCT_BRANDS = "products:brands"
+CATALOG_PRICE_BOUNDS = "catalog:price-bounds"
 SITE_STATS = "site-stats"
 SITE_CONTACT = "site-contact"
 
@@ -46,7 +47,7 @@ site_contact_cache = TTLCache()
 
 
 def invalidate_content_cache() -> None:
-    for key in (CONTENT_CATEGORIES, CONTENT_BRANDS, CONTENT_SERVICES, PRODUCT_BRANDS):
+    for key in (CONTENT_CATEGORIES, CONTENT_BRANDS, CONTENT_SERVICES, PRODUCT_BRANDS, CATALOG_PRICE_BOUNDS):
         content_cache.invalidate(key)
 
 

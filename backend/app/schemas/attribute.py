@@ -160,6 +160,11 @@ class CategoryFiltersOut(CamelModel):
     filters: list[CategoryFilterOut] = []
 
 
+class PriceBoundsOut(CamelModel):
+    price_min: float = 0
+    price_max: float = 0
+
+
 class CategoryAttributeSchemaOut(CamelModel):
     attribute_id: str
     label: str

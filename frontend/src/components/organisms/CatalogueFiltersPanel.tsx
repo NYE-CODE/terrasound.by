@@ -123,7 +123,7 @@ export function CatalogueFiltersPanel({
 
       <StockAvailabilityFilter selected={availability} onChange={onAvailabilityChange} />
 
-      {showPriceFilter && priceMax > priceMin && (
+      {showPriceFilter && (
       <div className="pt-6 border-t border-border">
         <h3 className="font-heading text-[13px] uppercase tracking-wide leading-snug mb-4">Ценовой диапазон</h3>
         <div className="space-y-4">

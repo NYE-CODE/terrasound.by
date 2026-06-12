@@ -1,3 +1,5 @@
+import math
+
 from sqlalchemy import and_, case, func
 from sqlalchemy.orm import Session, joinedload, load_only
 
@@ -34,6 +36,31 @@ def effective_price(product: Product) -> float:
     if product.sale_price is not None and 0 < product.sale_price < product.price:
         return product.sale_price
     return product.price
+
+
+def normalize_price_slider_bounds(
+    min_price: float | None,
+    max_price: float | None,
+) -> tuple[float, float]:
+    """Границы ценового слайдера по min/max effective price (округление max до сотен)."""
+    lo = float(min_price or 0)
+    if max_price is None:
+        return lo, lo
+    hi = float(max_price)
+    if hi <= lo:
+        return lo, lo + 100.0 if lo > 0 else 0.0
+    return lo, math.ceil(hi / 100) * 100
+
+
+def query_price_bounds(db: Session, *, category_id: str | None = None) -> tuple[float, float]:
+    query = db.query(
+        func.min(effective_price_expr()).label("min_price"),
+        func.max(effective_price_expr()).label("max_price"),
+    )
+    if category_id is not None:
+        query = query.filter(Product.category == category_id)
+    row = query.one()
+    return normalize_price_slider_bounds(row.min_price, row.max_price)
 
 
 def _review_stats(product: Product) -> tuple[float | None, int]:

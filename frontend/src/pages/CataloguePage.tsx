@@ -42,7 +42,7 @@ export function CataloguePage() {
 
   const activeCategoryName = categories.find((c) => c.id === selectedCategory)?.name;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const showPriceFilter = selectedCategory !== "all" && categoryFiltersReady;
+  const showPriceFilter = priceBounds[1] > priceBounds[0];
   const productsLoading = selectedCategory !== "all" && !categoryFiltersReady;
 
   usePageMeta({
@@ -62,9 +62,16 @@ export function CataloguePage() {
     if (selectedCategory === "all") {
       setCategoryFilters(null);
       setAttributeFilters({});
-      setPriceBounds([0, 0]);
-      setPriceRange([0, 0]);
       setCategoryFiltersReady(true);
+
+      api
+        .getCatalogPriceBounds()
+        .then(({ priceMin, priceMax }) => {
+          const nextBounds: [number, number] = [priceMin, priceMax];
+          setPriceBounds(nextBounds);
+          setPriceRange(nextBounds);
+        })
+        .catch(reportLoadError);
       return;
     }
 

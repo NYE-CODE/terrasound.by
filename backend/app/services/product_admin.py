@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy import inspect
 from sqlalchemy.orm import Session, joinedload
 
-from app.cache import PRODUCT_BRANDS, content_cache, invalidate_category_filters_cache
+from app.cache import CATALOG_PRICE_BOUNDS, PRODUCT_BRANDS, content_cache, invalidate_category_filters_cache
 from app.db_commit import commit_or_raise
 from app.money import round_money
 
@@ -29,6 +29,7 @@ def _product_attributes_for_admin(db: Session, product: Product) -> dict:
 
 def _invalidate_product_list_caches(*category_ids: str) -> None:
     content_cache.invalidate(PRODUCT_BRANDS)
+    content_cache.invalidate(CATALOG_PRICE_BOUNDS)
     for category_id in category_ids:
         if category_id:
             invalidate_category_filters_cache(category_id)
