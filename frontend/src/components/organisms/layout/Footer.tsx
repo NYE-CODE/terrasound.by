@@ -1,21 +1,15 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Phone, Mail, MapPin, Instagram } from "lucide-react";
 import { TikTokIcon } from "../../icons/TikTokIcon";
-import { api, type Category } from "../../../lib/api";
-import { reportLoadError } from "../../../lib/loadError";
 import { externalUrl, socialHandle } from "../../../lib/contactHelpers";
 import { COMPANY_NAME, SITE_NAME, TAGLINE } from "../../../lib/site";
+import { useCategories } from "../../../context/CategoriesContext";
 import { useSiteContact } from "../../../context/SiteContactContext";
 import logo from "../../../assets/logo.png";
 
 export function Footer() {
   const contact = useSiteContact();
-  const [categories, setCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    api.getCategories().then(setCategories).catch(reportLoadError);
-  }, []);
+  const categories = useCategories();
 
   return (
     <footer className="bg-card border-t border-border">

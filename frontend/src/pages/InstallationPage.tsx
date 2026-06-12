@@ -24,6 +24,7 @@ import { api, messageFromApiError, type InstallationService } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
 import { scrollToHash } from "../lib/scrollToHash";
 import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
+import installationHero from "../assets/installation-hero.webp";
 
 const timeline = [
   {
@@ -105,8 +106,8 @@ export function InstallationPage() {
       {/* Hero Header */}
       <section className="relative isolate min-h-[calc(100dvh-var(--site-header-height))] flex items-center justify-center overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80"
-          alt="Студия"
+          src={installationHero}
+          alt="Студия TerraSound"
           className="absolute inset-0 z-0 w-full h-full object-cover pointer-events-none"
         />
         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/50 via-background/70 to-background pointer-events-none" />

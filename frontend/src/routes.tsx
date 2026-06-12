@@ -1,21 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { RootLayout } from "./components/organisms/layout/RootLayout";
 import { HomePage } from "./pages/HomePage";
-import { CataloguePage } from "./pages/CataloguePage";
-import { ProductPage } from "./pages/ProductPage";
-import { InstallationPage } from "./pages/InstallationPage";
-import { BrandsPage } from "./pages/BrandsPage";
-import { BlogPage } from "./pages/BlogPage";
-import { BlogPostPage } from "./pages/BlogPostPage";
-import { AboutPage } from "./pages/AboutPage";
-import { ContactPage } from "./pages/ContactPage";
-import { PrivacyPage } from "./pages/PrivacyPage";
-import { TermsPage } from "./pages/TermsPage";
-import { DeliveryPage } from "./pages/DeliveryPage";
-import { CartPage } from "./pages/CartPage";
-import { CheckoutPage } from "./pages/CheckoutPage";
-import { OrderSuccessPage } from "./pages/OrderSuccessPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
 
 export const router = createBrowserRouter([
   {
@@ -23,21 +8,77 @@ export const router = createBrowserRouter([
     Component: RootLayout,
     children: [
       { index: true, Component: HomePage },
-      { path: "catalogue", Component: CataloguePage },
-      { path: "product/:id", Component: ProductPage },
-      { path: "installation", Component: InstallationPage },
-      { path: "brands", Component: BrandsPage },
-      { path: "blog", Component: BlogPage },
-      { path: "blog/:id", Component: BlogPostPage },
-      { path: "about", Component: AboutPage },
-      { path: "contact", Component: ContactPage },
-      { path: "delivery", Component: DeliveryPage },
-      { path: "privacy", Component: PrivacyPage },
-      { path: "terms", Component: TermsPage },
-      { path: "cart", Component: CartPage },
-      { path: "checkout", Component: CheckoutPage },
-      { path: "order-success/:orderId", Component: OrderSuccessPage },
-      { path: "*", Component: NotFoundPage },
+      {
+        path: "catalogue",
+        lazy: () =>
+          import("./pages/CataloguePage").then((m) => ({ Component: m.CataloguePage })),
+      },
+      {
+        path: "product/:id",
+        lazy: () =>
+          import("./pages/ProductPage").then((m) => ({ Component: m.ProductPage })),
+      },
+      {
+        path: "installation",
+        lazy: () =>
+          import("./pages/InstallationPage").then((m) => ({ Component: m.InstallationPage })),
+      },
+      {
+        path: "brands",
+        lazy: () =>
+          import("./pages/BrandsPage").then((m) => ({ Component: m.BrandsPage })),
+      },
+      {
+        path: "blog",
+        lazy: () => import("./pages/BlogPage").then((m) => ({ Component: m.BlogPage })),
+      },
+      {
+        path: "blog/:id",
+        lazy: () =>
+          import("./pages/BlogPostPage").then((m) => ({ Component: m.BlogPostPage })),
+      },
+      {
+        path: "about",
+        lazy: () => import("./pages/AboutPage").then((m) => ({ Component: m.AboutPage })),
+      },
+      {
+        path: "contact",
+        lazy: () =>
+          import("./pages/ContactPage").then((m) => ({ Component: m.ContactPage })),
+      },
+      {
+        path: "delivery",
+        lazy: () =>
+          import("./pages/DeliveryPage").then((m) => ({ Component: m.DeliveryPage })),
+      },
+      {
+        path: "privacy",
+        lazy: () =>
+          import("./pages/PrivacyPage").then((m) => ({ Component: m.PrivacyPage })),
+      },
+      {
+        path: "terms",
+        lazy: () => import("./pages/TermsPage").then((m) => ({ Component: m.TermsPage })),
+      },
+      {
+        path: "cart",
+        lazy: () => import("./pages/CartPage").then((m) => ({ Component: m.CartPage })),
+      },
+      {
+        path: "checkout",
+        lazy: () =>
+          import("./pages/CheckoutPage").then((m) => ({ Component: m.CheckoutPage })),
+      },
+      {
+        path: "order-success/:orderId",
+        lazy: () =>
+          import("./pages/OrderSuccessPage").then((m) => ({ Component: m.OrderSuccessPage })),
+      },
+      {
+        path: "*",
+        lazy: () =>
+          import("./pages/NotFoundPage").then((m) => ({ Component: m.NotFoundPage })),
+      },
     ],
   },
 ]);

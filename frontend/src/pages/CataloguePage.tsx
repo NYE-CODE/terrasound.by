@@ -14,19 +14,20 @@ import { Pagination } from "../components/molecules/Pagination";
 import { CatalogueSortSelect } from "../components/molecules/CatalogueSortSelect";
 import { SlidersHorizontal } from "lucide-react";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { api, type Category, type CategoryFilters, type ProductCard as ProductCardData } from "../lib/api";
+import { api, type CategoryFilters, type ProductCard as ProductCardData } from "../lib/api";
+import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
 import { pageContentPy } from "../lib/pageLayout";
 
 const PAGE_SIZE = 9;
 
 export function CataloguePage() {
+  const categories = useCategories();
   const [searchParams, setSearchParams] = useSearchParams();
   const categorySlug = searchParams.get("category") ?? "";
 
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const selectedCategory = categorySlug || "all";
@@ -54,7 +55,6 @@ export function CataloguePage() {
   });
 
   useEffect(() => {
-    api.getCategories().then(setCategories).catch(reportLoadError);
     api.getProductBrands().then(setBrands).catch(reportLoadError);
   }, []);
 

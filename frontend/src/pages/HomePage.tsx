@@ -4,22 +4,23 @@ import { ProductCard } from "../components/organisms/ProductCard";
 import Masonry from "react-responsive-masonry";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "../components/organisms/ReviewCard";
-import { api, type Brand, type Category, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
+import { api, type Brand, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
+import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { TAGLINE } from "../lib/site";
 import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
 import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
+import heroSection from "../assets/hero-section.webp";
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80";
+const HERO_IMAGE = heroSection;
 
 export function HomePage() {
+  const categories = useCategories();
   const [serviceReviews, setServiceReviews] = useState<ServiceReview[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<ProductCardData[]>([]);
   const [portfolioWorks, setPortfolioWorks] = useState<PortfolioWork[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [siteStats, setSiteStats] = useState<SiteStats>({
     installationsCompleted: "1200+",
@@ -30,7 +31,6 @@ export function HomePage() {
     api.getServiceReviews().then(setServiceReviews).catch(reportLoadError);
     api.getProducts({ limit: 3 }).then(({ data }) => setFeaturedProducts(data)).catch(reportLoadError);
     api.getPortfolio().then(setPortfolioWorks).catch(reportLoadError);
-    api.getCategories().then(setCategories).catch(reportLoadError);
     api.getBrands().then(setBrands).catch(reportLoadError);
     api.getSiteStats().then(setSiteStats).catch(reportLoadError);
   }, []);

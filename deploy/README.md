@@ -51,7 +51,7 @@ sudo cp deploy/nginx/terrasound.by.conf /etc/nginx/sites-available/terrasound.by
 sudo ln -sf /etc/nginx/sites-available/terrasound.by /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/api.terrasound.by
 sudo nginx -t && sudo systemctl reload nginx
-curl -s http://terrasound.by/api/v1/health
+curl -s https://terrasound.by/api/v1/health
 
 # nginx — админка: admin.terrasound.by + /api/ → backend (обязательно для логина)
 sudo cp deploy/nginx/admin.terrasound.by.conf /etc/nginx/sites-available/admin.terrasound.by
@@ -65,6 +65,39 @@ chmod +x deploy/deploy.sh
 
 # или без chmod:
 bash deploy/deploy.sh
+```
+
+### Кэш статики (nginx)
+
+Правила в `deploy/nginx/includes/static-cache.conf` (подключается из конфигов витрины и админки):
+
+| Путь | Cache-Control | Зачем |
+|---|---|---|
+| `/assets/*` | `max-age=31536000, immutable` | Vite добавляет хэш в имя файла — безопасно кэшировать год |
+| `/fonts/*` | то же | Self-hosted шрифты, редко меняются |
+| `*.html` | `no-cache` | После деплоя браузер подтягивает свежий HTML с новыми хэшами |
+| favicon, `.webmanifest` | `max-age=604800` (7 дней) | Иконки в корне `public/` |
+
+### Security headers (nginx)
+
+Файл `deploy/nginx/includes/security-headers.conf` — на HTTPS для витрины и админки:
+
+| Заголовок | Значение |
+|---|---|
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
+| `X-Content-Type-Options` | `nosniff` |
+| `X-Frame-Options` | `DENY` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `Cross-Origin-Opener-Policy` | `same-origin` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` |
+
+HTTP (порт 80) редиректит на HTTPS; `/.well-known/acme-challenge/` оставлен для продления Let's Encrypt.
+
+Проверка после `nginx -t && systemctl reload nginx`:
+
+```bash
+curl -sI https://terrasound.by/ | grep -iE 'strict-transport|x-frame|x-content-type|referrer-policy|cross-origin-opener'
+curl -sI http://terrasound.by/ | head -3   # 301 → https
 ```
 
 ## Повторный деплой
