@@ -398,6 +398,7 @@ def sync_category_attributes(
     for link in existing:
         if link.id not in keep_ids:
             db.delete(link)
+    db.flush()  # Обязательно сбрасываем DELETE, чтобы последующий INSERT или query не конфликтовал
 
     for sort_order, item in enumerate(items):
         attr = get_attribute_or_404(db, item.attribute_id)
@@ -754,6 +755,7 @@ def sync_product_attributes(
     for row in list(product.attribute_values):
         if replace_all or row.attribute_id in replace_ids:
             db.delete(row)
+    db.flush()  # Обязательно сбрасываем DELETE до INSERT, иначе будет 409 Conflict (uq_product_attribute)
     for attribute_id, value in normalized.items():
         db.add(
             ProductAttributeValue(
