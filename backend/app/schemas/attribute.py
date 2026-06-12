@@ -93,6 +93,34 @@ class CategoryAttributeCreate(BaseModel):
     group_label: str | None = None
 
 
+class CategoryAttributeSyncItem(BaseModel):
+    """Элемент полной синхронизации привязок категории (одна транзакция)."""
+
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+    id: int | None = None
+    attribute_id: str = Field(min_length=1)
+    show_in_form: bool = True
+    show_in_filters: bool = False
+    show_on_card: bool = False
+    filter_type: str | None = Field(
+        default=None,
+        pattern=r"^(checkbox|dropdown|dropdown_multiselect|multiselect|range)$",
+    )
+    filter_min: float | None = None
+    filter_max: float | None = None
+    filter_step: float | None = None
+    required: bool = False
+    sort_order: int = 0
+    group_label: str | None = None
+
+
+class CategoryAttributeSync(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+    items: list[CategoryAttributeSyncItem] = []
+
+
 class CategoryAttributeUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 

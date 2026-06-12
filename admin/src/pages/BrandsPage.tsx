@@ -4,7 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type Brand } from "../lib/api";
 
 export function BrandsPage() {
@@ -14,7 +14,7 @@ export function BrandsPage() {
 
   const load = () => {
     if (!token) return;
-    api.brands(token).then(setItems).catch(console.error);
+    api.brands(token).then(setItems).catch(reportLoadError);
   };
 
   useEffect(load, [token]);

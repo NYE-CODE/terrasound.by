@@ -14,7 +14,8 @@ from sqlalchemy.exc import IntegrityError
 from app.rate_limit import RateLimitMiddleware
 from app.database import Base, SessionLocal, engine
 from app.migrations import run_migrations
-from app.routers import content, installation, orders, products, reviews, seo, site_stats, vehicles
+from app.api_constants import API_V1_PREFIX
+from app.routers import catalog, content, installation, orders, products, reviews, seo, site_contact, site_stats, vehicles
 from app.routers.admin import auth as admin_auth
 from app.routers.admin import content as admin_content
 from app.routers.admin import dashboard as admin_dashboard
@@ -23,6 +24,7 @@ from app.routers.admin import orders as admin_orders
 from app.routers.admin import attributes as admin_attributes
 from app.routers.admin import products as admin_products
 from app.routers.admin import reviews as admin_reviews
+from app.routers.admin import site_contact as admin_site_contact
 from app.routers.admin import site_stats as admin_site_stats
 from app.seed import seed_database
 
@@ -71,6 +73,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(catalog.router)
 app.include_router(products.router)
 app.include_router(reviews.router)
 app.include_router(orders.router)
@@ -79,6 +82,7 @@ app.include_router(content.router)
 app.include_router(vehicles.router)
 app.include_router(seo.router)
 app.include_router(site_stats.router)
+app.include_router(site_contact.router)
 app.include_router(admin_auth.router)
 app.include_router(admin_dashboard.router)
 app.include_router(admin_orders.router)
@@ -88,8 +92,10 @@ app.include_router(admin_products.router)
 app.include_router(admin_attributes.router)
 app.include_router(admin_content.router)
 app.include_router(admin_site_stats.router)
+app.include_router(admin_site_contact.router)
 
 
 @app.get("/api/health")
+@app.get(f"{API_V1_PREFIX}/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}

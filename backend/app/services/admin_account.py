@@ -2,6 +2,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.db_commit import commit_or_raise
 from app.models.admin_account import AdminAccount
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -26,7 +27,7 @@ def get_or_create_admin_account(db: Session) -> AdminAccount:
         password_hash=hash_password(settings.admin_password),
     )
     db.add(account)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(account)
     return account
 
@@ -53,4 +54,6 @@ def change_admin_password(
         )
 
     account.password_hash = hash_password(new_password)
-    db.commit()
+    # Инвалидирует все выданные JWT — ver в токене перестаёт совпадать с БД.
+    account.token_version += 1
+    commit_or_raise(db)

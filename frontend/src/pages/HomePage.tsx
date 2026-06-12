@@ -5,6 +5,7 @@ import Masonry from "react-responsive-masonry";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "../components/organisms/ReviewCard";
 import { api, type Brand, type Category, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
+import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { TAGLINE } from "../lib/site";
 import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
@@ -26,12 +27,12 @@ export function HomePage() {
   });
 
   useEffect(() => {
-    api.getServiceReviews().then(setServiceReviews).catch(console.error);
-    api.getProducts({ limit: 3 }).then(({ items }) => setFeaturedProducts(items)).catch(console.error);
-    api.getPortfolio().then(setPortfolioWorks).catch(console.error);
-    api.getCategories().then(setCategories).catch(console.error);
-    api.getBrands().then(setBrands).catch(console.error);
-    api.getSiteStats().then(setSiteStats).catch(console.error);
+    api.getServiceReviews().then(setServiceReviews).catch(reportLoadError);
+    api.getProducts({ limit: 3 }).then(({ data }) => setFeaturedProducts(data)).catch(reportLoadError);
+    api.getPortfolio().then(setPortfolioWorks).catch(reportLoadError);
+    api.getCategories().then(setCategories).catch(reportLoadError);
+    api.getBrands().then(setBrands).catch(reportLoadError);
+    api.getSiteStats().then(setSiteStats).catch(reportLoadError);
   }, []);
 
   usePageMeta({

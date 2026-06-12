@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { MapPin, Phone } from "lucide-react";
-import { ADDRESS, ADDRESS_MAPS_URL, CONTACT_PHONE, CONTACT_PHONE_TEL } from "../../../lib/site";
+import { useSiteContact } from "../../../context/SiteContactContext";
 import { isPrimaryNavLinkActive, primaryNavLinks } from "../../../lib/navLinks";
 import { useEffect, useRef } from "react";
 
@@ -11,6 +11,7 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+  const contact = useSiteContact();
   const location = useLocation();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -81,20 +82,20 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
               <div className="px-6 py-5 bg-secondary/20 space-y-3 text-sm">
                 <a
-                  href={`tel:${CONTACT_PHONE_TEL}`}
+                  href={`tel:${contact.phoneTel}`}
                   className="flex items-center gap-3 text-foreground hover:text-accent transition-colors"
                 >
                   <Phone size={18} className="shrink-0" />
-                  {CONTACT_PHONE}
+                  {contact.phone}
                 </a>
                 <a
-                  href={ADDRESS_MAPS_URL}
+                  href={contact.addressMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors"
                 >
                   <MapPin size={18} className="shrink-0" />
-                  {ADDRESS}
+                  {contact.address}
                 </a>
               </div>
             </div>

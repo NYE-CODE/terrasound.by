@@ -1,6 +1,8 @@
 export const PHONE_INPUT_PLACEHOLDER = "+375339177444";
 
 const PHONE_PATTERN = /^(\+\d{10,12}|\d{11,13})$/;
+const PHONE_LETTERS_PATTERN = /[A-Za-zА-Яа-яЁё]/u;
+const PHONE_ALLOWED_CHARS_PATTERN = /^[\d+\s\-()]+$/;
 const PERSON_NAME_PATTERN = /^[A-Za-zА-Яа-яЁё]+(?:[ \-][A-Za-zА-Яа-яЁё]+)*$/u;
 const CAR_MODEL_PATTERN = /^[A-Za-zА-Яа-яЁё0-9.\- ]+$/u;
 
@@ -24,17 +26,38 @@ export function normalizeCarModel(value: string): string {
 }
 
 export function validatePhone(raw: string): ValidationResult {
-  const normalized = normalizePhone(raw);
+  const trimmed = raw.trim();
 
-  if (!normalized) {
+  if (!trimmed) {
     return { ok: false, error: "Укажите телефон" };
   }
 
+  if (PHONE_LETTERS_PATTERN.test(trimmed)) {
+    return { ok: false, error: "В номере не должно быть букв" };
+  }
+
+  if (!PHONE_ALLOWED_CHARS_PATTERN.test(trimmed)) {
+    return { ok: false, error: "Неверный формат телефона" };
+  }
+
+  const plusCount = (trimmed.match(/\+/g) ?? []).length;
+  if (plusCount > 1 || (plusCount === 1 && !trimmed.startsWith("+"))) {
+    return { ok: false, error: "«+» только в начале номера" };
+  }
+
+  const normalized = normalizePhone(trimmed);
+  const digitCount = normalized.replace(/\D/g, "").length;
+
+  if (digitCount < 11) {
+    return { ok: false, error: "Номер слишком короткий" };
+  }
+
+  if (digitCount > 13) {
+    return { ok: false, error: "Номер слишком длинный" };
+  }
+
   if (!PHONE_PATTERN.test(normalized)) {
-    return {
-      ok: false,
-      error: "Телефон: только цифры и «+» в начале, 11–13 символов без пробелов",
-    };
+    return { ok: false, error: "Неверный формат телефона" };
   }
 
   return { ok: true, value: normalized };
@@ -48,18 +71,19 @@ export function validatePersonName(raw: string): ValidationResult {
   }
 
   if (normalized.length < 2) {
-    return { ok: false, error: "Имя должно содержать минимум 2 символа" };
+    return { ok: false, error: "Минимум 2 символа" };
   }
 
   if (normalized.length > 100) {
-    return { ok: false, error: "Имя не должно превышать 100 символов" };
+    return { ok: false, error: "Слишком длинное имя" };
+  }
+
+  if (/\d/.test(normalized)) {
+    return { ok: false, error: "Имя не может содержать цифры" };
   }
 
   if (!PERSON_NAME_PATTERN.test(normalized)) {
-    return {
-      ok: false,
-      error: "Имя: только буквы (латиница или кириллица), пробел и дефис",
-    };
+    return { ok: false, error: "Только буквы, пробел и дефис" };
   }
 
   return { ok: true, value: normalized };
@@ -69,30 +93,27 @@ export function validateCarModel(raw: string): ValidationResult {
   const normalized = normalizeCarModel(raw);
 
   if (!normalized) {
-    return { ok: false, error: "Укажите модель автомобиля" };
+    return { ok: false, error: "Укажите модель авто" };
   }
 
   if (normalized.length < 2) {
-    return { ok: false, error: "Модель должна содержать минимум 2 символа" };
+    return { ok: false, error: "Минимум 2 символа" };
   }
 
   if (normalized.length > 100) {
-    return { ok: false, error: "Модель не должна превышать 100 символов" };
+    return { ok: false, error: "Слишком длинная модель" };
   }
 
   if (!CAR_MODEL_PATTERN.test(normalized)) {
-    return {
-      ok: false,
-      error: "Модель: буквы, цифры, пробел, дефис и точка",
-    };
+    return { ok: false, error: "Недопустимые символы в модели" };
   }
 
   if (/\s{2,}/.test(raw.trim())) {
-    return { ok: false, error: "Не более одного пробела подряд" };
+    return { ok: false, error: "Уберите лишние пробелы" };
   }
 
   if (!/[A-Za-zА-Яа-яЁё]/u.test(normalized)) {
-    return { ok: false, error: "Укажите модель, например BMW 5 Series 2020 или БМВ 5" };
+    return { ok: false, error: "Пример: BMW 5 Series" };
   }
 
   return { ok: true, value: normalized };

@@ -24,7 +24,7 @@ export function FormField({
         {markRequired && <> <span className="text-accent">*</span></>}
       </label>
       {endAdornment ? <div className="relative">{input}{endAdornment}</div> : input}
-      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+      {error && <p className="text-xs leading-tight text-destructive mt-1">{error}</p>}
     </div>
   );
 }

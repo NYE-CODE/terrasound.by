@@ -130,7 +130,7 @@ FRONTEND_DIR="$APP_DIR/frontend"
 ADMIN_DIR="$APP_DIR/admin"
 BACKEND_ENV="$BACKEND_DIR/.env"
 VENV_PATH="$BACKEND_DIR/$VENV_DIR"
-HEALTH_URL="http://${API_HOST}:${API_PORT}/api/health"
+HEALTH_URL="http://${API_HOST}:${API_PORT}/api/v1/health"
 
 cd "$APP_DIR"
 log "Рабочая директория: $APP_DIR"
@@ -266,11 +266,11 @@ if [[ "$NGINX_RELOAD" == true && "$SKIP_NGINX" == false ]]; then
     $SUDO systemctl reload nginx
 
     if command -v curl >/dev/null 2>&1; then
-      admin_api_probe="$(curl -sf --max-time 10 "https://admin.terrasound.by/api/health" 2>/dev/null || true)"
+      admin_api_probe="$(curl -sf --max-time 10 "https://admin.terrasound.by/api/v1/health" 2>/dev/null || true)"
       if [[ "$admin_api_probe" == *'"status"'* ]]; then
-        log "admin.terrasound.by/api/health — OK"
+        log "admin.terrasound.by/api/v1/health — OK"
       else
-        warn "admin.terrasound.by/api не проксируется на backend (ожидался JSON /api/health)."
+        warn "admin.terrasound.by/api не проксируется на backend (ожидался JSON /api/v1/health)."
         warn "Проверьте: $NGINX_SITES_AVAILABLE/admin.terrasound.by и ADMIN_VITE_API_URL= в deploy.env"
       fi
     fi

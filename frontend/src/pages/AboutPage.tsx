@@ -1,8 +1,10 @@
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy } from "../lib/pageLayout";
-import { ADDRESS, CONTACT_PHONE, SITE_NAME, WORKING_HOURS } from "../lib/site";
+import { useSiteContact } from "../context/SiteContactContext";
+import { SITE_NAME, WORKING_HOURS } from "../lib/site";
 
 export function AboutPage() {
+  const contact = useSiteContact();
   usePageMeta({
     title: "О нас",
     description: `О компании ${SITE_NAME} — премиальный автозвук и профессиональная установка в Гродно.`,
@@ -23,13 +25,13 @@ export function AboutPage() {
                 <p>Мы работаем только по записи, чтобы каждая установка получала должное внимание.</p>
                 <div className="pt-6 space-y-2">
                   <div>
-                    <span className="text-foreground font-heading">Адрес:</span> {ADDRESS}
+                    <span className="text-foreground font-heading">Адрес:</span> {contact.address}
                   </div>
                   <div>
                     <span className="text-foreground font-heading">Режим работы:</span> {WORKING_HOURS}
                   </div>
                   <div>
-                    <span className="text-foreground font-heading">Телефон:</span> {CONTACT_PHONE}
+                    <span className="text-foreground font-heading">Телефон:</span> {contact.phone}
                   </div>
                 </div>
               </div>

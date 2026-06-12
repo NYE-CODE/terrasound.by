@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { api, type Brand } from "../lib/api";
+import { reportLoadError } from "../lib/loadError";
 import { pageContentPy } from "../lib/pageLayout";
 
 export function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
 
   useEffect(() => {
-    api.getBrands().then(setBrands).catch(console.error);
+    api.getBrands().then(setBrands).catch(reportLoadError);
   }, []);
 
   return (

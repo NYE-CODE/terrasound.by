@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 480
     site_origin: str = "https://terrasound.by"
     environment: str = "development"
+    trust_proxy_headers: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:

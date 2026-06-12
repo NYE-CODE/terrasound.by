@@ -1,5 +1,15 @@
 import { CheckboxMultiSelectDropdown } from "../molecules/CheckboxMultiSelectDropdown";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { siteSelectContentClass, siteSelectTriggerClass } from "../../lib/selectControlStyles";
 import type { CategoryFilter, CategoryFilters } from "../../lib/api";
+
+const DROPDOWN_ALL_VALUE = "__all__";
 
 const filterGroupTitleClass = "font-heading text-[13px] uppercase tracking-wide leading-snug";
 const filterFieldTitleClass = `${filterGroupTitleClass} break-words`;
@@ -88,9 +98,12 @@ function FilterField({
   }
 
   if (filter.filterType === "range") {
+    if (filter.filterMin == null || filter.filterMax == null) {
+      return null;
+    }
     const range = typeof value === "object" && value && !Array.isArray(value) ? value : {};
-    const min = filter.filterMin ?? 0;
-    const max = filter.filterMax ?? 100;
+    const min = filter.filterMin;
+    const max = filter.filterMax;
     const currentMax = range.max ?? max;
     return (
       <div>
@@ -163,21 +176,26 @@ function FilterField({
   }
 
   if (filter.filterType === "dropdown") {
+    const stringValue = typeof value === "string" ? value : "";
     return (
       <div>
         <h4 className={`${filterFieldTitleClass} mb-2`}>{filter.label}</h4>
-        <select
-          value={typeof value === "string" ? value : ""}
-          onChange={(e) => onChange(e.target.value || undefined)}
-          className="w-full h-10 px-3 bg-input border border-border rounded text-sm"
+        <Select
+          value={stringValue || DROPDOWN_ALL_VALUE}
+          onValueChange={(next) => onChange(next === DROPDOWN_ALL_VALUE ? undefined : next)}
         >
-          <option value="">Все</option>
-          {filter.options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className={siteSelectTriggerClass("sm")}>
+            <SelectValue placeholder="Все" />
+          </SelectTrigger>
+          <SelectContent className={siteSelectContentClass}>
+            <SelectItem value={DROPDOWN_ALL_VALUE}>Все</SelectItem>
+            {filter.options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     );
   }

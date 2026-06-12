@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
+import { FormField, FormRequiredNote } from "../../components/FormField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { optionsTextForEdit, textToOptions } from "../../lib/attributeOptions";
@@ -11,7 +12,7 @@ import {
   filterTypeHint,
 } from "../../lib/filterTypes";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { reportFormError } from "../../lib/formError";
+import { reportFormError, reportLoadError} from "../../lib/formError";
 import { api, type AttributeInput } from "../../lib/api";
 
 const emptyForm: AttributeInput = {
@@ -61,7 +62,7 @@ export function AttributeFormPage() {
         });
         setOptionsText(optionsTextForEdit(item.options, item.valueType, item.unit));
       })
-      .catch(console.error)
+      .catch(reportLoadError)
       .finally(() => setLoading(false));
   }, [token, id]);
 
@@ -84,7 +85,15 @@ export function AttributeFormPage() {
         delete payload.options;
       }
       if (isEdit && id) {
-        const { id: _id, ...update } = payload;
+        const update: Partial<AttributeInput> = {
+          label: payload.label,
+          valueType: payload.valueType,
+          unit: payload.unit,
+          filterType: payload.filterType,
+        };
+        if (form.valueType === "enum") {
+          update.options = options;
+        }
         await api.updateAttribute(token, id, update);
       } else {
         await api.createAttribute(token, payload);
@@ -109,34 +118,39 @@ export function AttributeFormPage() {
       <PageHeader title={isEdit ? "Редактирование атрибута" : "Новый атрибут"} backTo="/attributes" />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
-        <div>
-          <label className="block text-sm mb-1">Код (латиница, без пробелов)</label>
+        <FormRequiredNote />
+
+        <FormField
+          label="Код"
+          htmlFor="attribute-id"
+          required={!isEdit}
+          hint="Латиница и подчёркивания. Используется в системе, не показывается покупателю."
+        >
           <input
+            id="attribute-id"
             placeholder="tip_dinamiki"
             value={form.id}
             onChange={(e) => setForm({ ...form, id: e.target.value })}
             className={inputClass}
-            required
+            required={!isEdit}
             disabled={isEdit}
             pattern="^[a-z0-9]+(?:_[a-z0-9]+)*$"
           />
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">Используется в системе, не показывается покупателю</p>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm mb-1">Название</label>
+        <FormField label="Название" htmlFor="attribute-label" required>
           <input
-            placeholder="Тип"
+            id="attribute-label"
             value={form.label}
             onChange={(e) => setForm({ ...form, label: e.target.value })}
             className={inputClass}
             required
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm mb-1">Тип значения</label>
+        <FormField label="Тип значения" htmlFor="attribute-value-type" hint={TYPE_HINTS[form.valueType]}>
           <select
+            id="attribute-value-type"
             value={form.valueType}
             onChange={(e) => {
               const valueType = e.target.value;
@@ -158,45 +172,50 @@ export function AttributeFormPage() {
             <option value="boolean">Да / нет</option>
             <option value="text">Текст</option>
           </select>
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">{TYPE_HINTS[form.valueType]}</p>
-        </div>
+        </FormField>
 
         {form.valueType === "number" && (
-          <div>
-            <label className="block text-sm mb-1">Единица измерения</label>
+          <FormField label="Единица измерения" htmlFor="attribute-unit" optional hint="Например: Вт, мм, Ом">
             <input
-              placeholder="Вт, мм, Ом…"
+              id="attribute-unit"
               value={form.unit ?? ""}
               onChange={(e) => setForm({ ...form, unit: e.target.value })}
               className={inputClass}
             />
-          </div>
+          </FormField>
         )}
 
         {form.valueType === "enum" && (
-          <div>
-            <label className="block text-sm mb-1">Варианты списка</label>
+          <FormField
+            label="Варианты списка"
+            htmlFor="attribute-options"
+            required
+            hint="По одному варианту на строку. Можно указать код: tweeters: Твитеры"
+          >
             <textarea
-              placeholder={"Твитеры\nСреднечастотники\nСабвуферы\n\nили с кодом:\ntweeters: Твитеры"}
+              id="attribute-options"
+              placeholder={"Твитеры\nСреднечастотники\nСабвуферы"}
               value={optionsText}
               onChange={(e) => setOptionsText(e.target.value)}
               className={`${textareaClass} whitespace-pre-wrap`}
               rows={Math.max(6, optionLineCount + 1)}
               required
             />
-            <p className="text-xs text-[var(--muted-foreground)] mt-1">
-              По одному варианту на строку.
-            </p>
-          </div>
+          </FormField>
         )}
 
         {filterChoices.length > 0 && (
-          <div>
-            <label className="block text-sm mb-1">Вид в фильтрах каталога</label>
+          <FormField
+            label="Вид в фильтрах каталога"
+            htmlFor="attribute-filter-type"
+            optional
+            hint={filterTypeHint(form.valueType)}
+          >
             {filterChoices.length === 1 ? (
-              <p className="text-sm">{FILTER_TYPE_LABELS[filterChoices[0]]}</p>
+              <p className="text-sm h-11 flex items-center">{FILTER_TYPE_LABELS[filterChoices[0]]}</p>
             ) : (
               <select
+                id="attribute-filter-type"
                 value={form.filterType ?? filterChoices[0]}
                 onChange={(e) => setForm({ ...form, filterType: e.target.value })}
                 className={inputClass}
@@ -208,8 +227,7 @@ export function AttributeFormPage() {
                 ))}
               </select>
             )}
-            <p className="text-xs text-[var(--muted-foreground)] mt-1">{filterTypeHint(form.valueType)}</p>
-          </div>
+          </FormField>
         )}
 
         {form.valueType === "text" && (

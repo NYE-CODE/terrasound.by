@@ -1,8 +1,10 @@
-import { COMPANY_NAME, CONTACT_EMAIL, CONTACT_PHONE } from "../lib/site";
-
+import { useSiteContact } from "../context/SiteContactContext";
+import { COMPANY_NAME } from "../lib/site";
 import { pageContentPy } from "../lib/pageLayout";
 
 export function TermsPage() {
+  const contact = useSiteContact();
+
   return (
     <div className="pt-20 min-h-screen">
       <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
@@ -36,7 +38,14 @@ export function TermsPage() {
           <section>
             <h2 className="font-heading text-2xl text-foreground mb-4">Контакты</h2>
             <p>
-              Вопросы по условиям? Свяжитесь с {COMPANY_NAME}: {CONTACT_EMAIL} или {CONTACT_PHONE}
+              Вопросы по условиям? Свяжитесь с {COMPANY_NAME}:{" "}
+              <a href={`mailto:${contact.email}`} className="hover:text-accent transition-colors">
+                {contact.email}
+              </a>{" "}
+              или{" "}
+              <a href={`tel:${contact.phoneTel}`} className="hover:text-accent transition-colors">
+                {contact.phone}
+              </a>
             </p>
           </section>
         </div>

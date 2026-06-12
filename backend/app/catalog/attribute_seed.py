@@ -1,4 +1,4 @@
-"""Initial attribute definitions and category filter mappings."""
+"""Начальные определения характеристик и привязок фильтров категорий (seed)."""
 
 from __future__ import annotations
 
@@ -33,7 +33,6 @@ class CategoryLinkDef(TypedDict, total=False):
 
 
 ATTRIBUTE_DEFINITIONS: list[AttributeDef] = [
-    # Shared enums
     {
         "id": "device_type",
         "label": "Тип",
@@ -123,7 +122,6 @@ ATTRIBUTE_DEFINITIONS: list[AttributeDef] = [
             {"value": "no", "label": "Нет"},
         ],
     },
-    # Booleans
     {"id": "sound_processor", "label": "Звуковой процессор", "value_type": "boolean"},
     {"id": "optical_output", "label": "Оптический выход", "value_type": "boolean"},
     {"id": "optical_input", "label": "Оптический вход", "value_type": "boolean"},
@@ -131,7 +129,6 @@ ATTRIBUTE_DEFINITIONS: list[AttributeDef] = [
     {"id": "bluetooth", "label": "Bluetooth", "value_type": "boolean"},
     {"id": "usb_audio", "label": "USB audio", "value_type": "boolean"},
     {"id": "wired_remote", "label": "Проводной регулятор", "value_type": "boolean"},
-    # Numbers
     {"id": "screen_size", "label": "Диагональ экрана", "value_type": "number", "unit": "″"},
     {"id": "channel_count", "label": "Количество каналов", "value_type": "number"},
     {"id": "dsp_channels", "label": "Количество каналов процессора (DSP)", "value_type": "number"},

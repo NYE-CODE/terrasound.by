@@ -9,13 +9,16 @@ import {
   isPrimaryNavLinkActive,
   primaryNavLinks,
 } from "../../../lib/navLinks";
-import { CONTACT_PHONE, CONTACT_PHONE_TEL, SITE_BRAND_TAGLINE, SITE_BRAND_TITLE } from "../../../lib/site";
+import { useSiteContact } from "../../../context/SiteContactContext";
+import { SITE_BRAND_TAGLINE, SITE_BRAND_TITLE } from "../../../lib/site";
+import { SiteLogoWordmark } from "../../molecules/SiteLogoWordmark";
 import logo from "../../../assets/logo.png";
 
 export function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { items } = useCart();
+  const contact = useSiteContact();
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
@@ -31,14 +34,7 @@ export function Navbar() {
               aria-label={`${SITE_BRAND_TITLE}. ${SITE_BRAND_TAGLINE}`}
             >
               <img src={logo} alt="" aria-hidden className="h-8 w-auto md:h-10" />
-              <div className="hidden md:grid leading-tight">
-                <span className="font-heading text-sm sm:text-base uppercase text-justify [text-align-last:justify] [text-justify:inter-character]">
-                  {SITE_BRAND_TITLE}
-                </span>
-                <span className="font-heading text-[10px] sm:text-xs uppercase text-muted-foreground text-justify [text-align-last:justify] [text-justify:inter-character]">
-                  {SITE_BRAND_TAGLINE}
-                </span>
-              </div>
+              <SiteLogoWordmark title={SITE_BRAND_TITLE} tagline={SITE_BRAND_TAGLINE} />
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
@@ -60,13 +56,23 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-6">
-              <a
-                href={`tel:${CONTACT_PHONE_TEL}`}
-                className="hidden lg:flex items-center gap-2 text-foreground hover:text-accent transition-colors duration-300"
-              >
-                <Phone size={20} />
-                <span>{CONTACT_PHONE}</span>
-              </a>
+              <div className="hidden lg:flex items-center gap-1.5 shrink-0">
+                <Phone size={20} className="shrink-0 text-foreground" aria-hidden />
+                <div className="flex flex-col items-start gap-0">
+                  <a
+                    href={`tel:${contact.phoneTel}`}
+                    className="text-foreground hover:text-accent transition-colors duration-300"
+                  >
+                    {contact.phone}
+                  </a>
+                  <Link
+                    to={{ pathname: "/installation", hash: "#consultation" }}
+                    className="text-[10px] font-heading uppercase tracking-wider text-accent hover:text-accent/80 transition-colors duration-300"
+                  >
+                    Обратный звонок
+                  </Link>
+                </div>
+              </div>
               <Link to="/cart" className="relative text-foreground hover:text-accent transition-colors duration-300">
                 <ShoppingCart size={20} />
                 {totalItems > 0 && (

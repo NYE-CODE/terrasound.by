@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
+import { FormField, FormRequiredNote } from "../../components/FormField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass } from "../../lib/formStyles";
-import { reportFormError } from "../../lib/formError";
+import { reportFormError, reportLoadError} from "../../lib/formError";
+import { parseRequiredInt } from "../../lib/numbers";
 import { api, type PortfolioWorkInput } from "../../lib/api";
 
 const emptyForm: PortfolioWorkInput = {
@@ -39,7 +41,7 @@ export function PortfolioFormPage() {
           });
         }
       })
-      .catch(console.error)
+      .catch(reportLoadError)
       .finally(() => setLoading(false));
   }, [token, id]);
 
@@ -73,27 +75,40 @@ export function PortfolioFormPage() {
       />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
-        <input
-          placeholder="Подпись (например, BMW 5 Series)"
-          value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          className={inputClass}
-          required
-        />
-        <input
-          placeholder="URL фото"
-          value={form.imageUrl}
-          onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-          className={inputClass}
-          required
-        />
-        <input
-          type="number"
-          placeholder="Порядок сортировки"
-          value={form.sortOrder}
-          onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-          className={inputClass}
-        />
+        <FormRequiredNote />
+
+        <FormField label="Подпись" htmlFor="portfolio-title" required hint="Например: BMW 5 Series">
+          <input
+            id="portfolio-title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="URL фото" htmlFor="portfolio-image-url" required>
+          <input
+            id="portfolio-image-url"
+            value={form.imageUrl}
+            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Порядок сортировки" htmlFor="portfolio-sort-order" optional>
+          <input
+            id="portfolio-sort-order"
+            type="number"
+            value={form.sortOrder}
+            onChange={(e) =>
+              setForm({ ...form, sortOrder: parseRequiredInt(e.target.value, form.sortOrder) })
+            }
+            className={inputClass}
+          />
+        </FormField>
+
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -102,6 +117,7 @@ export function PortfolioFormPage() {
           />
           Опубликована
         </label>
+
         <FormActions
           cancelTo="/portfolio"
           submitLabel={isEdit ? "Сохранить" : "Создать"}

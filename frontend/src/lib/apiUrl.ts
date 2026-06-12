@@ -5,7 +5,7 @@ export function resolveApiUrl(): string {
     return configured || "http://localhost:8000";
   }
 
-  // Production: пустой VITE_API_URL = тот же домен (/api/... через nginx)
+  // Production: пустой VITE_API_URL — относительные пути /api/v1/... через nginx того же домена.
   if (!configured) {
     return "";
   }

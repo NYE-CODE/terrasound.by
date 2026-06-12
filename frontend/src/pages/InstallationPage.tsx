@@ -10,8 +10,9 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { cn } from "../components/ui/utils";
-import { formControlClass, formSelectTriggerClass } from "../lib/formControlStyles";
-import { Info } from "lucide-react";
+import { formSelectTriggerClass } from "../lib/formControlStyles";
+import { siteSelectContentClass } from "../lib/selectControlStyles";
+import { ChevronsDown, Info } from "lucide-react";
 import { toast } from "sonner";
 import {
   PHONE_INPUT_PLACEHOLDER,
@@ -19,7 +20,8 @@ import {
   validatePersonName,
   validatePhone,
 } from "@terrasound/shared";
-import { api, type InstallationService } from "../lib/api";
+import { api, messageFromApiError, type InstallationService } from "../lib/api";
+import { reportLoadError } from "../lib/loadError";
 import { scrollToHash } from "../lib/scrollToHash";
 import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
 
@@ -58,7 +60,7 @@ export function InstallationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    api.getServices().then(setServices).catch(console.error);
+    api.getServices().then(setServices).catch(reportLoadError);
   }, []);
 
   useEffect(() => {
@@ -93,31 +95,39 @@ export function InstallationPage() {
       toast.success("Заявка отправлена! Мы свяжемся с вами в течение 24 часов.");
       setFormData({ name: "", phone: "", carModel: "", service: "" });
       setErrors({});
-    } catch {
-      toast.error("Не удалось отправить заявку");
+    } catch (error) {
+      toast.error(messageFromApiError(error, "Не удалось отправить заявку"));
     }
   };
 
   return (
     <div className="pt-[var(--site-header-height)] min-h-screen">
       {/* Hero Header */}
-      <section className="relative isolate h-[70vh] flex items-center justify-center overflow-hidden">
+      <section className="relative isolate min-h-[calc(100dvh-var(--site-header-height))] flex items-center justify-center overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=80"
           alt="Студия"
           className="absolute inset-0 z-0 w-full h-full object-cover pointer-events-none"
         />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/50 to-background pointer-events-none" />
-        <div className="relative z-[2] text-center max-w-3xl px-6">
+        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/50 via-background/70 to-background pointer-events-none" />
+        <div className="relative z-[2] flex flex-col items-center text-center max-w-3xl px-6">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl mb-6">Профессиональная установка</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
             Экспертная установка и акустическая калибровка в нашей студии в Гродно
           </p>
+          <button
+            type="button"
+            onClick={() => scrollToHash("#services")}
+            aria-label="Перейти к разделу «Наши услуги»"
+            className="mt-20 p-2 text-accent transition-colors hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-full"
+          >
+            <ChevronsDown size={44} strokeWidth={1.75} className="animate-pulse" aria-hidden />
+          </button>
         </div>
       </section>
 
       {/* Services */}
-      <section className={`${pageSectionPy} bg-background`}>
+      <section id="services" className={`${pageSectionPy} bg-background scroll-mt-[var(--site-header-height)]`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Наши услуги</h2>
           <div className="space-y-6">
@@ -200,10 +210,17 @@ export function InstallationPage() {
                 value={formData.service || undefined}
                 onValueChange={(value) => setFormData({ ...formData, service: value })}
               >
-                <SelectTrigger size="lg" className={cn(formControlClass, formSelectTriggerClass, "py-0 text-base dark:bg-input dark:hover:bg-input", errors.service && "border-destructive")}>
+                <SelectTrigger
+                  size="lg"
+                  className={cn(
+                    formSelectTriggerClass,
+                    "!h-12 !min-h-12 !max-h-12 !py-0",
+                    errors.service && "border-destructive",
+                  )}
+                >
                   <SelectValue placeholder="Выберите услугу" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className={siteSelectContentClass}>
                   {services.map((service) => (
                     <SelectItem key={service.id} value={service.title}>
                       {service.title}
@@ -211,7 +228,9 @@ export function InstallationPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.service && <p className="text-xs text-destructive mt-1">{errors.service}</p>}
+              {errors.service && (
+                <p className="text-xs leading-tight text-destructive mt-1">{errors.service}</p>
+              )}
             </div>
             <Button type="submit" variant="primary" className="w-full">
               Запросить консультацию

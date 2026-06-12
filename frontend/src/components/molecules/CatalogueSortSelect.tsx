@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { siteSelectContentClass, siteSelectTriggerClass } from "../../lib/selectControlStyles";
 import { cn } from "../ui/utils";
 
 export const CATALOGUE_SORT_OPTIONS = [
@@ -30,19 +31,24 @@ export function CatalogueSortSelect({
   compact = false,
   className,
 }: CatalogueSortSelectProps) {
+  const desktopMenuWidth = "w-[15rem]";
+
+  const heightClass = compact
+    ? "!h-11 !min-h-11 !max-h-11"
+    : "!h-10 !min-h-10 !max-h-10";
+
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger
         size={compact ? "lg" : "default"}
-        className={cn(
-          "w-full bg-input border-border rounded text-sm font-normal shadow-none focus-visible:ring-0 focus-visible:border-accent dark:bg-input dark:hover:bg-input",
-          compact ? "h-11" : "h-10",
-          className,
+        className={siteSelectTriggerClass(
+          compact ? "md" : "sm",
+          cn(heightClass, "!py-0", !compact && desktopMenuWidth, "shrink-0", className),
         )}
       >
         <SelectValue placeholder="Сортировка" />
       </SelectTrigger>
-      <SelectContent className="z-[90]">
+      <SelectContent className={cn(siteSelectContentClass, !compact && desktopMenuWidth)}>
         {CATALOGUE_SORT_OPTIONS.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {compact ? option.compactLabel : option.label}

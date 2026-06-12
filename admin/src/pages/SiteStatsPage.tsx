@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useState } from "react";
+import { FormField, FormRequiredNote } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { formCardClass, inputClass } from "../lib/formStyles";
-import { reportFormError } from "../lib/formError";
+import { reportFormError, reportLoadError} from "../lib/formError";
 import { api, type SiteStats, type SiteStatsInput } from "../lib/api";
 
 const defaultForm: SiteStatsInput = {
@@ -27,7 +28,7 @@ export function SiteStatsPage() {
           yearsExpertise: stats.yearsExpertise,
         });
       })
-      .catch(console.error)
+      .catch(reportLoadError)
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -65,9 +66,16 @@ export function SiteStatsPage() {
       </p>
 
       <form onSubmit={handleSubmit} className={`${formCardClass} max-w-xl space-y-4`}>
-        <div>
-          <label className="block text-sm mb-2">Подобранных систем</label>
+        <FormRequiredNote />
+
+        <FormField
+          label="Подобранных систем"
+          htmlFor="stats-installations"
+          required
+          hint={`На сайте: ${form.installationsCompleted || "…"} — Подобранных систем`}
+        >
           <input
+            id="stats-installations"
             type="text"
             maxLength={64}
             value={form.installationsCompleted}
@@ -77,14 +85,16 @@ export function SiteStatsPage() {
             className={inputClass}
             required
           />
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            На сайте: {form.installationsCompleted || "…"} — Подобранных систем
-          </p>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm mb-2">Опыт установки и подбора систем</label>
+        <FormField
+          label="Опыт установки и подбора систем"
+          htmlFor="stats-years"
+          required
+          hint={`На сайте: ${form.yearsExpertise || "…"} — Опыт установки и подбора систем`}
+        >
           <input
+            id="stats-years"
             type="text"
             maxLength={64}
             value={form.yearsExpertise}
@@ -92,10 +102,7 @@ export function SiteStatsPage() {
             className={inputClass}
             required
           />
-          <p className="text-xs text-[var(--muted-foreground)] mt-1">
-            На сайте: {form.yearsExpertise || "…"} — Опыт установки и подбора систем
-          </p>
-        </div>
+        </FormField>
 
         <button
           type="submit"

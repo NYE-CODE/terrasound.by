@@ -1,6 +1,5 @@
 import type { AttributeOption } from "./api";
 
-/** Одна строка textarea → массив опций для API */
 export function textToOptions(value: string): AttributeOption[] {
   const used = new Set<string>();
   return splitOptionLines(value).map((line, index) => {
@@ -16,7 +15,6 @@ export function textToOptions(value: string): AttributeOption[] {
   });
 }
 
-/** Массив опций из API → многострочный текст для textarea */
 export function optionsToText(options: AttributeOption[] | undefined): string {
   return [...(options ?? [])]
     .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -24,7 +22,7 @@ export function optionsToText(options: AttributeOption[] | undefined): string {
     .join("\n");
 }
 
-/** Текст для textarea при открытии формы редактирования (в т.ч. старые данные) */
+/** Fallback для старых атрибутов: опции enum хранились в поле unit (| или value:). */
 export function optionsTextForEdit(
   options: AttributeOption[] | undefined,
   valueType: string,
@@ -56,6 +54,7 @@ function splitOptionLines(value: string): string[] {
 }
 
 function parseLegacyOptionsString(raw: string): string[] {
+  // До attribute_options опции enum/text лежали в unit: "a|b" или "value: x: Label".
   const text = raw.trim();
   if (!text) return [];
 

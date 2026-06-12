@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import math
 from typing import Any
 
 from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
+
+from app.cache import invalidate_category_filters_cache
+from app.db_commit import commit_or_raise
 
 from app.filter_types import allowed_filter_types, effective_filter_type, resolve_default_filter_type
 from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, ProductAttributeValue
@@ -17,6 +22,7 @@ from app.schemas.attribute import (
     CategoryAttributeCreate,
     CategoryAttributeOut,
     CategoryAttributeSchemaOut,
+    CategoryAttributeSyncItem,
     CategoryAttributeUpdate,
     CategoryFilterOut,
     CategoryFiltersOut,
@@ -141,7 +147,7 @@ def _sync_options(db: Session, attribute: Attribute, options: list) -> None:
 
 def create_attribute(db: Session, payload: AttributeCreate) -> Attribute:
     if db.query(Attribute).filter(Attribute.id == payload.id).first():
-        raise HTTPException(status_code=400, detail="Атрибут с таким ID уже существует")
+        raise HTTPException(status_code=409, detail="Атрибут с таким ID уже существует")
     option_count = len(payload.options) if payload.value_type == "enum" else 0
     if payload.value_type == "enum" and option_count == 0:
         raise HTTPException(status_code=400, detail="Добавьте хотя бы один вариант списка")
@@ -157,7 +163,7 @@ def create_attribute(db: Session, payload: AttributeCreate) -> Attribute:
     db.flush()
     if payload.value_type == "enum":
         _sync_options(db, attribute, payload.options)
-    db.commit()
+    commit_or_raise(db)
     return get_attribute_or_404(db, attribute.id)
 
 
@@ -199,25 +205,32 @@ def update_attribute(db: Session, attribute_id: str, payload: AttributeUpdate) -
     elif "value_type" in data and data["value_type"] != "enum":
         _sync_options(db, attribute, [])
 
-    db.commit()
+    commit_or_raise(db)
     return get_attribute_or_404(db, attribute_id)
 
 
-def delete_attribute(db: Session, attribute_id: str) -> None:
+def delete_attribute(db: Session, attribute_id: str, *, strategy: str = "default") -> None:
     attribute = get_attribute_or_404(db, attribute_id)
     category_links = db.query(CategoryAttribute).filter(CategoryAttribute.attribute_id == attribute_id).count()
-    if category_links:
-        raise HTTPException(status_code=409, detail="Атрибут используется в категориях")
     product_values = (
         db.query(ProductAttributeValue).filter(ProductAttributeValue.attribute_id == attribute_id).count()
     )
-    if product_values:
-        raise HTTPException(
-            status_code=409,
-            detail=f"Атрибут используется в {product_values} товар(ах). Сначала уберите его из товаров.",
-        )
+
+    if strategy != "cascade":
+        if category_links:
+            raise HTTPException(status_code=409, detail="Атрибут используется в категориях")
+        if product_values:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Атрибут используется в {product_values} товар(ах). Сначала уберите его из товаров.",
+            )
+    else:
+        db.query(ProductAttributeValue).filter(ProductAttributeValue.attribute_id == attribute_id).delete()
+        db.query(CategoryAttribute).filter(CategoryAttribute.attribute_id == attribute_id).delete()
+        db.flush()
+
     db.delete(attribute)
-    db.commit()
+    commit_or_raise(db)
 
 
 def _ensure_category(db: Session, category_id: str) -> Category:
@@ -259,12 +272,14 @@ def create_category_attribute(
         .first()
     )
     if exists:
-        raise HTTPException(status_code=400, detail="Атрибут уже привязан к категории")
+        raise HTTPException(status_code=409, detail="Атрибут уже привязан к категории")
+    _validate_filter_range(payload.filter_min, payload.filter_max)
     link_data = payload.model_dump()
     link_data["filter_type"] = filter_type if payload.show_in_filters else None
     link = CategoryAttribute(category_id=category_id, **link_data)
     db.add(link)
-    db.commit()
+    commit_or_raise(db)
+    invalidate_category_filters_cache(category_id)
     db.refresh(link)
     link = (
         db.query(CategoryAttribute)
@@ -299,9 +314,13 @@ def update_category_attribute(
         )
     elif patch.get("show_in_filters") is False:
         patch["filter_type"] = None
+    next_min = patch.get("filter_min", link.filter_min)
+    next_max = patch.get("filter_max", link.filter_max)
+    _validate_filter_range(next_min, next_max)
     for field, value in patch.items():
         setattr(link, field, value)
-    db.commit()
+    commit_or_raise(db)
+    invalidate_category_filters_cache(category_id)
     db.refresh(link)
     return category_attribute_to_out(link)
 
@@ -315,7 +334,104 @@ def delete_category_attribute(db: Session, category_id: str, link_id: int) -> No
     if not link:
         raise HTTPException(status_code=404, detail="Привязка не найдена")
     db.delete(link)
-    db.commit()
+    commit_or_raise(db)
+    invalidate_category_filters_cache(category_id)
+
+
+def _apply_category_link_fields(
+    link: CategoryAttribute,
+    attr: Attribute,
+    item: CategoryAttributeSyncItem,
+    *,
+    sort_order: int,
+) -> None:
+    filter_type = (
+        effective_filter_type(
+            attr.value_type,
+            len(attr.options),
+            attr.filter_type,
+            item.filter_type,
+        )
+        if item.show_in_filters
+        else None
+    )
+    group_label = item.group_label.strip() if item.group_label and item.group_label.strip() else None
+    link.show_in_form = item.show_in_form
+    link.show_in_filters = item.show_in_filters
+    link.show_on_card = item.show_on_card
+    link.filter_type = filter_type
+    link.filter_min = item.filter_min
+    link.filter_max = item.filter_max
+    link.filter_step = item.filter_step
+    link.required = item.required
+    link.sort_order = sort_order
+    link.group_label = group_label
+
+
+def sync_category_attributes(
+    db: Session,
+    category_id: str,
+    items: list[CategoryAttributeSyncItem],
+) -> list[CategoryAttributeOut]:
+    """Полная синхронизация привязок категории: payload — источник правды, лишние связи удаляются."""
+    _ensure_category(db, category_id)
+
+    seen_attributes: set[str] = set()
+    for item in items:
+        if item.attribute_id in seen_attributes:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Характеристика «{item.attribute_id}» добавлена дважды.",
+            )
+        seen_attributes.add(item.attribute_id)
+        _validate_filter_range(item.filter_min, item.filter_max)
+
+    existing = (
+        db.query(CategoryAttribute)
+        .options(joinedload(CategoryAttribute.attribute).joinedload(Attribute.options))
+        .filter(CategoryAttribute.category_id == category_id)
+        .all()
+    )
+    existing_by_id = {link.id: link for link in existing}
+    keep_ids = {item.id for item in items if item.id is not None}
+
+    for link in existing:
+        if link.id not in keep_ids:
+            db.delete(link)
+
+    for sort_order, item in enumerate(items):
+        attr = get_attribute_or_404(db, item.attribute_id)
+
+        if item.id is not None:
+            link = existing_by_id.get(item.id)
+            if link is None:
+                raise HTTPException(status_code=404, detail="Привязка не найдена")
+            if link.attribute_id != item.attribute_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Нельзя сменить характеристику у существующей привязки",
+                )
+            _apply_category_link_fields(link, attr, item, sort_order=sort_order)
+            continue
+
+        duplicate = (
+            db.query(CategoryAttribute)
+            .filter(
+                CategoryAttribute.category_id == category_id,
+                CategoryAttribute.attribute_id == item.attribute_id,
+            )
+            .first()
+        )
+        if duplicate:
+            raise HTTPException(status_code=409, detail="Атрибут уже привязан к категории")
+
+        link = CategoryAttribute(category_id=category_id, attribute_id=item.attribute_id)
+        _apply_category_link_fields(link, attr, item, sort_order=sort_order)
+        db.add(link)
+
+    commit_or_raise(db)
+    invalidate_category_filters_cache(category_id)
+    return list_category_attributes(db, category_id)
 
 
 def get_category_form_schema(db: Session, category_id: str) -> list[CategoryAttributeSchemaOut]:
@@ -336,28 +452,79 @@ def get_category_form_schema(db: Session, category_id: str) -> list[CategoryAttr
     ]
 
 
+def _attribute_bounds_for_category(
+    db: Session,
+    category_id: str,
+    attribute_ids: list[str],
+) -> dict[str, tuple[float, float]]:
+    if not attribute_ids:
+        return {}
+
+    rows = (
+        db.query(
+            ProductAttributeValue.attribute_id,
+            func.min(ProductAttributeValue.value_number),
+            func.max(ProductAttributeValue.value_number),
+        )
+        .join(Product, Product.id == ProductAttributeValue.product_id)
+        .filter(
+            Product.category == category_id,
+            ProductAttributeValue.attribute_id.in_(attribute_ids),
+            ProductAttributeValue.value_number.isnot(None),
+        )
+        .group_by(ProductAttributeValue.attribute_id)
+        .all()
+    )
+    bounds: dict[str, tuple[float, float]] = {}
+    for attr_id, lo, hi in rows:
+        data_min = float(lo) if lo is not None else 0.0
+        data_max = float(hi) if hi is not None else data_min + 100.0
+        bounds[attr_id] = (data_min, data_max)
+    for attr_id in attribute_ids:
+        bounds.setdefault(attr_id, (0.0, 100.0))
+    return bounds
+
+
 def get_category_filters(db: Session, category_id: str) -> CategoryFiltersOut:
+    """Схема фильтров витрины для категории (цена + характеристики с авто-границами range)."""
     _ensure_category(db, category_id)
     links = list_category_attributes(db, category_id)
-    filters = [
-        CategoryFilterOut(
-            attribute_id=link.attribute_id,
-            label=link.attribute_label,
-            value_type=link.value_type,
-            filter_type=link.filter_type or "dropdown",
-            unit=link.unit,
-            options=link.options,
-            filter_min=link.filter_min,
-            filter_max=link.filter_max,
-            filter_step=link.filter_step,
-            group_label=link.group_label,
-            sort_order=link.sort_order,
-        )
+    range_needing_stats = [
+        link.attribute_id
         for link in links
-        if link.show_in_filters and link.filter_type
+        if link.show_in_filters
+        and link.filter_type == "range"
+        and (link.filter_min is None or link.filter_max is None)
     ]
-    from sqlalchemy import func
+    stats_by_attribute = _attribute_bounds_for_category(db, category_id, range_needing_stats)
 
+    filters: list[CategoryFilterOut] = []
+    for link in links:
+        if not (link.show_in_filters and link.filter_type):
+            continue
+        filter_min = link.filter_min
+        filter_max = link.filter_max
+        if link.filter_type == "range":
+            filter_min, filter_max = _resolve_filter_bounds(
+                link.filter_min,
+                link.filter_max,
+                stats_by_attribute.get(link.attribute_id),
+            )
+        filters.append(
+            CategoryFilterOut(
+                attribute_id=link.attribute_id,
+                label=link.attribute_label,
+                value_type=link.value_type,
+                filter_type=link.filter_type or "dropdown",
+                unit=link.unit,
+                options=link.options,
+                filter_min=filter_min,
+                filter_max=filter_max,
+                filter_step=link.filter_step,
+                group_label=link.group_label,
+                sort_order=link.sort_order,
+            )
+        )
     from app.services.products import effective_price_expr
 
     price_stats = (
@@ -389,9 +556,13 @@ def attribute_value_to_api(value: ProductAttributeValue) -> Any:
     return value.value_string
 
 
+def product_attributes_dict_from_rows(rows: list[ProductAttributeValue]) -> dict[str, Any]:
+    return {row.attribute_id: attribute_value_to_api(row) for row in rows}
+
+
 def product_attributes_dict(db: Session, product_id: str) -> dict[str, Any]:
     rows = db.query(ProductAttributeValue).filter(ProductAttributeValue.product_id == product_id).all()
-    return {row.attribute_id: attribute_value_to_api(row) for row in rows}
+    return product_attributes_dict_from_rows(rows)
 
 
 def attribute_value_is_filled(value: ProductAttributeValue, attr: Attribute) -> bool:
@@ -455,11 +626,63 @@ def product_attribute_specs(db: Session, product: Product) -> list:
     return specs
 
 
+def clear_product_attribute_values(db: Session, product_id: str) -> None:
+    db.query(ProductAttributeValue).filter(ProductAttributeValue.product_id == product_id).delete()
+
+
+def _attribute_value_empty(raw: Any) -> bool:
+    if raw is None:
+        return True
+    if isinstance(raw, str):
+        return raw.strip() == ""
+    if isinstance(raw, float):
+        return not math.isfinite(raw)
+    return raw == ""
+
+
+def _validate_filter_range(filter_min: float | None, filter_max: float | None) -> None:
+    if filter_min is None or filter_max is None:
+        return
+    if not math.isfinite(filter_min) or not math.isfinite(filter_max):
+        raise HTTPException(status_code=400, detail="Некорректный диапазон фильтра")
+    if filter_min >= filter_max:
+        raise HTTPException(
+            status_code=400,
+            detail="Максимум ползунка должен быть больше минимума",
+        )
+
+
+def _resolve_filter_bounds(
+    filter_min: float | None,
+    filter_max: float | None,
+    stats: tuple[float, float] | None = None,
+) -> tuple[float, float]:
+    both_explicit = filter_min is not None and filter_max is not None
+    if both_explicit:
+        lo, hi = float(filter_min), float(filter_max)
+    else:
+        data_min, data_max = stats if stats is not None else (0.0, 100.0)
+        lo = float(filter_min) if filter_min is not None else data_min
+        hi = float(filter_max) if filter_max is not None else data_max
+
+    if not math.isfinite(lo):
+        lo = 0.0
+    if not math.isfinite(hi):
+        hi = lo + 100.0
+    if hi <= lo:
+        # Явные min=max ломают ползунок — расширяем на 1; без явных границ — запас 100.
+        hi = lo + (1.0 if both_explicit else 100.0)
+    return lo, hi
+
+
 def validate_and_normalize_attributes(
     db: Session,
     category_id: str,
     attributes: dict[str, Any] | None,
+    *,
+    product_id: str | None = None,
 ) -> dict[str, ProductAttributeValue]:
+    """Проверяет значения характеристик товара по схеме категории и нормализует типы."""
     if not attributes:
         attributes = {}
 
@@ -470,12 +693,23 @@ def validate_and_normalize_attributes(
         .all()
     )
     link_by_id = {link.attribute_id: link for link in links}
+    # Игнорируем лишние ключи (фильтры, старые привязки) — валидируем только поля формы.
+    attributes = {key: value for key, value in attributes.items() if key in link_by_id}
+
+    if product_id:
+        existing = product_attributes_dict(db, product_id)
+        for link in links:
+            attr_id = link.attribute_id
+            # PATCH: пустое необязательное поле не затирает уже сохранённое значение.
+            if _attribute_value_empty(attributes.get(attr_id)) and not link.required and attr_id in existing:
+                attributes[attr_id] = existing[attr_id]
+
     result: dict[str, ProductAttributeValue] = {}
 
     for link in links:
         attr = link.attribute
         raw = attributes.get(attr.id)
-        if raw is None or raw == "":
+        if _attribute_value_empty(raw):
             if link.required:
                 raise HTTPException(status_code=400, detail=f"Заполните поле «{attr.label}»")
             continue
@@ -491,9 +725,12 @@ def validate_and_normalize_attributes(
                 raise HTTPException(status_code=400, detail=f"Некорректное значение «{attr.label}»")
         elif attr.value_type == "number":
             try:
-                value.value_number = float(raw)
+                numeric = float(raw)
             except (TypeError, ValueError) as exc:
                 raise HTTPException(status_code=400, detail=f"Некорректное число в «{attr.label}»") from exc
+            if not math.isfinite(numeric):
+                raise HTTPException(status_code=400, detail=f"Некорректное число в «{attr.label}»")
+            value.value_number = numeric
         elif attr.value_type == "enum":
             allowed = {opt.value for opt in attr.options}
             if str(raw) not in allowed:
@@ -503,18 +740,20 @@ def validate_and_normalize_attributes(
             value.value_string = str(raw)
         result[attr.id] = value
 
-    unknown = set(attributes.keys()) - set(link_by_id.keys())
-    if unknown:
-        raise HTTPException(status_code=400, detail=f"Неизвестные атрибуты: {', '.join(sorted(unknown))}")
-
     return result
 
 
 def sync_product_attributes(
-    db: Session, product: Product, normalized: dict[str, ProductAttributeValue]
+    db: Session,
+    product: Product,
+    normalized: dict[str, ProductAttributeValue],
+    *,
+    replace_all: bool = False,
 ) -> None:
+    replace_ids = set(normalized.keys()) if not replace_all else None
     for row in list(product.attribute_values):
-        db.delete(row)
+        if replace_all or row.attribute_id in replace_ids:
+            db.delete(row)
     for attribute_id, value in normalized.items():
         db.add(
             ProductAttributeValue(

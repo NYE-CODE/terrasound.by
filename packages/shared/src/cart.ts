@@ -5,7 +5,7 @@ export interface CartItem {
   quantity: number;
 }
 
-/** Flat cart line used by CartContext (matches current UI state shape). */
+/** Упрощённая строка корзины для CartContext (без полного Product из shared). */
 export interface CartContextItem {
   id: string;
   brand: string;

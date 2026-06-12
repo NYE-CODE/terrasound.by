@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { RowActions } from "../components/RowActions";
 import { useAuth } from "../context/AuthContext";
-import { reportActionError } from "../lib/formError";
+import { ApiError } from "../lib/api";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type AttributeDef } from "../lib/api";
 import { FILTER_TYPE_LABELS, VALUE_TYPE_LABELS } from "../lib/filterTypes";
 
@@ -12,7 +13,7 @@ export function AttributesPage() {
 
   const load = () => {
     if (!token) return;
-    api.attributes(token).then(setItems).catch(console.error);
+    api.attributes(token).then(setItems).catch(reportLoadError);
   };
 
   useEffect(load, [token]);
@@ -23,6 +24,19 @@ export function AttributesPage() {
       await api.deleteAttribute(token, id);
       load();
     } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        const cascade = confirm(
+          `${error.message}\n\nОчистить значения у всех товаров, отвязать от категорий и удалить атрибут?`,
+        );
+        if (!cascade) return;
+        try {
+          await api.deleteAttribute(token, id, { cascade: true });
+          load();
+        } catch (cascadeError) {
+          reportActionError(cascadeError);
+        }
+        return;
+      }
       reportActionError(error);
     }
   };

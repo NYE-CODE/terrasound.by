@@ -1,26 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Phone, Mail, MapPin, Instagram } from "lucide-react";
+import { TikTokIcon } from "../../icons/TikTokIcon";
 import { api, type Category } from "../../../lib/api";
-import {
-  ADDRESS,
-  ADDRESS_MAPS_URL,
-  COMPANY_NAME,
-  CONTACT_EMAIL,
-  CONTACT_PHONE,
-  CONTACT_PHONE_TEL,
-  INSTAGRAM_URL,
-  SITE_NAME,
-  TAGLINE,
-} from "../../../lib/site";
+import { reportLoadError } from "../../../lib/loadError";
+import { externalUrl, socialHandle } from "../../../lib/contactHelpers";
+import { COMPANY_NAME, SITE_NAME, TAGLINE } from "../../../lib/site";
+import { useSiteContact } from "../../../context/SiteContactContext";
 import logo from "../../../assets/logo.png";
 
 export function Footer() {
+  const contact = useSiteContact();
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    api.getCategories().then(setCategories).catch(console.error);
+    api.getCategories().then(setCategories).catch(reportLoadError);
   }, []);
+
   return (
     <footer className="bg-card border-t border-border">
       <div className="max-w-[1400px] mx-auto px-6 py-16">
@@ -33,36 +29,49 @@ export function Footer() {
             <p className="text-sm text-muted-foreground mb-6">{TAGLINE}</p>
             <div className="space-y-3 text-sm">
               <a
-                href={`tel:${CONTACT_PHONE_TEL}`}
+                href={`tel:${contact.phoneTel}`}
                 className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
               >
                 <Phone size={16} />
-                <span>{CONTACT_PHONE}</span>
+                <span>{contact.phone}</span>
               </a>
               <a
-                href={`mailto:${CONTACT_EMAIL}`}
+                href={`mailto:${contact.email}`}
                 className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
               >
                 <Mail size={16} />
-                <span>{CONTACT_EMAIL}</span>
+                <span>{contact.email}</span>
               </a>
+              {contact.instagramUrl.trim() && (
+                <a
+                  href={externalUrl(contact.instagramUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+                >
+                  <Instagram size={16} />
+                  <span>{socialHandle(contact.instagramUrl)}</span>
+                </a>
+              )}
+              {contact.tiktokUrl.trim() && (
+                <a
+                  href={externalUrl(contact.tiktokUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+                >
+                  <TikTokIcon size={16} />
+                  <span>{socialHandle(contact.tiktokUrl)}</span>
+                </a>
+              )}
               <a
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
-              >
-                <Instagram size={16} />
-                <span>@terrasound.by</span>
-              </a>
-              <a
-                href={ADDRESS_MAPS_URL}
+                href={contact.addressMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
               >
                 <MapPin size={16} />
-                <span>{ADDRESS}</span>
+                <span>{contact.address}</span>
               </a>
             </div>
           </div>

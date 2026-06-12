@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api, type BlogPostCard } from "../lib/api";
+import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy } from "../lib/pageLayout";
+import { formatReviewDate } from "../utils/formatReviewDate";
 
 export function BlogPage() {
   const [posts, setPosts] = useState<BlogPostCard[]>([]);
@@ -14,7 +16,7 @@ export function BlogPage() {
   });
 
   useEffect(() => {
-    api.getBlogPosts().then(setPosts).catch(console.error);
+    api.getBlogPosts().then(setPosts).catch(reportLoadError);
   }, []);
 
   return (
@@ -37,7 +39,7 @@ export function BlogPage() {
                 <span className="text-xs text-accent font-heading uppercase tracking-wider">
                   {post.category}
                 </span>
-                <span className="text-xs text-muted-foreground">{post.createdAt}</span>
+                <span className="text-xs text-muted-foreground">{formatReviewDate(post.createdAt)}</span>
               </div>
               <h2 className="font-heading text-2xl mb-3">
                 <Link to={`/blog/${post.id}`} className="hover:text-accent transition-colors duration-300">

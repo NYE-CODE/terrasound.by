@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.cache import SITE_STATS, site_stats_cache
+from app.db_commit import commit_or_raise
 from app.models.site_stats import SiteStats
 from app.schemas.site_stats import SiteStatsOut, SiteStatsUpdate
 
@@ -19,7 +20,7 @@ def get_or_create_site_stats(db: Session) -> SiteStats:
         years_expertise=DEFAULT_YEARS,
     )
     db.add(stats)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(stats)
     return stats
 
@@ -43,7 +44,7 @@ def update_site_stats(db: Session, payload: SiteStatsUpdate) -> SiteStats:
     stats = get_or_create_site_stats(db)
     stats.installations_completed = payload.installations_completed
     stats.years_expertise = payload.years_expertise
-    db.commit()
+    commit_or_raise(db)
     db.refresh(stats)
     site_stats_cache.invalidate(SITE_STATS)
     return stats

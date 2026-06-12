@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Command,
@@ -9,6 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
+import { sitePopoverMenuContentClass, siteSelectTriggerClass } from "../../lib/selectControlStyles";
 import { cn } from "../ui/utils";
 
 export interface FilterOption {
@@ -52,15 +53,18 @@ export function FilterCombobox({
             type="button"
             role="combobox"
             aria-expanded={open}
-            className="w-full h-10 px-3 bg-input border border-border rounded text-sm flex items-center justify-between gap-2 hover:border-accent/50 transition-colors cursor-pointer"
+            className={siteSelectTriggerClass("sm")}
           >
             <span className={cn("truncate", value === allValue && "text-muted-foreground")}>
               {displayLabel}
             </span>
-            <ChevronsUpDown size={14} className="shrink-0 text-muted-foreground" />
+            <ChevronDown aria-hidden />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[90]" align="start">
+        <PopoverContent
+          className={cn(sitePopoverMenuContentClass, "w-[var(--radix-popover-trigger-width)]")}
+          align="start"
+        >
           <Command>
             {searchable && <CommandInput placeholder="Поиск..." />}
             <CommandList>

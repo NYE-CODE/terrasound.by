@@ -3,7 +3,7 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type InstallationRequest } from "../lib/api";
 
 export function InstallationRequestsPage() {
@@ -13,7 +13,7 @@ export function InstallationRequestsPage() {
 
   const load = () => {
     if (!token) return;
-    api.installationRequests(token).then(setRequests).catch(console.error);
+    api.installationRequests(token).then(setRequests).catch(reportLoadError);
   };
 
   useEffect(load, [token]);

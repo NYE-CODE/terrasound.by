@@ -1,24 +1,26 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
+from app.api_constants import API_V1_PREFIX
 from app.database import get_db
-from app.models.product import Product
-from app.schemas.product import ProductDetailOut, ProductListOut
+from app.schemas.pagination import PaginatedOut
+from app.schemas.product import ProductCardOut, ProductDetailOut
 from app.services.attribute_filters import parse_attribute_filters
-from app.services.products import get_product_or_404, list_products, product_to_detail
+from app.services.products import (
+    PUBLIC_PRODUCT_LIST_DEFAULT_LIMIT,
+    PUBLIC_PRODUCT_LIST_MAX_LIMIT,
+    SORT_OPTIONS,
+    get_product_or_404,
+    list_products,
+    product_to_detail,
+)
 
-router = APIRouter(prefix="/api/products", tags=["products"])
+router = APIRouter(prefix=f"{API_V1_PREFIX}/products", tags=["products"])
 
 
-@router.get("/brands", response_model=list[str])
-def list_product_brands(db: Annotated[Session, Depends(get_db)]) -> list[str]:
-    rows = db.query(Product.brand).distinct().order_by(Product.brand).all()
-    return [row[0] for row in rows]
-
-
-@router.get("", response_model=ProductListOut)
+@router.get("", response_model=PaginatedOut[ProductCardOut])
 def list_products_route(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
@@ -32,9 +34,17 @@ def list_products_route(
     price_max: float | None = Query(default=None, alias="priceMax", ge=0),
     in_stock: list[bool] | None = Query(default=None, alias="inStock"),
     sort: str = Query(default="popularity", max_length=20),
-    limit: int | None = Query(default=None, ge=1, le=100),
+    limit: int = Query(default=PUBLIC_PRODUCT_LIST_DEFAULT_LIMIT, ge=1, le=PUBLIC_PRODUCT_LIST_MAX_LIMIT),
     offset: int = Query(default=0, ge=0),
-) -> ProductListOut:
+) -> PaginatedOut[ProductCardOut]:
+    """Каталог товаров с фильтрами (attr.*), авто и характеристиками."""
+    if sort not in SORT_OPTIONS:
+        raise HTTPException(status_code=422, detail="Некорректная сортировка")
+    try:
+        attr_filters = parse_attribute_filters(request)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     return list_products(
         db,
         category=category,
@@ -46,7 +56,7 @@ def list_products_route(
         price_min=price_min,
         price_max=price_max,
         in_stock=in_stock,
-        attr_filters=parse_attribute_filters(request),
+        attr_filters=attr_filters,
         sort=sort,
         limit=limit,
         offset=offset,

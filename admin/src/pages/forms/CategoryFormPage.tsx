@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CategoryFiltersSection } from "../../components/CategoryFiltersSection";
 import { FormActions } from "../../components/FormActions";
+import { FormField, FormRequiredNote } from "../../components/FormField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -10,7 +11,8 @@ import {
   type CategoryAttributeDraft,
 } from "../../lib/categoryAttributeDraft";
 import { formCardClass, inputClass } from "../../lib/formStyles";
-import { reportFormError } from "../../lib/formError";
+import { reportFormError, reportLoadError } from "../../lib/formError";
+import { parseRequiredInt } from "../../lib/numbers";
 import { api, type AttributeDef, type CategoryAttributeLink, type CategoryInput, type CategoryUpdateInput } from "../../lib/api";
 
 const emptyForm: CategoryInput = {
@@ -57,7 +59,7 @@ export function CategoryFormPage() {
         setAttributeLinks(links.map(linkToDraft));
         setAllAttributes(attributes);
       })
-      .catch(console.error)
+      .catch(reportLoadError)
       .finally(() => setLoading(false));
   }, [token, id]);
 
@@ -76,7 +78,7 @@ export function CategoryFormPage() {
           published: form.published,
         };
         await api.updateCategory(token, id, payload);
-        await syncCategoryAttributes(token, id, initialLinks, attributeLinks);
+        await syncCategoryAttributes(token, id, attributeLinks);
         navigate("/categories");
       } else {
         await api.createCategory(token, form);
@@ -103,52 +105,80 @@ export function CategoryFormPage() {
       <form onSubmit={handleSubmit} className="space-y-6 mt-6">
         <section className={`${formCardClass} grid gap-4`}>
           <h2 className="font-heading text-lg">Основное</h2>
+          <FormRequiredNote />
 
           {!isEdit && (
-            <input
-              placeholder="Slug (например, speakers)"
-              value={form.id}
-              onChange={(e) => setForm({ ...form, id: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
-              className={inputClass}
-              pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            <FormField
+              label="Slug"
+              htmlFor="category-slug"
               required
-            />
+              hint="Латиница и дефисы, например: speakers"
+            >
+              <input
+                id="category-slug"
+                value={form.id}
+                onChange={(e) => setForm({ ...form, id: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
+                className={inputClass}
+                pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                required
+              />
+            </FormField>
           )}
           {isEdit && (
             <div className="text-sm text-[var(--muted-foreground)]">
               Slug: <span className="text-[var(--foreground)]">{form.id}</span> (не изменяется)
             </div>
           )}
-          <input
-            placeholder="Название"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={inputClass}
-            required
-          />
-          <input
-            placeholder="URL изображения"
-            value={form.imageUrl}
-            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            className={inputClass}
-            required
-          />
-          <div className="grid md:grid-cols-2 gap-4">
+
+          <FormField label="Название" htmlFor="category-name" required>
             <input
-              type="number"
-              placeholder="Порядок"
-              value={form.sortOrder}
-              onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+              id="category-name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               className={inputClass}
+              required
             />
-            <select
-              value={form.gridCols}
-              onChange={(e) => setForm({ ...form, gridCols: Number(e.target.value) })}
+          </FormField>
+
+          <FormField label="URL изображения" htmlFor="category-image-url" required>
+            <input
+              id="category-image-url"
+              value={form.imageUrl}
+              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
               className={inputClass}
-            >
-              <option value={1}>Ширина: 1 колонка</option>
-              <option value={2}>Ширина: 2 колонки</option>
-            </select>
+              required
+            />
+          </FormField>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <FormField label="Порядок сортировки" htmlFor="category-sort-order" optional>
+              <input
+                id="category-sort-order"
+                type="number"
+                value={form.sortOrder}
+                onChange={(e) =>
+                  setForm({ ...form, sortOrder: parseRequiredInt(e.target.value, form.sortOrder) })
+                }
+                className={inputClass}
+              />
+            </FormField>
+
+            <FormField label="Ширина на главной" htmlFor="category-grid-cols" optional>
+              <select
+                id="category-grid-cols"
+                value={form.gridCols}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    gridCols: parseRequiredInt(e.target.value, form.gridCols) as 1 | 2,
+                  })
+                }
+                className={inputClass}
+              >
+                <option value={1}>1 колонка</option>
+                <option value={2}>2 колонки</option>
+              </select>
+            </FormField>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input

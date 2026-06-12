@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field, field_serializer
+from pydantic import BaseModel, EmailStr, Field, field_serializer, field_validator
 
 from app.schemas.common import CamelModel
+from app.validation import validate_person_name
 
 
 class ProductReviewPublicOut(CamelModel):
@@ -42,6 +43,11 @@ class ProductReviewCreate(BaseModel):
     email: EmailStr
     text: str = Field(min_length=10, max_length=2000)
     rating: int = Field(default=5, ge=1, le=5)
+
+    @field_validator("author", mode="before")
+    @classmethod
+    def validate_author(cls, value: str) -> str:
+        return validate_person_name(value)
 
 
 class ServiceReviewOut(CamelModel):

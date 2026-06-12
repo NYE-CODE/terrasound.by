@@ -3,21 +3,30 @@ import { Trash2 } from "lucide-react";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
-import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { PAGE_SIZE } from "../hooks/usePagination";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type ServiceReview } from "../lib/api";
 
 export function ServiceReviewsPage() {
   const { token } = useAuth();
   const [reviews, setReviews] = useState<ServiceReview[]>([]);
-  const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(reviews);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const load = () => {
     if (!token) return;
-    api.serviceReviews(token).then(setReviews).catch(console.error);
+    const offset = (page - 1) * PAGE_SIZE;
+    api
+      .serviceReviews(token, { limit: PAGE_SIZE, offset })
+      .then((result) => {
+        setReviews(result.data);
+        setTotalItems(result.meta.total);
+      })
+      .catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [token, page]);
 
   const togglePublished = async (review: ServiceReview) => {
     if (!token) return;
@@ -44,7 +53,7 @@ export function ServiceReviewsPage() {
       <PageHeader title="Отзывы о магазине" createTo="/reviews/service/new" createLabel="Добавить отзыв" />
 
       <div className="space-y-4">
-        {paginatedItems.map((review) => (
+        {reviews.map((review) => (
           <div key={review.id} className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-6">
             <div className="flex items-start justify-between gap-4 mb-3">
               <div>
@@ -75,7 +84,7 @@ export function ServiceReviewsPage() {
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={PAGE_SIZE} onPageChange={setPage} />
     </div>
   );
 }

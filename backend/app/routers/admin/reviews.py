@@ -1,13 +1,16 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.auth import get_current_admin
+from app.api_constants import ADMIN_V1_PREFIX
 from app.database import get_db
+from app.db_commit import commit_or_raise
 from app.models.review import ProductReview, ServiceReview
-from app.schemas.auth import AdminUser
+from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
+from app.schemas.pagination import PaginatedOut, paginated
 from app.schemas.review import (
     ProductReviewAdminUpdate,
     ProductReviewOut,
@@ -16,48 +19,64 @@ from app.schemas.review import (
     ServiceReviewUpdate,
 )
 
-router = APIRouter(prefix="/api/admin/reviews", tags=["admin-reviews"])
+router = APIRouter(prefix=f"{ADMIN_V1_PREFIX}", tags=["admin-reviews"], dependencies=ADMIN_ROUTER_DEPENDENCIES)
 
 
-@router.get("/product", response_model=list[ProductReviewOut])
+@router.get("/product-reviews", response_model=PaginatedOut[ProductReviewOut])
 def list_product_reviews_admin(
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[ProductReviewOut]:
-    reviews = db.query(ProductReview).order_by(ProductReview.created_at.desc()).all()
-    return [ProductReviewOut.model_validate(review) for review in reviews]
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedOut[ProductReviewOut]:
+    total = db.query(func.count(ProductReview.id)).scalar() or 0
+    reviews = (
+        db.query(ProductReview)
+        .order_by(ProductReview.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    data = [ProductReviewOut.model_validate(review) for review in reviews]
+    return paginated(data, total=total, limit=limit, offset=offset)
 
 
-@router.patch("/product/{review_id}", response_model=ProductReviewOut)
+@router.patch("/product-reviews/{review_id}", response_model=ProductReviewOut)
 def update_product_review_admin(
     review_id: str,
     payload: ProductReviewAdminUpdate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ProductReviewOut:
     review = db.query(ProductReview).filter(ProductReview.id == review_id).first()
     if not review:
         raise HTTPException(status_code=404, detail="Отзыв не найден")
     review.published = payload.published
-    db.commit()
+    commit_or_raise(db)
     db.refresh(review)
     return ProductReviewOut.model_validate(review)
 
 
-@router.get("/service", response_model=list[ServiceReviewOut])
+@router.get("/service-reviews", response_model=PaginatedOut[ServiceReviewOut])
 def list_service_reviews_admin(
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[ServiceReviewOut]:
-    reviews = db.query(ServiceReview).order_by(ServiceReview.created_at.desc()).all()
-    return [ServiceReviewOut.model_validate(review) for review in reviews]
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedOut[ServiceReviewOut]:
+    total = db.query(func.count(ServiceReview.id)).scalar() or 0
+    reviews = (
+        db.query(ServiceReview)
+        .order_by(ServiceReview.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    data = [ServiceReviewOut.model_validate(review) for review in reviews]
+    return paginated(data, total=total, limit=limit, offset=offset)
 
 
-@router.post("/service", response_model=ServiceReviewOut, status_code=201)
+@router.post("/service-reviews", response_model=ServiceReviewOut, status_code=201)
 def create_service_review_admin(
     payload: ServiceReviewCreate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ServiceReviewOut:
     review = ServiceReview(
         id=str(uuid.uuid4()),
@@ -68,17 +87,16 @@ def create_service_review_admin(
         published=payload.published,
     )
     db.add(review)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(review)
     return ServiceReviewOut.model_validate(review)
 
 
-@router.patch("/service/{review_id}", response_model=ServiceReviewOut)
+@router.patch("/service-reviews/{review_id}", response_model=ServiceReviewOut)
 def update_service_review_admin(
     review_id: str,
     payload: ServiceReviewUpdate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ServiceReviewOut:
     review = db.query(ServiceReview).filter(ServiceReview.id == review_id).first()
     if not review:
@@ -87,19 +105,18 @@ def update_service_review_admin(
     for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(review, field, value)
 
-    db.commit()
+    commit_or_raise(db)
     db.refresh(review)
     return ServiceReviewOut.model_validate(review)
 
 
-@router.delete("/service/{review_id}", status_code=204)
+@router.delete("/service-reviews/{review_id}", status_code=204)
 def delete_service_review_admin(
     review_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> None:
     review = db.query(ServiceReview).filter(ServiceReview.id == review_id).first()
     if not review:
         raise HTTPException(status_code=404, detail="Отзыв не найден")
     db.delete(review)
-    db.commit()
+    commit_or_raise(db)

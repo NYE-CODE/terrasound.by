@@ -7,7 +7,7 @@ import { PaymentMethod } from "../components/molecules/PaymentMethod";
 import { ContactForm } from "../components/organisms/ContactForm";
 import { OrderSummary } from "../components/organisms/OrderSummary";
 import { CheckoutTemplate } from "../components/templates/CheckoutTemplate";
-import { api } from "../lib/api";
+import { api, messageFromApiError } from "../lib/api";
 import { clampQuantity } from "../lib/cart";
 import { getEffectivePrice } from "../lib/price";
 import {
@@ -212,8 +212,10 @@ export function CheckoutPage() {
 
       clearCart();
       navigate(`/order-success/${order.id}`);
-    } catch {
-      toast.error("Не удалось оформить заказ. Попробуйте ещё раз.");
+    } catch (error) {
+      toast.error(
+        messageFromApiError(error, "Не удалось оформить заказ. Попробуйте ещё раз."),
+      );
     }
   };
 

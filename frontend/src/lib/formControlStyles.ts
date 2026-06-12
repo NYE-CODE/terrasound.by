@@ -1,6 +1,8 @@
-/** Общие стили полей форм на публичном сайте (input, select trigger). */
-export const formControlClass =
-  "w-full h-12 px-4 bg-input border border-border rounded text-foreground transition-all duration-300 focus:border-accent focus:outline-none focus-visible:outline-none";
+import { siteSelectTriggerClass } from "./selectControlStyles";
 
-export const formSelectTriggerClass =
-  "flex items-center justify-between cursor-pointer shadow-none focus-visible:ring-0 focus-visible:border-accent data-[placeholder]:text-muted-foreground [&_svg]:text-muted-foreground [&_svg]:opacity-50";
+/** Общие стили полей форм на публичном сайте (input). */
+export const formControlClass =
+  "w-full h-12 px-4 bg-input border border-border rounded text-foreground transition-all duration-300 focus:border-accent focus:outline-none focus-visible:outline-none hover:border-accent/50";
+
+/** Триггер Select в формах — тот же вид, что и у input. */
+export const formSelectTriggerClass = siteSelectTriggerClass("lg");

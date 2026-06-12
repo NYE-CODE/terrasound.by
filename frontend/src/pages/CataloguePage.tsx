@@ -9,6 +9,7 @@ import { CatalogueSortSelect } from "../components/molecules/CatalogueSortSelect
 import { SlidersHorizontal } from "lucide-react";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { api, type Category, type CategoryFilters, type ProductCard as ProductCardData } from "../lib/api";
+import { reportLoadError } from "../lib/loadError";
 import { pageContentPy } from "../lib/pageLayout";
 
 const PAGE_SIZE = 9;
@@ -45,8 +46,8 @@ export function CataloguePage() {
   });
 
   useEffect(() => {
-    api.getCategories().then(setCategories).catch(console.error);
-    api.getProductBrands().then(setBrands).catch(console.error);
+    api.getCategories().then(setCategories).catch(reportLoadError);
+    api.getProductBrands().then(setBrands).catch(reportLoadError);
   }, []);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export function CataloguePage() {
         setPriceBounds(nextBounds);
         setPriceRange(nextBounds);
       })
-      .catch(console.error);
+      .catch(reportLoadError);
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -90,11 +91,11 @@ export function CataloguePage() {
 
     api
       .getProducts(params)
-      .then(({ items, total }) => {
-        setProducts(items);
-        setTotalItems(total);
+      .then(({ data, meta }) => {
+        setProducts(data);
+        setTotalItems(meta.total);
       })
-      .catch(console.error);
+      .catch(reportLoadError);
   }, [selectedCategory, selectedBrands, availability, priceRange, sortBy, page, attributeFilters]);
 
   const handlePageChange = (nextPage: number) => {
@@ -148,11 +149,11 @@ export function CataloguePage() {
 
         {!filtersOpen && (
           <div className="lg:hidden sticky top-[var(--site-header-height)] z-50 -mx-6 px-6 py-3 mb-3 bg-background border-b border-border">
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setFiltersOpen(true)}
-              className="flex-1 h-11 px-4 bg-card border border-card-border rounded flex items-center justify-center gap-2 text-sm font-heading uppercase tracking-wider"
+              className="h-11 px-4 bg-input border border-border rounded flex items-center justify-center gap-2 text-sm font-heading uppercase tracking-wider transition-colors duration-300 hover:border-accent/50"
             >
               <SlidersHorizontal size={16} />
               Фильтры
@@ -162,9 +163,7 @@ export function CataloguePage() {
                 </span>
               )}
             </button>
-            <div className="flex-1 min-w-0">
-              <CatalogueSortSelect value={sortBy} onChange={setSortBy} compact />
-            </div>
+            <CatalogueSortSelect value={sortBy} onChange={setSortBy} compact className="w-full" />
             </div>
           </div>
         )}
@@ -186,7 +185,9 @@ export function CataloguePage() {
           <div className="flex-1 min-w-0">
             <div className="hidden lg:flex items-center justify-between gap-4 mb-6">
               <div className="text-muted-foreground">{totalItems} товаров</div>
-              <CatalogueSortSelect value={sortBy} onChange={setSortBy} className="min-w-[220px]" />
+              <div className="shrink-0">
+                <CatalogueSortSelect value={sortBy} onChange={setSortBy} />
+              </div>
             </div>
 
             <div className="lg:hidden text-muted-foreground text-sm mb-4">

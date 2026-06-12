@@ -5,17 +5,12 @@ import { JsonLd } from "../../seo/JsonLd";
 import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { CartProvider } from "../../../context/CartContext";
-import {
-  ADDRESS,
-  COMPANY_NAME,
-  CONTACT_EMAIL,
-  CONTACT_PHONE,
-  SITE_NAME,
-  SITE_ORIGIN,
-  TAGLINE,
-} from "../../../lib/site";
+import { SiteContactProvider, useSiteContact } from "../../../context/SiteContactContext";
+import { COMPANY_NAME, SITE_NAME, SITE_ORIGIN, TAGLINE } from "../../../lib/site";
 
-export function RootLayout() {
+function RootLayoutContent() {
+  const contact = useSiteContact();
+
   const localBusiness = useMemo(
     () => ({
       "@context": "https://schema.org",
@@ -24,21 +19,21 @@ export function RootLayout() {
       legalName: COMPANY_NAME,
       description: TAGLINE,
       url: SITE_ORIGIN,
-      telephone: CONTACT_PHONE,
-      email: CONTACT_EMAIL,
+      telephone: contact.phone,
+      email: contact.email,
       address: {
         "@type": "PostalAddress",
         addressLocality: "Гродно",
         addressCountry: "BY",
-        streetAddress: ADDRESS,
+        streetAddress: contact.address,
       },
       priceRange: "$$",
     }),
-    [],
+    [contact.address, contact.email, contact.phone],
   );
 
   return (
-    <CartProvider>
+    <>
       <JsonLd id="local-business" data={localBusiness} />
       <ScrollToTop />
       <div className="min-h-screen bg-background flex flex-col">
@@ -48,6 +43,16 @@ export function RootLayout() {
         </main>
         <Footer />
       </div>
+    </>
+  );
+}
+
+export function RootLayout() {
+  return (
+    <CartProvider>
+      <SiteContactProvider>
+        <RootLayoutContent />
+      </SiteContactProvider>
     </CartProvider>
   );
 }

@@ -1,15 +1,19 @@
 from sqlalchemy import and_, case, func
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, load_only
 
 from app.models.product import Product
 from app.models.review import ProductReview
-from app.schemas.product import ProductCardOut, ProductDetailOut, ProductListOut
+from app.schemas.pagination import PaginatedOut, paginated
+from app.schemas.product import ProductCardOut, ProductDetailOut
 from app.schemas.review import ProductReviewPublicOut
 from app.services.attribute_filters import apply_attribute_filters
-from app.services.attributes import product_attribute_specs, product_attributes_dict
+from app.money import round_money
+from app.services.attributes import product_attribute_specs, product_attributes_dict_from_rows
 from app.services.compatibility import apply_vehicle_filter
 
 SORT_OPTIONS = frozenset({"popularity", "price-low", "price-high", "new", "rating"})
+PUBLIC_PRODUCT_LIST_DEFAULT_LIMIT = 50
+PUBLIC_PRODUCT_LIST_MAX_LIMIT = 100
 
 
 def effective_price_expr():
@@ -57,8 +61,8 @@ def product_to_card(
         brand=product.brand,
         name=product.name,
         specs=product.specs_short,
-        price=product.price,
-        sale_price=product.sale_price,
+        price=round_money(product.price),
+        sale_price=round_money(product.sale_price) if product.sale_price is not None else None,
         image=product.image_url,
         category=product.category,
         in_stock=product.in_stock,
@@ -99,6 +103,7 @@ def _apply_product_filters(
     if category:
         query = query.filter(Product.category == category)
     if brands:
+        # Совпадает с max_length=20 на query-параметре — защита от огромного IN().
         query = query.filter(Product.brand.in_(brands[:20]))
     elif brand:
         query = query.filter(Product.brand == brand)
@@ -150,15 +155,49 @@ def list_products(
     in_stock: list[bool] | None = None,
     attr_filters: dict | None = None,
     sort: str = "popularity",
-    limit: int | None = None,
+    limit: int = PUBLIC_PRODUCT_LIST_DEFAULT_LIMIT,
     offset: int = 0,
-) -> ProductListOut:
+) -> PaginatedOut[ProductCardOut]:
+    """Публичный список товаров с фильтрами, сортировкой и пагинацией."""
     if sort not in SORT_OPTIONS:
         sort = "popularity"
+    limit = min(max(limit, 1), PUBLIC_PRODUCT_LIST_MAX_LIMIT)
+
+    count_query = db.query(func.count(Product.id))
+    count_query = _apply_product_filters(
+        db,
+        count_query,
+        category=category,
+        brand=brand,
+        brands=brands,
+        make=make,
+        model=model,
+        year=year,
+        price_min=price_min,
+        price_max=price_max,
+        in_stock=in_stock,
+        attr_filters=attr_filters,
+    )
+    total = count_query.scalar() or 0
 
     review_stats = _review_stats_subquery(db)
-    query = db.query(Product, review_stats.c.rating_avg, review_stats.c.review_count).outerjoin(
-        review_stats, Product.id == review_stats.c.product_id
+    query = (
+        db.query(Product, review_stats.c.rating_avg, review_stats.c.review_count)
+        .options(
+            load_only(
+                Product.id,
+                Product.brand,
+                Product.name,
+                Product.price,
+                Product.sale_price,
+                Product.image_url,
+                Product.category,
+                Product.in_stock,
+                Product.specs_short,
+                Product.created_at,
+            )
+        )
+        .outerjoin(review_stats, Product.id == review_stats.c.product_id)
     )
     query = _apply_product_filters(
         db,
@@ -174,21 +213,18 @@ def list_products(
         in_stock=in_stock,
         attr_filters=attr_filters,
     )
-
-    total = query.order_by(None).count()
     query = _apply_product_sort(query, sort, review_stats)
 
     if offset:
         query = query.offset(offset)
-    if limit is not None:
-        query = query.limit(limit)
+    query = query.limit(limit)
 
     rows = query.all()
     items = [
         product_to_card(product, rating_avg=rating_avg, review_count=review_count)
         for product, rating_avg, review_count in rows
     ]
-    return ProductListOut(items=items, total=total)
+    return paginated(items, total=total, limit=limit, offset=offset)
 
 
 def product_to_detail(
@@ -207,11 +243,11 @@ def product_to_detail(
         id=product.id,
         brand=product.brand,
         name=product.name,
-        price=product.price,
-        sale_price=product.sale_price,
+        price=round_money(product.price),
+        sale_price=round_money(product.sale_price) if product.sale_price is not None else None,
         images=images,
         specs={spec.key: spec.value for spec in product.specs},
-        attributes=product_attributes_dict(db, product.id),
+        attributes=product_attributes_dict_from_rows(list(product.attribute_values)),
         attribute_specs=product_attribute_specs(db, product),
         compatibility=[item.vehicle for item in product.compatibility],
         reviews=[ProductReviewPublicOut.model_validate(r) for r in review_list],

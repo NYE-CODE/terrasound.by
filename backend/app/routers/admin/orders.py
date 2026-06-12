@@ -1,29 +1,57 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from app.auth import get_current_admin
+from app.api_constants import ADMIN_V1_PREFIX
 from app.database import get_db
+from app.db_commit import commit_or_raise
 from app.models.order import Order, OrderStatus
-from app.schemas.auth import AdminUser
+from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.order import OrderOut, OrderStatusUpdate
+from app.schemas.pagination import PaginatedOut, paginated
 
-router = APIRouter(prefix="/api/admin/orders", tags=["admin-orders"])
+router = APIRouter(
+    prefix=f"{ADMIN_V1_PREFIX}/orders",
+    tags=["admin-orders"],
+    dependencies=ADMIN_ROUTER_DEPENDENCIES,
+)
 
 
-@router.get("", response_model=list[OrderOut])
+@router.get("", response_model=PaginatedOut[OrderOut])
 def list_orders(
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[OrderOut]:
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedOut[OrderOut]:
+    total = db.query(func.count(Order.id)).scalar() or 0
     orders = (
         db.query(Order)
         .options(joinedload(Order.items))
         .order_by(Order.created_at.desc())
+        .offset(offset)
+        .limit(limit)
         .all()
     )
-    return [OrderOut.model_validate(order) for order in orders]
+    data = [OrderOut.model_validate(order) for order in orders]
+    return paginated(data, total=total, limit=limit, offset=offset)
+
+
+@router.get("/{order_id}", response_model=OrderOut)
+def get_order(
+    order_id: str,
+    db: Annotated[Session, Depends(get_db)],
+) -> OrderOut:
+    order = (
+        db.query(Order)
+        .options(joinedload(Order.items))
+        .filter(Order.id == order_id)
+        .first()
+    )
+    if not order:
+        raise HTTPException(status_code=404, detail="Заказ не найден")
+    return OrderOut.model_validate(order)
 
 
 @router.patch("/{order_id}", response_model=OrderOut)
@@ -31,7 +59,6 @@ def update_order_status(
     order_id: str,
     payload: OrderStatusUpdate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> OrderOut:
     order = (
         db.query(Order)
@@ -43,7 +70,7 @@ def update_order_status(
         raise HTTPException(status_code=404, detail="Заказ не найден")
 
     order.status = OrderStatus(payload.status)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(order)
     return OrderOut.model_validate(order)
 
@@ -52,10 +79,9 @@ def update_order_status(
 def delete_order(
     order_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> None:
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Заказ не найден")
     db.delete(order)
-    db.commit()
+    commit_or_raise(db)

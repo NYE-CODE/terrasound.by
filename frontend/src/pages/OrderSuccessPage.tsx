@@ -1,11 +1,12 @@
 import { Link, useParams } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { Check, Mail, Phone } from "lucide-react";
-import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_TEL } from "../lib/site";
+import { useSiteContact } from "../context/SiteContactContext";
 import { pageContentPy } from "../lib/pageLayout";
 
 export function OrderSuccessPage() {
   const { orderId } = useParams();
+  const contact = useSiteContact();
 
   return (
     <div className="pt-20 min-h-screen">
@@ -39,14 +40,14 @@ export function OrderSuccessPage() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Phone size={16} />
-                <a href={`tel:${CONTACT_PHONE_TEL}`} className="hover:text-accent transition-colors duration-300">
-                  {CONTACT_PHONE}
+                <a href={`tel:${contact.phoneTel}`} className="hover:text-accent transition-colors duration-300">
+                  {contact.phone}
                 </a>
               </div>
               <div className="flex items-center justify-center gap-2 text-muted-foreground">
                 <Mail size={16} />
-                <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-accent transition-colors duration-300">
-                  {CONTACT_EMAIL}
+                <a href={`mailto:${contact.email}`} className="hover:text-accent transition-colors duration-300">
+                  {contact.email}
                 </a>
               </div>
             </div>

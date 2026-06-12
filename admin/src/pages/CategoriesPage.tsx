@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
+import { CategoryDeleteDialog } from "../components/CategoryDeleteDialog";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { RowActions } from "../components/RowActions";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type CategoryAdmin } from "../lib/api";
 
 export function CategoriesPage() {
   const { token } = useAuth();
   const [items, setItems] = useState<CategoryAdmin[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<CategoryAdmin | null>(null);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(items);
 
   const load = () => {
     if (!token) return;
-    api.categories(token).then(setItems).catch(console.error);
+    api.categories(token).then(setItems).catch(reportLoadError);
   };
 
   useEffect(load, [token]);
@@ -22,13 +24,14 @@ export function CategoriesPage() {
   const remove = async (id: string) => {
     if (!token) return;
     const item = items.find((entry) => entry.id === id);
-    if (item && item.productCount > 0) {
-      alert(
-        `Категорию «${item.name}» нельзя удалить: в ней ${item.productCount} товар(ов). Сначала перенесите или удалите товары.`,
-      );
+    if (!item) return;
+
+    if (item.productCount > 0) {
+      setDeleteTarget(item);
       return;
     }
-    if (!confirm(`Удалить категорию «${item?.name ?? id}»?`)) return;
+
+    if (!confirm(`Удалить категорию «${item.name}»?`)) return;
     try {
       await api.deleteCategory(token, id);
       load();
@@ -62,6 +65,16 @@ export function CategoriesPage() {
       </div>
 
       <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
+
+      {deleteTarget && token && (
+        <CategoryDeleteDialog
+          category={deleteTarget}
+          otherCategories={items.filter((item) => item.id !== deleteTarget.id)}
+          token={token}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={load}
+        />
+      )}
     </div>
   );
 }

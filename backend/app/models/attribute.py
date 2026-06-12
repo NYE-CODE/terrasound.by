@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -57,7 +57,12 @@ class CategoryAttribute(Base):
 
 class ProductAttributeValue(Base):
     __tablename__ = "product_attribute_values"
-    __table_args__ = (UniqueConstraint("product_id", "attribute_id", name="uq_product_attribute"),)
+    __table_args__ = (
+        UniqueConstraint("product_id", "attribute_id", name="uq_product_attribute"),
+        Index("ix_pav_attribute_number", "attribute_id", "value_number"),
+        Index("ix_pav_attribute_string", "attribute_id", "value_string"),
+        Index("ix_pav_product_id", "product_id"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     product_id: Mapped[str] = mapped_column(String(36), ForeignKey("products.id", ondelete="CASCADE"), nullable=False)

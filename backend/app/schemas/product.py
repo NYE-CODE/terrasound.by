@@ -4,12 +4,8 @@ from typing import Any
 from pydantic import field_serializer
 
 from app.schemas.common import CamelModel
+from app.schemas.datetime_format import serialize_utc_datetime
 from app.schemas.review import ProductReviewPublicOut
-
-
-class ProductListOut(CamelModel):
-    items: list["ProductCardOut"]
-    total: int
 
 
 class ProductCardOut(CamelModel):
@@ -30,7 +26,7 @@ class ProductCardOut(CamelModel):
     def serialize_created_at(self, value: datetime | None) -> str | None:
         if value is None:
             return None
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)
 
 
 class ProductDetailOut(CamelModel):

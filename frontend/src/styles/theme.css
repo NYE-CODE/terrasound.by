@@ -157,3 +157,26 @@
     line-height: 1.5;
   }
 }
+
+@layer components {
+  .site-logo-wordmark {
+    align-items: flex-start;
+  }
+
+  .site-logo-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+  }
+
+  .site-logo-tagline {
+    font-family: var(--font-heading);
+    font-weight: 500;
+  }
+
+  .site-logo-line {
+    display: inline-block;
+    width: max-content;
+    max-width: max-content;
+    white-space: nowrap;
+  }
+}

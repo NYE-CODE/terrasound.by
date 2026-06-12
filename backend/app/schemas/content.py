@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 from typing import Any
 
@@ -7,13 +8,20 @@ from pydantic.alias_generators import to_camel
 from app.schemas.common import CamelModel
 
 
+def normalize_money(value: Any) -> float:
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        raise ValueError("Некорректная цена")
+    return round(numeric, 2)
+
+
 def normalize_sale_price(value: Any) -> float | None:
     if value is None or value == "":
         return None
     numeric = float(value)
-    if numeric <= 0:
+    if not math.isfinite(numeric) or numeric <= 0:
         return None
-    return numeric
+    return round(numeric, 2)
 
 
 class InstallationServiceOut(CamelModel):
@@ -88,14 +96,6 @@ class BlogPostOut(CamelModel):
         return value.isoformat() + "Z"
 
 
-def _format_blog_date(value: datetime) -> str:
-    months = [
-        "января", "февраля", "марта", "апреля", "мая", "июня",
-        "июля", "августа", "сентября", "октября", "ноября", "декабря",
-    ]
-    return f"{value.day} {months[value.month - 1]} {value.year}"
-
-
 class BlogPostCardOut(CamelModel):
     id: str
     title: str
@@ -105,7 +105,9 @@ class BlogPostCardOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return _format_blog_date(value)
+        from app.schemas.datetime_format import serialize_utc_datetime
+
+        return serialize_utc_datetime(value)
 
 
 class BlogPostDetailOut(CamelModel):
@@ -118,7 +120,9 @@ class BlogPostDetailOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return _format_blog_date(value)
+        from app.schemas.datetime_format import serialize_utc_datetime
+
+        return serialize_utc_datetime(value)
 
 
 class BlogPostCreate(BaseModel):
@@ -233,6 +237,10 @@ class ProductAdminOut(CamelModel):
     compatibility: list[str] = []
 
 
+class ProductDuplicateCreate(CamelModel):
+    source_id: str = Field(min_length=1)
+
+
 class ProductCreate(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
@@ -248,6 +256,11 @@ class ProductCreate(BaseModel):
     specs: dict[str, str] = {}
     attributes: dict[str, Any] = {}
     compatibility: list[str] = []
+
+    @field_validator("price", mode="before")
+    @classmethod
+    def normalize_create_price(cls, value: Any) -> float:
+        return normalize_money(value)
 
     @field_validator("sale_price", mode="before")
     @classmethod
@@ -270,6 +283,13 @@ class ProductUpdate(BaseModel):
     specs: dict[str, str] | None = None
     attributes: dict[str, Any] | None = None
     compatibility: list[str] | None = None
+
+    @field_validator("price", mode="before")
+    @classmethod
+    def normalize_update_price(cls, value: Any) -> float | None:
+        if value is None or value == "":
+            return None
+        return normalize_money(value)
 
     @field_validator("sale_price", mode="before")
     @classmethod

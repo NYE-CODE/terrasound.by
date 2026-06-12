@@ -1,23 +1,37 @@
-from typing import Annotated
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
-from app.auth import get_current_admin
+from app.api_constants import ADMIN_V1_PREFIX
 from app.database import get_db
 from app.models.product import Product
-from app.schemas.auth import AdminUser
+from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.content import ProductAdminOut, ProductCreate, ProductUpdate
-from app.services.product_admin import create_product, delete_product, product_to_admin_out, update_product
+from app.schemas.pagination import PaginatedOut, paginated
+from app.services.product_admin import (
+    create_product,
+    delete_product,
+    duplicate_product,
+    product_to_admin_out,
+    update_product,
+)
 
-router = APIRouter(prefix="/api/admin/products", tags=["admin-products"])
+router = APIRouter(
+    prefix=f"{ADMIN_V1_PREFIX}/products",
+    tags=["admin-products"],
+    dependencies=ADMIN_ROUTER_DEPENDENCIES,
+)
 
 
-@router.get("", response_model=list[ProductAdminOut])
+@router.get("", response_model=PaginatedOut[ProductAdminOut])
 def list_products_admin(
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[ProductAdminOut]:
+    limit: int = Query(default=100, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedOut[ProductAdminOut]:
+    total = db.query(func.count(Product.id)).scalar() or 0
     products = (
         db.query(Product)
         .options(
@@ -27,16 +41,18 @@ def list_products_admin(
             joinedload(Product.attribute_values),
         )
         .order_by(Product.name)
+        .offset(offset)
+        .limit(limit)
         .all()
     )
-    return [product_to_admin_out(db, product) for product in products]
+    data = [product_to_admin_out(db, product) for product in products]
+    return paginated(data, total=total, limit=limit, offset=offset)
 
 
 @router.get("/{product_id}", response_model=ProductAdminOut)
 def get_product_admin(
     product_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ProductAdminOut:
     product = (
         db.query(Product)
@@ -50,19 +66,20 @@ def get_product_admin(
         .first()
     )
     if not product:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail="Товар не найден")
     return product_to_admin_out(db, product)
 
 
 @router.post("", response_model=ProductAdminOut, status_code=201)
 def create_product_admin(
-    payload: ProductCreate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
+    body: dict[str, Any] = Body(),
 ) -> ProductAdminOut:
-    product = create_product(db, payload)
+    source_id = body.get("sourceId") or body.get("source_id")
+    if source_id:
+        product = duplicate_product(db, str(source_id))
+    else:
+        product = create_product(db, ProductCreate.model_validate(body))
     return product_to_admin_out(db, product)
 
 
@@ -71,7 +88,6 @@ def update_product_admin(
     product_id: str,
     payload: ProductUpdate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> ProductAdminOut:
     product = update_product(db, product_id, payload)
     return product_to_admin_out(db, product)
@@ -81,6 +97,5 @@ def update_product_admin(
 def delete_product_admin(
     product_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> None:
     delete_product(db, product_id)

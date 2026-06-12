@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 
+from app.api_constants import API_V1_PREFIX
 from app.data.vehicles import VEHICLE_CATALOG
 from app.schemas.vehicle import VehicleMakeOut, VehicleModelOut
 
-router = APIRouter(prefix="/api/vehicles", tags=["vehicles"])
+router = APIRouter(prefix=f"{API_V1_PREFIX}/vehicles", tags=["vehicles"])
 
 
 @router.get("", response_model=list[VehicleMakeOut])

@@ -1,30 +1,42 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
 import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
-import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { PAGE_SIZE } from "../hooks/usePagination";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type AdminProduct, type CategoryAdmin } from "../lib/api";
 
 export function ProductsPage() {
+  const navigate = useNavigate();
   const { token } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(1);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [categoryNames, setCategoryNames] = useState<Record<string, string>>({});
-  const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(products);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const load = () => {
     if (!token) return;
-    api.products(token).then(setProducts).catch(console.error);
+    const offset = (page - 1) * PAGE_SIZE;
+    api
+      .products(token, { limit: PAGE_SIZE, offset })
+      .then((result) => {
+        setProducts(result.data);
+        setTotalItems(result.meta.total);
+      })
+      .catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [token, page]);
 
   useEffect(() => {
     if (!token) return;
     api.categories(token).then((items) => {
       setCategoryNames(Object.fromEntries(items.map((c: CategoryAdmin) => [c.id, c.name])));
-    }).catch(console.error);
+    }).catch(reportLoadError);
   }, [token]);
 
   const remove = async (productId: string) => {
@@ -37,12 +49,25 @@ export function ProductsPage() {
     }
   };
 
+  const duplicate = async (productId: string) => {
+    if (!token) return;
+    setDuplicatingId(productId);
+    try {
+      const copy = await api.duplicateProduct(token, productId);
+      navigate(`/products/${copy.id}/edit`);
+    } catch (error) {
+      reportActionError(error);
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
   return (
     <div>
       <PageHeader title="Товары" createTo="/products/new" createLabel="Добавить товар" />
 
       <div className="space-y-3">
-        {paginatedItems.map((product) => (
+        {products.map((product) => (
           <div key={product.id} className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-4 flex items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -61,7 +86,9 @@ export function ProductsPage() {
                 {product.salePrice != null && product.salePrice < product.price ? (
                   <>
                     <span className="text-[var(--accent)]">{product.salePrice} BYN</span>
+                    <span className="text-xs ml-1">(со скидкой)</span>
                     <span className="line-through ml-2">{product.price} BYN</span>
+                    <span className="text-xs ml-1">(обычная)</span>
                   </>
                 ) : (
                   <>{product.price} BYN</>
@@ -70,7 +97,12 @@ export function ProductsPage() {
                 {categoryNames[product.category] ?? product.category}
               </div>
             </div>
-            <RowActions editTo={`/products/${product.id}/edit`} onDelete={() => remove(product.id)} />
+            <RowActions
+              editTo={`/products/${product.id}/edit`}
+              onDuplicate={() => duplicate(product.id)}
+              duplicating={duplicatingId === product.id}
+              onDelete={() => remove(product.id)}
+            />
           </div>
         ))}
         {products.length === 0 && (
@@ -78,7 +110,7 @@ export function ProductsPage() {
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={PAGE_SIZE} onPageChange={setPage} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { api, type AttributeDef, type CategoryAttributeInput, type CategoryAttributeLink } from "./api";
+import { api, type AttributeDef, type CategoryAttributeLink, type CategoryAttributeSyncItem } from "./api";
 import { defaultFilterType } from "./filterTypes";
 
 export type CategoryAttributeDraft = {
@@ -16,6 +16,7 @@ export type CategoryAttributeDraft = {
   filterMin?: number | null;
   filterMax?: number | null;
   groupLabel?: string | null;
+  required: boolean;
   sortOrder: number;
 };
 
@@ -35,6 +36,7 @@ export function linkToDraft(link: CategoryAttributeLink): CategoryAttributeDraft
     filterMin: link.filterMin,
     filterMax: link.filterMax,
     groupLabel: link.groupLabel,
+    required: link.required,
     sortOrder: link.sortOrder,
   };
 }
@@ -55,19 +57,23 @@ export function attributeToDraft(attr: AttributeDef, sortOrder: number): Categor
     filterMin: null,
     filterMax: null,
     groupLabel: null,
+    required: false,
     sortOrder,
   };
 }
 
-function draftToInput(draft: CategoryAttributeDraft, sortOrder: number): CategoryAttributeInput {
+function draftToSyncItem(draft: CategoryAttributeDraft, sortOrder: number): CategoryAttributeSyncItem {
   return {
+    id: draft.id,
     attributeId: draft.attributeId,
     showInForm: draft.showInForm,
     showInFilters: draft.showInFilters,
     showOnCard: draft.showOnCard,
+    filterType: draft.filterType ?? null,
     filterMin: draft.filterMin ?? null,
     filterMax: draft.filterMax ?? null,
     groupLabel: draft.groupLabel?.trim() || null,
+    required: draft.required,
     sortOrder,
   };
 }
@@ -75,7 +81,6 @@ function draftToInput(draft: CategoryAttributeDraft, sortOrder: number): Categor
 export async function syncCategoryAttributes(
   token: string,
   categoryId: string,
-  initial: CategoryAttributeLink[],
   draft: CategoryAttributeDraft[],
 ) {
   const seen = new Set<string>();
@@ -86,23 +91,8 @@ export async function syncCategoryAttributes(
     seen.add(item.attributeId);
   }
 
-  const draftWithOrder = draft.map((item, index) => ({ ...item, sortOrder: index }));
-  const draftIds = new Set(draftWithOrder.filter((item) => item.id).map((item) => item.id!));
-
-  for (const link of initial) {
-    if (!draftIds.has(link.id)) {
-      await api.deleteCategoryAttribute(token, categoryId, link.id);
-    }
-  }
-
-  for (const item of draftWithOrder) {
-    const payload = draftToInput(item, item.sortOrder);
-    if (item.id) {
-      await api.updateCategoryAttribute(token, categoryId, item.id, payload);
-    } else {
-      await api.createCategoryAttribute(token, categoryId, payload);
-    }
-  }
+  const items = draft.map((item, index) => draftToSyncItem(item, index));
+  await api.syncCategoryAttributes(token, categoryId, items);
 }
 
 export function patchDraft(

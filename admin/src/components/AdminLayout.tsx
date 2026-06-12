@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Package,
   BarChart3,
+  Contact,
   Images,
   KeyRound,
   ListFilter,
@@ -18,7 +19,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 const navItems = [
-  { to: "/", label: "Дашборд", icon: LayoutDashboard, end: true },
+  { to: "/", label: "Статистика сайта", icon: LayoutDashboard, end: true },
   { to: "/categories", label: "Категории", icon: Grid3x3 },
   { to: "/attributes", label: "Атрибуты", icon: ListFilter },
   { to: "/products", label: "Товары", icon: Package },
@@ -30,6 +31,7 @@ const navItems = [
   { to: "/reviews/product", label: "Отзывы о товарах", icon: MessageSquare },
   { to: "/reviews/service", label: "Отзывы о магазине", icon: Star },
   { to: "/installation", label: "Заявки на установку", icon: Wrench },
+  { to: "/settings/contact", label: "Контакты сайта", icon: Contact },
   { to: "/settings/stats", label: "Наши достижения", icon: BarChart3 },
   { to: "/settings/password", label: "Смена пароля", icon: KeyRound },
 ];

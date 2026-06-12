@@ -14,7 +14,7 @@ FILTER_TYPE_LABELS = {
 
 
 def resolve_default_filter_type(value_type: str, option_count: int = 0) -> str | None:
-    """Автовыбор вида фильтра по типу значения атрибута."""
+    """Эвристика UX каталога, если админ не задал filter_type явно."""
     if value_type == "boolean":
         return "checkbox"
     if value_type == "number":

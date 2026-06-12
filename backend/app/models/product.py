@@ -11,6 +11,7 @@ class Product(Base):
     __table_args__ = (
         Index("ix_products_in_stock_category", "in_stock", "category"),
         Index("ix_products_in_stock_brand", "in_stock", "brand"),
+        Index("ix_products_category_created_at", "category", "created_at"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

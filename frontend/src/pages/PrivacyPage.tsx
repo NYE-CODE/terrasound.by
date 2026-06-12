@@ -1,8 +1,10 @@
-import { COMPANY_NAME, CONTACT_EMAIL } from "../lib/site";
-
+import { useSiteContact } from "../context/SiteContactContext";
+import { COMPANY_NAME } from "../lib/site";
 import { pageContentPy } from "../lib/pageLayout";
 
 export function PrivacyPage() {
+  const contact = useSiteContact();
+
   return (
     <div className="pt-20 min-h-screen">
       <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
@@ -36,7 +38,10 @@ export function PrivacyPage() {
           <section>
             <h2 className="font-heading text-2xl text-foreground mb-4">Контакты</h2>
             <p>
-              По вопросам политики конфиденциальности обращайтесь в {COMPANY_NAME}: {CONTACT_EMAIL}
+              По вопросам политики конфиденциальности обращайтесь в {COMPANY_NAME}:{" "}
+              <a href={`mailto:${contact.email}`} className="hover:text-accent transition-colors">
+                {contact.email}
+              </a>
             </p>
           </section>
         </div>

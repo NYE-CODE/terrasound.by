@@ -4,7 +4,7 @@ import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type BlogPost } from "../lib/api";
 
 export function BlogPage() {
@@ -14,7 +14,7 @@ export function BlogPage() {
 
   const load = () => {
     if (!token) return;
-    api.blogPosts(token).then(setItems).catch(console.error);
+    api.blogPosts(token).then(setItems).catch(reportLoadError);
   };
 
   useEffect(load, [token]);

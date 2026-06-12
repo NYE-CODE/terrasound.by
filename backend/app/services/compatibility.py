@@ -1,5 +1,6 @@
 import re
 
+from sqlalchemy import func
 from sqlalchemy.orm import Query, Session
 
 from app.data.vehicles import VEHICLE_CATALOG
@@ -23,6 +24,7 @@ def matches_vehicle_compatibility(vehicle: str, make_name: str, model_name: str,
     if model_name.lower() not in text:
         return False
     match = re.search(r"\((\d{4})-(\d{4})\)", vehicle)
+    # Без диапазона лет в строке считаем совместимость по марке/модели без проверки года.
     if not match:
         return True
     return int(match.group(1)) <= year <= int(match.group(2))
@@ -35,7 +37,15 @@ def matching_product_ids(db: Session, make_id: str, model_id: str, year: int) ->
 
     make_name, model_name = labels
     ids: set[str] = set()
-    rows = db.query(ProductCompatibility.product_id, ProductCompatibility.vehicle).all()
+    vehicle_col = func.lower(ProductCompatibility.vehicle)
+    rows = (
+        db.query(ProductCompatibility.product_id, ProductCompatibility.vehicle)
+        .filter(
+            vehicle_col.contains(make_name.lower()),
+            vehicle_col.contains(model_name.lower()),
+        )
+        .all()
+    )
     for product_id, vehicle in rows:
         if matches_vehicle_compatibility(vehicle, make_name, model_name, year):
             ids.add(product_id)
@@ -54,5 +64,6 @@ def apply_vehicle_filter(
 
     product_ids = matching_product_ids(db, make_id, model_id, year)
     if not product_ids:
+        # Пустой IN() в SQL некорректен — заведомо ложный фильтр вместо «все товары».
         return query.filter(Product.id == "__none__")
     return query.filter(Product.id.in_(product_ids))

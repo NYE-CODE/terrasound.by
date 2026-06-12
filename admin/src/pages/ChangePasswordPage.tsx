@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { FormField, FormRequiredNote } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { formCardClass, inputClass } from "../lib/formStyles";
@@ -51,9 +52,11 @@ export function ChangePasswordPage() {
       </p>
 
       <form onSubmit={handleSubmit} className={`${formCardClass} max-w-xl space-y-4`}>
-        <div>
-          <label className="block text-sm mb-2">Текущий пароль</label>
+        <FormRequiredNote />
+
+        <FormField label="Текущий пароль" htmlFor="password-current" required>
           <input
+            id="password-current"
             type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -61,11 +64,11 @@ export function ChangePasswordPage() {
             className={inputClass}
             required
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm mb-2">Новый пароль</label>
+        <FormField label="Новый пароль" htmlFor="password-new" required hint="Не короче 8 символов">
           <input
+            id="password-new"
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
@@ -74,11 +77,11 @@ export function ChangePasswordPage() {
             className={inputClass}
             required
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block text-sm mb-2">Подтверждение пароля</label>
+        <FormField label="Подтверждение пароля" htmlFor="password-confirm" required>
           <input
+            id="password-confirm"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -87,7 +90,7 @@ export function ChangePasswordPage() {
             className={inputClass}
             required
           />
-        </div>
+        </FormField>
 
         {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
 

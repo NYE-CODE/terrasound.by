@@ -5,7 +5,7 @@ export function resolveApiUrl(): string {
     return configured || "http://localhost:8000";
   }
 
-  // Production: пустой VITE_API_URL = тот же домен (/api/... через nginx на admin.terrasound.by)
+  // Production: пустой VITE_API_URL — относительные пути /api/v1/... через nginx admin.terrasound.by.
   if (!configured) {
     return "";
   }

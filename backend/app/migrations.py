@@ -60,6 +60,14 @@ def run_migrations(engine: Engine) -> None:
         "ON products (in_stock, category)",
         "CREATE INDEX IF NOT EXISTS ix_products_in_stock_brand "
         "ON products (in_stock, brand)",
+        "CREATE INDEX IF NOT EXISTS ix_products_category_created_at "
+        "ON products (category, created_at)",
+        "CREATE INDEX IF NOT EXISTS ix_pav_attribute_number "
+        "ON product_attribute_values (attribute_id, value_number)",
+        "CREATE INDEX IF NOT EXISTS ix_pav_attribute_string "
+        "ON product_attribute_values (attribute_id, value_string)",
+        "CREATE INDEX IF NOT EXISTS ix_pav_product_id "
+        "ON product_attribute_values (product_id)",
     ]
     with engine.begin() as conn:
         for statement in index_statements:
@@ -68,6 +76,23 @@ def run_migrations(engine: Engine) -> None:
     _migrate_catalog_categories(engine)
     _migrate_attributes_filter_type(engine)
     _migrate_site_stats_to_text(engine)
+    _migrate_admin_token_version(engine)
+
+
+def _migrate_admin_token_version(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "admin_accounts" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("admin_accounts")}
+    if "token_version" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE admin_accounts ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1")
+            )
 
 
 def _migrate_site_stats_to_text(engine: Engine) -> None:

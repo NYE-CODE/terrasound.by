@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronDown, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Command,
@@ -9,6 +9,11 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
+import {
+  sitePopoverMenuContentClass,
+  siteSelectTriggerClass,
+  siteSelectTriggerFilledClass,
+} from "../../lib/selectControlStyles";
 import { cn } from "../ui/utils";
 
 interface BrandMultiSelectProps {
@@ -50,17 +55,20 @@ export function BrandMultiSelect({ brands, selected, onChange }: BrandMultiSelec
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-full min-h-10 px-3 py-2 bg-input border border-border rounded text-sm flex items-center justify-between gap-2 hover:border-accent/50 transition-colors cursor-pointer",
-              selected.length > 0 && "border-accent/40",
+              siteSelectTriggerClass("sm"),
+              selected.length > 0 && siteSelectTriggerFilledClass,
             )}
           >
             <span className={cn("truncate text-left", selected.length === 0 && "text-muted-foreground")}>
               {triggerLabel(selected)}
             </span>
-            <ChevronsUpDown size={14} className="shrink-0 text-muted-foreground" />
+            <ChevronDown aria-hidden />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[90]" align="start">
+        <PopoverContent
+          className={cn(sitePopoverMenuContentClass, "w-[var(--radix-popover-trigger-width)]")}
+          align="start"
+        >
           <Command>
             <CommandInput placeholder="Поиск бренда..." />
             <CommandList>

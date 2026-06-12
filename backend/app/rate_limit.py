@@ -1,3 +1,5 @@
+"""In-memory rate limiting per IP (достаточно для одного процесса uvicorn на VPS)."""
+
 import re
 import time
 from collections import defaultdict
@@ -7,24 +9,40 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.config import settings
+
 _BUCKETS: dict[str, list[float]] = defaultdict(list)
 _LOCK = Lock()
 
 _RULES: list[tuple[str, str | re.Pattern[str], int, int]] = [
-    ("POST", "/api/admin/auth/login", 5, 900),
-    ("POST", "/api/admin/auth/change-password", 10, 900),
-    ("POST", "/api/orders", 10, 60),
-    ("POST", "/api/installation-requests", 10, 60),
-    ("POST", re.compile(r"^/api/products/[^/]+/reviews$"), 5, 60),
+    ("POST", "/api/v1/admin/sessions", 5, 900),
+    ("PATCH", "/api/v1/admin/me/password", 10, 900),
+    ("POST", "/api/v1/orders", 10, 60),
+    ("POST", "/api/v1/installation/requests", 10, 60),
+    ("POST", re.compile(r"^/api/v1/products/[^/]+/reviews$"), 5, 60),
+    ("GET", re.compile(r"^/api/v1/admin/"), 120, 60),
+    ("POST", re.compile(r"^/api/v1/admin/(?!sessions)"), 100, 60),
+    ("PATCH", re.compile(r"^/api/v1/admin/"), 100, 60),
+    ("DELETE", re.compile(r"^/api/v1/admin/"), 100, 60),
+    (
+        "GET",
+        re.compile(
+            r"^/api/v1/(products|categories|brands|blog-posts|portfolio-works|"
+            r"site-stats|site-contact|vehicles|catalog|installation/services|service-reviews)"
+        ),
+        180,
+        60,
+    ),
 ]
 
 
 def _client_ip(request: Request) -> str:
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        ip = forwarded.split(",")[0].strip()
-        if ip:
-            return ip
+    if settings.trust_proxy_headers:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            ip = forwarded.split(",")[0].strip()
+            if ip:
+                return ip
     if request.client and request.client.host:
         return request.client.host
     return "unknown"

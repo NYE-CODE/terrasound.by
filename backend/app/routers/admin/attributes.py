@@ -1,59 +1,62 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.auth import get_current_admin
+from app.api_constants import ADMIN_V1_PREFIX
 from app.database import get_db
+from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.attribute import (
     AttributeCreate,
     AttributeOut,
     AttributeUpdate,
-    CategoryAttributeCreate,
     CategoryAttributeOut,
     CategoryAttributeSchemaOut,
-    CategoryAttributeUpdate,
+    CategoryAttributeSync,
 )
-from app.schemas.auth import AdminUser
+from app.schemas.pagination import PaginatedOut, paginated
 from app.services.attributes import (
     create_attribute,
-    create_category_attribute,
     delete_attribute,
-    delete_category_attribute,
     get_category_form_schema,
     list_attributes,
     list_category_attributes,
+    sync_category_attributes,
     update_attribute,
-    update_category_attribute,
 )
 
-router = APIRouter(tags=["admin-attributes"])
+router = APIRouter(prefix=ADMIN_V1_PREFIX, tags=["admin-attributes"], dependencies=ADMIN_ROUTER_DEPENDENCIES)
+
+DEFAULT_LIST_LIMIT = 200
+MAX_LIST_LIMIT = 500
 
 
-@router.get("/api/admin/attributes", response_model=list[AttributeOut])
+@router.get("/attributes", response_model=PaginatedOut[AttributeOut])
 def list_attributes_admin(
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[AttributeOut]:
-    return list_attributes(db)
+    limit: int = Query(default=DEFAULT_LIST_LIMIT, ge=1, le=MAX_LIST_LIMIT),
+    offset: int = Query(default=0, ge=0),
+) -> PaginatedOut[AttributeOut]:
+    items = list_attributes(db)
+    total = len(items)
+    page = items[offset : offset + limit]
+    return paginated(page, total=total, limit=limit, offset=offset)
 
 
-@router.get("/api/admin/attributes/{attribute_id}", response_model=AttributeOut)
+@router.get("/attributes/{attribute_id}", response_model=AttributeOut)
 def get_attribute_admin(
     attribute_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> AttributeOut:
     from app.services.attributes import attribute_to_out, get_attribute_or_404
 
     return attribute_to_out(get_attribute_or_404(db, attribute_id))
 
 
-@router.post("/api/admin/attributes", response_model=AttributeOut, status_code=201)
+@router.post("/attributes", response_model=AttributeOut, status_code=201)
 def create_attribute_admin(
     payload: AttributeCreate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> AttributeOut:
     attribute = create_attribute(db, payload)
     from app.services.attributes import attribute_to_out
@@ -61,12 +64,11 @@ def create_attribute_admin(
     return attribute_to_out(attribute)
 
 
-@router.patch("/api/admin/attributes/{attribute_id}", response_model=AttributeOut)
+@router.patch("/attributes/{attribute_id}", response_model=AttributeOut)
 def update_attribute_admin(
     attribute_id: str,
     payload: AttributeUpdate,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
 ) -> AttributeOut:
     attribute = update_attribute(db, attribute_id, payload)
     from app.services.attributes import attribute_to_out
@@ -74,69 +76,32 @@ def update_attribute_admin(
     return attribute_to_out(attribute)
 
 
-@router.delete("/api/admin/attributes/{attribute_id}", status_code=204)
+@router.delete("/attributes/{attribute_id}", status_code=204)
 def delete_attribute_admin(
     attribute_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
+    strategy: Literal["default", "cascade"] = Query("default"),
 ) -> None:
-    delete_attribute(db, attribute_id)
+    delete_attribute(db, attribute_id, strategy=strategy)
 
 
-@router.get("/api/admin/categories/{category_id}/attributes", response_model=list[CategoryAttributeOut])
+@router.get("/categories/{category_id}/attributes")
 def list_category_attributes_admin(
     category_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[CategoryAttributeOut]:
+    view: Literal["default", "form"] = Query(default="default"),
+) -> list[CategoryAttributeOut] | list[CategoryAttributeSchemaOut]:
+    """view=form — схема полей товара; default — полные привязки для редактора категории."""
+    if view == "form":
+        return get_category_form_schema(db, category_id)
     return list_category_attributes(db, category_id)
 
 
-@router.get(
-    "/api/admin/categories/{category_id}/attribute-schema",
-    response_model=list[CategoryAttributeSchemaOut],
-)
-def category_attribute_schema_admin(
+@router.put("/categories/{category_id}/attributes", response_model=list[CategoryAttributeOut])
+def sync_category_attributes_admin(
     category_id: str,
+    payload: CategoryAttributeSync,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> list[CategoryAttributeSchemaOut]:
-    return get_category_form_schema(db, category_id)
-
-
-@router.post(
-    "/api/admin/categories/{category_id}/attributes",
-    response_model=CategoryAttributeOut,
-    status_code=201,
-)
-def create_category_attribute_admin(
-    category_id: str,
-    payload: CategoryAttributeCreate,
-    db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> CategoryAttributeOut:
-    return create_category_attribute(db, category_id, payload)
-
-
-@router.patch(
-    "/api/admin/categories/{category_id}/attributes/{link_id}",
-    response_model=CategoryAttributeOut,
-)
-def update_category_attribute_admin(
-    category_id: str,
-    link_id: int,
-    payload: CategoryAttributeUpdate,
-    db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> CategoryAttributeOut:
-    return update_category_attribute(db, category_id, link_id, payload)
-
-
-@router.delete("/api/admin/categories/{category_id}/attributes/{link_id}", status_code=204)
-def delete_category_attribute_admin(
-    category_id: str,
-    link_id: int,
-    db: Annotated[Session, Depends(get_db)],
-    _: Annotated[AdminUser, Depends(get_current_admin)],
-) -> None:
-    delete_category_attribute(db, category_id, link_id)
+) -> list[CategoryAttributeOut]:
+    """PUT заменяет весь набор привязок категории (удаляет отсутствующие в payload)."""
+    return sync_category_attributes(db, category_id, payload.items)

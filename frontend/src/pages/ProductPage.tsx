@@ -14,7 +14,7 @@ import { ProductPageTemplate } from "../components/templates/ProductPageTemplate
 import { Check } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { toast } from "sonner";
-import { api, type ProductDetail } from "../lib/api";
+import { api, messageFromApiError, type ProductDetail } from "../lib/api";
 import { getEffectivePrice } from "../lib/price";
 import type { ProductReview } from "@terrasound/shared";
 
@@ -96,8 +96,8 @@ export function ProductPage() {
       const review = await api.createProductReview(productId, data);
       setPendingReviews((prev) => [...prev, review]);
       toast.success("Спасибо! Отзыв отправлен на модерацию");
-    } catch {
-      toast.error("Не удалось отправить отзыв");
+    } catch (error) {
+      toast.error(messageFromApiError(error, "Не удалось отправить отзыв"));
     }
   };
 

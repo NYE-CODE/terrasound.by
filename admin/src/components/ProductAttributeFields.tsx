@@ -1,5 +1,6 @@
 import type { CategoryAttributeSchema } from "../lib/api";
 import { inputClass } from "../lib/formStyles";
+import { parseOptionalNumber } from "../lib/numbers";
 
 interface ProductAttributeFieldsProps {
   schema: CategoryAttributeSchema[];
@@ -19,7 +20,12 @@ export function ProductAttributeFields({ schema, values, onChange }: ProductAttr
 
   return (
     <div className="md:col-span-2 space-y-6 border-t border-[var(--border)] pt-4">
-      <h3 className="font-heading text-sm uppercase tracking-wider">Характеристики категории</h3>
+      <div>
+        <h3 className="font-heading text-sm uppercase tracking-wider">Характеристики товара</h3>
+        <p className="text-xs text-[var(--muted-foreground)] mt-1">
+          Поля со звёздочкой обязательны для выбранной категории.
+        </p>
+      </div>
       {Object.entries(groups).map(([group, fields]) => (
         <div key={group || "default"} className="space-y-4">
           {group && <div className="text-sm text-[var(--muted-foreground)]">{group}</div>}
@@ -29,7 +35,12 @@ export function ProductAttributeFields({ schema, values, onChange }: ProductAttr
                 <label className="block text-sm mb-1">
                   {field.label}
                   {field.unit ? ` (${field.unit})` : ""}
-                  {field.required ? " *" : ""}
+                  {field.required && (
+                    <span className="text-red-400" aria-hidden="true">
+                      {" "}
+                      *
+                    </span>
+                  )}
                 </label>
                 {field.valueType === "boolean" ? (
                   <label className="flex items-center gap-2 text-sm h-10">
@@ -59,9 +70,7 @@ export function ProductAttributeFields({ schema, values, onChange }: ProductAttr
                     type="number"
                     step="any"
                     value={values[field.attributeId] ?? ""}
-                    onChange={(e) =>
-                      onChange(field.attributeId, e.target.value === "" ? null : Number(e.target.value))
-                    }
+                    onChange={(e) => onChange(field.attributeId, parseOptionalNumber(e.target.value))}
                     className={inputClass}
                     required={field.required}
                   />

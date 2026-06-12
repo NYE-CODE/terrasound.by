@@ -6,7 +6,15 @@ from app.catalog.attribute_seed import ATTRIBUTE_DEFINITIONS, CATEGORY_ATTRIBUTE
 from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, ProductAttributeValue
 from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.admin_account import AdminAccount
+from app.models.site_contact import SiteContact
 from app.models.site_stats import SiteStats
+from app.services.site_contact import (
+    DEFAULT_ADDRESS,
+    DEFAULT_EMAIL,
+    DEFAULT_INSTAGRAM,
+    DEFAULT_PHONE,
+    DEFAULT_TIKTOK,
+)
 from app.services.admin_account import hash_password
 from app.models.product import Product, ProductCompatibility, ProductImage, ProductSpec
 from app.models.review import ProductReview, ServiceReview
@@ -676,6 +684,22 @@ def _seed_site_stats(db: Session) -> None:
     db.commit()
 
 
+def _seed_site_contact(db: Session) -> None:
+    if db.query(SiteContact).filter(SiteContact.id == 1).first():
+        return
+    db.add(
+        SiteContact(
+            id=1,
+            phone=DEFAULT_PHONE,
+            email=DEFAULT_EMAIL,
+            instagram_url=DEFAULT_INSTAGRAM,
+            tiktok_url=DEFAULT_TIKTOK,
+            address=DEFAULT_ADDRESS,
+        )
+    )
+    db.commit()
+
+
 def _seed_attributes(db: Session) -> None:
     from app.filter_types import resolve_default_filter_type
 
@@ -730,3 +754,4 @@ def seed_database(db: Session) -> None:
     _seed_content(db)
     _seed_admin_account(db)
     _seed_site_stats(db)
+    _seed_site_contact(db)

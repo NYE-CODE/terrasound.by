@@ -1,10 +1,11 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
+import { FormField, FormRequiredNote } from "../../components/FormField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { reportFormError } from "../../lib/formError";
+import { reportFormError, reportLoadError} from "../../lib/formError";
 import { api, type BlogPostInput } from "../../lib/api";
 
 const emptyForm: BlogPostInput = {
@@ -38,7 +39,7 @@ export function BlogFormPage() {
           published: item.published,
         });
       }
-    }).catch(console.error).finally(() => setLoading(false));
+    }).catch(reportLoadError).finally(() => setLoading(false));
   }, [token, id]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -71,14 +72,52 @@ export function BlogFormPage() {
       />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
-        <input placeholder="Заголовок" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} required />
-        <input placeholder="Категория" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass} required />
-        <textarea placeholder="Краткое описание" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} className={textareaClass} required />
-        <textarea placeholder="Полный текст (необязательно)" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} className={textareaClass} />
+        <FormRequiredNote />
+
+        <FormField label="Заголовок" htmlFor="blog-title" required>
+          <input
+            id="blog-title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Категория" htmlFor="blog-category" required>
+          <input
+            id="blog-category"
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Краткое описание" htmlFor="blog-excerpt" required>
+          <textarea
+            id="blog-excerpt"
+            value={form.excerpt}
+            onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+            className={textareaClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Полный текст" htmlFor="blog-content" optional>
+          <textarea
+            id="blog-content"
+            value={form.content}
+            onChange={(e) => setForm({ ...form, content: e.target.value })}
+            className={textareaClass}
+          />
+        </FormField>
+
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
           Опубликовано
         </label>
+
         <FormActions cancelTo="/blog" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />
       </form>
     </div>

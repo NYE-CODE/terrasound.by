@@ -3,8 +3,8 @@ import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAuth } from "../context/AuthContext";
-import { usePagination } from "../hooks/usePagination";
-import { reportActionError } from "../lib/formError";
+import { PAGE_SIZE } from "../hooks/usePagination";
+import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type Order, type OrderStatus } from "../lib/api";
 
 const statuses: OrderStatus[] = ["new", "confirmed", "completed", "cancelled"];
@@ -12,15 +12,24 @@ const statuses: OrderStatus[] = ["new", "confirmed", "completed", "cancelled"];
 export function OrdersPage() {
   const { token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(orders);
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const load = () => {
     if (!token) return;
-    api.orders(token).then(setOrders).catch(console.error);
+    const offset = (page - 1) * PAGE_SIZE;
+    api
+      .orders(token, { limit: PAGE_SIZE, offset })
+      .then((result) => {
+        setOrders(result.data);
+        setTotalItems(result.meta.total);
+      })
+      .catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [token, page]);
 
   const updateStatus = async (orderId: string, status: OrderStatus) => {
     if (!token) return;
@@ -60,7 +69,7 @@ export function OrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {paginatedItems.map((order) => (
+            {orders.map((order) => (
               <Fragment key={order.id}>
                 <tr className="border-b border-[var(--border)] hover:bg-[#1f1f1f]">
                   <td className="p-4 font-mono text-xs">{order.id.slice(0, 8)}…</td>
@@ -136,7 +145,7 @@ export function OrdersPage() {
         )}
       </div>
 
-      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={PAGE_SIZE} onPageChange={setPage} />
     </div>
   );
 }

@@ -10,3 +10,4 @@ class AdminAccount(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
     username: Mapped[str] = mapped_column(String(100), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    token_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)

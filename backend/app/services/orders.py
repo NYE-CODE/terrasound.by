@@ -3,6 +3,7 @@ import uuid
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from app.db_commit import commit_or_raise
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.product import Product
 from app.schemas.order import OrderCreate
@@ -55,6 +56,6 @@ def create_order(db: Session, payload: OrderCreate) -> Order:
         items=order_items,
     )
     db.add(order)
-    db.commit()
+    commit_or_raise(db)
     db.refresh(order)
     return order

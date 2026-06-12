@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
+import { FormField, FormRequiredNote } from "../../components/FormField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { reportFormError } from "../../lib/formError";
+import { reportFormError, reportLoadError} from "../../lib/formError";
+import { parseRequiredInt } from "../../lib/numbers";
 import { api, type InstallationServiceInput } from "../../lib/api";
 
 const emptyForm: InstallationServiceInput = {
@@ -36,7 +38,7 @@ export function ServiceFormPage() {
           published: item.published,
         });
       }
-    }).catch(console.error).finally(() => setLoading(false));
+    }).catch(reportLoadError).finally(() => setLoading(false));
   }, [token, id]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -69,13 +71,45 @@ export function ServiceFormPage() {
       />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid gap-4 max-w-2xl`}>
-        <input placeholder="Название" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputClass} required />
-        <textarea placeholder="Описание" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={textareaClass} required />
-        <input type="number" placeholder="Порядок сортировки" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} className={inputClass} />
+        <FormRequiredNote />
+
+        <FormField label="Название" htmlFor="service-title" required>
+          <input
+            id="service-title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Описание" htmlFor="service-description" required>
+          <textarea
+            id="service-description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className={textareaClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Порядок сортировки" htmlFor="service-sort-order" optional>
+          <input
+            id="service-sort-order"
+            type="number"
+            value={form.sortOrder}
+            onChange={(e) =>
+              setForm({ ...form, sortOrder: parseRequiredInt(e.target.value, form.sortOrder) })
+            }
+            className={inputClass}
+          />
+        </FormField>
+
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
           Опубликовано
         </label>
+
         <FormActions cancelTo="/services" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />
       </form>
     </div>

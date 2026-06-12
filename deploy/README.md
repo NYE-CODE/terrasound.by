@@ -51,14 +51,14 @@ sudo cp deploy/nginx/terrasound.by.conf /etc/nginx/sites-available/terrasound.by
 sudo ln -sf /etc/nginx/sites-available/terrasound.by /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/api.terrasound.by
 sudo nginx -t && sudo systemctl reload nginx
-curl -s http://terrasound.by/api/health
+curl -s http://terrasound.by/api/v1/health
 
 # nginx — админка: admin.terrasound.by + /api/ → backend (обязательно для логина)
 sudo cp deploy/nginx/admin.terrasound.by.conf /etc/nginx/sites-available/admin.terrasound.by
 sudo ln -sf /etc/nginx/sites-available/admin.terrasound.by /etc/nginx/sites-enabled/
 sudo certbot --nginx -d admin.terrasound.by   # если ещё нет SSL
 sudo nginx -t && sudo systemctl reload nginx
-curl -s https://admin.terrasound.by/api/health   # должен быть JSON, не HTML
+curl -s https://admin.terrasound.by/api/v1/health   # должен быть JSON, не HTML
 
 chmod +x deploy/deploy.sh
 ./deploy/deploy.sh
@@ -107,7 +107,12 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=<надёжный пароль>
 CORS_ORIGINS=https://terrasound.by,https://admin.terrasound.by
 ENVIRONMENT=production
+TRUST_PROXY_HEADERS=true
 ```
+
+После обновления с усилением JWT (поле `ver` в токене) все админы должны **выйти и войти заново** — старые сессии перестанут работать.
+
+`TRUST_PROXY_HEADERS=true` нужен на production за nginx, иначе rate limit считает все запросы с одного IP (прокси).
 
 ## Миграции отдельно
 

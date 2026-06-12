@@ -5,11 +5,16 @@ export const SITE_BRAND_TAGLINE = "АВТОМОБИЛЬНЫЕ АУДИОСИСТ
 export const SITE_URL = "terrasound.by";
 export const SITE_ORIGIN = import.meta.env.VITE_SITE_URL ?? "https://terrasound.by";
 export const COMPANY_NAME = 'ООО «Территория звука»';
-export const CONTACT_EMAIL = "info@terrasound.by";
-export const INSTAGRAM_URL = "https://instagram.com/terrasound.by";
-export const CONTACT_PHONE = "+375 33 917 7444";
-export const CONTACT_PHONE_TEL = "+375339177444";
-export const ADDRESS = "г. Гродно, Озерское шоссе, 14";
 export const WORKING_HOURS = "Пн–Пт, 10:00–18:00, обед 14:00–15:00";
-export const ADDRESS_MAPS_URL = `https://yandex.by/maps/?text=${encodeURIComponent(`${ADDRESS}, Беларусь`)}`;
 export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";
+
+/** Значения по умолчанию до загрузки из API (и fallback при ошибке сети). */
+export const DEFAULT_SITE_CONTACT = {
+  phone: "+375 33 917 7444",
+  email: "info@terrasound.by",
+  instagramUrl: "https://instagram.com/terrasound.by",
+  tiktokUrl: "https://www.tiktok.com/@terrasound.by",
+  address: "г. Гродно, Озерское шоссе, 14",
+  phoneTel: "+375339177444",
+  addressMapsUrl: `https://yandex.by/maps/?text=${encodeURIComponent("г. Гродно, Озерское шоссе, 14, Беларусь")}`,
+};

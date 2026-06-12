@@ -7,7 +7,13 @@ T = TypeVar("T")
 CONTENT_CATEGORIES = "content:categories"
 CONTENT_BRANDS = "content:brands"
 CONTENT_SERVICES = "content:services"
+PRODUCT_BRANDS = "products:brands"
 SITE_STATS = "site-stats"
+SITE_CONTACT = "site-contact"
+
+
+def category_filters_cache_key(category_id: str) -> str:
+    return f"category-filters:{category_id}"
 
 DEFAULT_TTL_SECONDS = 300.0
 
@@ -36,8 +42,13 @@ class TTLCache:
 
 content_cache = TTLCache()
 site_stats_cache = TTLCache()
+site_contact_cache = TTLCache()
 
 
 def invalidate_content_cache() -> None:
-    for key in (CONTENT_CATEGORIES, CONTENT_BRANDS, CONTENT_SERVICES):
+    for key in (CONTENT_CATEGORIES, CONTENT_BRANDS, CONTENT_SERVICES, PRODUCT_BRANDS):
         content_cache.invalidate(key)
+
+
+def invalidate_category_filters_cache(category_id: str) -> None:
+    content_cache.invalidate(category_filters_cache_key(category_id))

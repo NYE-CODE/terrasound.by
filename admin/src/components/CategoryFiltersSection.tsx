@@ -15,6 +15,7 @@ import {
   type CategoryAttributeDraft,
 } from "../lib/categoryAttributeDraft";
 import type { AttributeDef } from "../lib/api";
+import { normalizeFilterRange, parseOptionalNumber } from "../lib/numbers";
 
 interface CategoryFiltersSectionProps {
   links: CategoryAttributeDraft[];
@@ -187,7 +188,7 @@ export function CategoryFiltersSection({ links, allAttributes, onChange }: Categ
                   </div>
                 </div>
 
-                <div className="grid sm:grid-cols-3 gap-3">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
@@ -195,6 +196,15 @@ export function CategoryFiltersSection({ links, allAttributes, onChange }: Categ
                       onChange={(e) => updateLink(link.clientId, { showInForm: e.target.checked })}
                     />
                     В форме товара
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={link.required}
+                      disabled={!link.showInForm}
+                      onChange={(e) => updateLink(link.clientId, { required: e.target.checked })}
+                    />
+                    Обязательное
                   </label>
                   <label className="flex items-center gap-2 text-sm">
                     <input
@@ -228,11 +238,12 @@ export function CategoryFiltersSection({ links, allAttributes, onChange }: Categ
                       <input
                         type="number"
                         value={link.filterMin ?? ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const nextMin = parseOptionalNumber(e.target.value);
                           updateLink(link.clientId, {
-                            filterMin: e.target.value === "" ? null : Number(e.target.value),
-                          })
-                        }
+                            ...normalizeFilterRange(nextMin, link.filterMax),
+                          });
+                        }}
                         className={inputClass}
                       />
                     </div>
@@ -241,11 +252,12 @@ export function CategoryFiltersSection({ links, allAttributes, onChange }: Categ
                       <input
                         type="number"
                         value={link.filterMax ?? ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const nextMax = parseOptionalNumber(e.target.value);
                           updateLink(link.clientId, {
-                            filterMax: e.target.value === "" ? null : Number(e.target.value),
-                          })
-                        }
+                            ...normalizeFilterRange(link.filterMin, nextMax),
+                          });
+                        }}
                         className={inputClass}
                       />
                     </div>

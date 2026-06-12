@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
+import { FormField, FormRequiredNote } from "../../components/FormField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
-import { reportFormError } from "../../lib/formError";
+import { reportFormError, reportLoadError} from "../../lib/formError";
+import { parseRequiredInt } from "../../lib/numbers";
 import { api, type BrandInput } from "../../lib/api";
 
 const emptyForm: BrandInput = {
@@ -40,7 +42,7 @@ export function BrandFormPage() {
           published: item.published,
         });
       }
-    }).catch(console.error).finally(() => setLoading(false));
+    }).catch(reportLoadError).finally(() => setLoading(false));
   }, [token, id]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -73,15 +75,65 @@ export function BrandFormPage() {
       />
 
       <form onSubmit={handleSubmit} className={`${formCardClass} grid md:grid-cols-2 gap-4 max-w-2xl`}>
-        <input placeholder="Название" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} required />
-        <input placeholder="Страна" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} className={inputClass} required />
-        <input placeholder="Год основания" value={form.since} onChange={(e) => setForm({ ...form, since: e.target.value })} className={inputClass} required />
-        <input type="number" placeholder="Порядок" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} className={inputClass} />
-        <textarea placeholder="Описание" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`md:col-span-2 ${textareaClass}`} required />
-        <label className="flex items-center gap-2 text-sm">
+        <FormRequiredNote className="md:col-span-2" />
+
+        <FormField label="Название" htmlFor="brand-name" required>
+          <input
+            id="brand-name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Страна" htmlFor="brand-country" required>
+          <input
+            id="brand-country"
+            value={form.country}
+            onChange={(e) => setForm({ ...form, country: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Год основания" htmlFor="brand-since" required>
+          <input
+            id="brand-since"
+            value={form.since}
+            onChange={(e) => setForm({ ...form, since: e.target.value })}
+            className={inputClass}
+            required
+          />
+        </FormField>
+
+        <FormField label="Порядок сортировки" htmlFor="brand-sort-order" optional>
+          <input
+            id="brand-sort-order"
+            type="number"
+            value={form.sortOrder}
+            onChange={(e) =>
+              setForm({ ...form, sortOrder: parseRequiredInt(e.target.value, form.sortOrder) })
+            }
+            className={inputClass}
+          />
+        </FormField>
+
+        <FormField label="Описание" htmlFor="brand-description" required className="md:col-span-2">
+          <textarea
+            id="brand-description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className={textareaClass}
+            required
+          />
+        </FormField>
+
+        <label className="flex items-center gap-2 text-sm md:col-span-2">
           <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} />
           Опубликован
         </label>
+
         <div className="md:col-span-2">
           <FormActions cancelTo="/brands" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />
         </div>

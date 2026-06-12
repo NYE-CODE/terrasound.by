@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { api, type BlogPostDetail } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy } from "../lib/pageLayout";
+import { formatReviewDate } from "../utils/formatReviewDate";
 
 export function BlogPostPage() {
   const { id } = useParams();
@@ -64,7 +65,7 @@ export function BlogPostPage() {
           <span className="text-xs text-accent font-heading uppercase tracking-wider">
             {post.category}
           </span>
-          <span className="text-xs text-muted-foreground">{post.createdAt}</span>
+          <span className="text-xs text-muted-foreground">{formatReviewDate(post.createdAt)}</span>
         </div>
 
         <h1 className="font-heading text-4xl md:text-5xl mb-6">{post.title}</h1>
