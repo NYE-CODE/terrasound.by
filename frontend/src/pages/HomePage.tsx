@@ -29,11 +29,16 @@ export function HomePage() {
   });
 
   useEffect(() => {
-    api.getServiceReviews().then(setServiceReviews).catch(reportLoadError);
-    api.getProducts({ limit: 3 }).then(({ data }) => setFeaturedProducts(data)).catch(reportLoadError);
-    api.getPortfolio().then(setPortfolioWorks).catch(reportLoadError);
-    api.getBrands().then(setBrands).catch(reportLoadError);
-    api.getSiteStats().then(setSiteStats).catch(reportLoadError);
+    api
+      .getSiteHome()
+      .then((home) => {
+        setServiceReviews(home.serviceReviews);
+        setFeaturedProducts(home.featuredProducts);
+        setPortfolioWorks(home.portfolioWorks);
+        setBrands(home.brands);
+        setSiteStats(home.stats);
+      })
+      .catch(reportLoadError);
   }, []);
 
   usePageMeta({

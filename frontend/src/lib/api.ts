@@ -199,6 +199,7 @@ export const api = {
     request<Paginated<PortfolioWork>>(`${API_V2}/portfolio-works?limit=500`).then((res) => res.data),
 
   getSiteStats: () => request<SiteStats>(`${API_V2}/site/settings/stats`),
+  getSiteHome: () => request<SiteHome>(`${API_V2}/site/home`),
   getSiteAnnouncement: () => request<SiteAnnouncement>(`${API_V2}/site/settings/announcement`),
 
   getProductHighlights: () => request<ProductHighlights>(`${API_V2}/site/settings/product-highlights`),
@@ -209,6 +210,14 @@ export const api = {
 export interface SiteStats {
   installationsCompleted: string;
   yearsExpertise: string;
+}
+
+export interface SiteHome {
+  stats: SiteStats;
+  featuredProducts: ProductCard[];
+  portfolioWorks: PortfolioWork[];
+  brands: Brand[];
+  serviceReviews: ServiceReview[];
 }
 
 export interface SiteAnnouncement {

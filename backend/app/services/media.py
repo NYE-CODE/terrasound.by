@@ -32,6 +32,10 @@ STORED_EXTENSION = ".webp"
 LEGACY_STORED_EXTENSIONS = frozenset({".jpg", ".jpeg", ".png", ".webp"})
 WEBP_QUALITY = 80
 
+MAX_EDGE_CATEGORY = 1200
+MAX_EDGE_PRODUCT = 1200
+MAX_EDGE_PORTFOLIO = 1600
+
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
@@ -127,19 +131,30 @@ async def _read_limited(file: UploadFile) -> bytes:
     return data
 
 
-def _encode_image_as_webp(data: bytes) -> bytes:
+def _prepare_image(img: Image.Image) -> Image.Image:
+    if img.mode in ("RGBA", "LA"):
+        return img.convert("RGBA")
+    if img.mode == "P" and "transparency" in img.info:
+        return img.convert("RGBA")
+    return img.convert("RGB")
+
+
+def _resize_to_max_edge(img: Image.Image, max_edge: int) -> Image.Image:
+    if max(img.size) <= max_edge:
+        return img
+    resized = img.copy()
+    resized.thumbnail((max_edge, max_edge), Image.Resampling.LANCZOS)
+    return resized
+
+
+def _encode_image_as_webp(data: bytes, *, max_edge: int) -> bytes:
     try:
         with Image.open(BytesIO(data)) as img:
             img.load()
             if img.format not in ALLOWED_IMAGE_FORMATS:
                 raise HTTPException(status_code=400, detail="Допустимы только JPEG, PNG и WebP")
 
-            if img.mode in ("RGBA", "LA"):
-                prepared = img.convert("RGBA")
-            elif img.mode == "P" and "transparency" in img.info:
-                prepared = img.convert("RGBA")
-            else:
-                prepared = img.convert("RGB")
+            prepared = _resize_to_max_edge(_prepare_image(img), max_edge)
 
             out = BytesIO()
             prepared.save(out, format="WEBP", quality=WEBP_QUALITY, method=4)
@@ -152,8 +167,29 @@ def _encode_image_as_webp(data: bytes) -> bytes:
         raise HTTPException(status_code=400, detail="Не удалось обработать изображение") from exc
 
 
-async def _read_and_encode_image(file: UploadFile) -> bytes:
-    return _encode_image_as_webp(await _read_limited(file))
+def reencode_image_file(path: Path, *, max_edge: int) -> bool:
+    """Пересжать существующий файл на диске. Возвращает True, если файл обновлён."""
+    if not path.is_file():
+        return False
+    if path.suffix.lower() not in LEGACY_STORED_EXTENSIONS:
+        return False
+
+    original_size = path.stat().st_size
+    data = path.read_bytes()
+    encoded = _encode_image_as_webp(data, max_edge=max_edge)
+    target = path if path.suffix.lower() == STORED_EXTENSION else path.with_suffix(STORED_EXTENSION)
+
+    if target == path and len(encoded) >= original_size:
+        return False
+
+    target.write_bytes(encoded)
+    if target != path and path.exists():
+        path.unlink(missing_ok=True)
+    return True
+
+
+async def _read_and_encode_image(file: UploadFile, *, max_edge: int) -> bytes:
+    return _encode_image_as_webp(await _read_limited(file), max_edge=max_edge)
 
 
 def _write_bytes(path: Path, data: bytes) -> None:
@@ -165,7 +201,7 @@ async def save_category_image(category_id: str, file: UploadFile) -> str:
     if not CATEGORY_ID_PATTERN.fullmatch(category_id):
         raise HTTPException(status_code=400, detail="Некорректный slug категории")
 
-    data = await _read_and_encode_image(file)
+    data = await _read_and_encode_image(file, max_edge=MAX_EDGE_CATEGORY)
     filename = f"{category_id}-{uuid.uuid4().hex[:8]}{STORED_EXTENSION}"
     path = uploads_root() / "categories" / filename
     _write_bytes(path, data)
@@ -176,7 +212,7 @@ async def save_product_image(product_id: str | None, file: UploadFile) -> str:
     if product_id is not None and not PRODUCT_ID_PATTERN.fullmatch(product_id):
         raise HTTPException(status_code=400, detail="Некорректный ID товара")
 
-    data = await _read_and_encode_image(file)
+    data = await _read_and_encode_image(file, max_edge=MAX_EDGE_PRODUCT)
     filename = f"{uuid.uuid4().hex}{STORED_EXTENSION}"
 
     if product_id:
@@ -195,7 +231,7 @@ async def save_portfolio_image(portfolio_id: str | None, file: UploadFile) -> st
     if portfolio_id is not None and not PORTFOLIO_ID_PATTERN.fullmatch(portfolio_id):
         raise HTTPException(status_code=400, detail="Некорректный ID работы")
 
-    data = await _read_and_encode_image(file)
+    data = await _read_and_encode_image(file, max_edge=MAX_EDGE_PORTFOLIO)
     filename = f"{uuid.uuid4().hex}{STORED_EXTENSION}"
 
     if portfolio_id:

@@ -70,6 +70,17 @@ class MediaServiceTests(unittest.TestCase):
         media.cleanup_removed_urls({url}, set())
         self.assertFalse(category_path.exists())
 
+    def test_large_image_is_resized_on_upload(self) -> None:
+        out = BytesIO()
+        Image.new("RGB", (2400, 1800), color="blue").save(out, format="JPEG")
+        file = self._upload(out.getvalue(), content_type="image/jpeg")
+
+        pending_url = asyncio.run(media.save_portfolio_image(None, file))
+        path = media.url_to_filesystem_path(pending_url)
+        self.assertIsNotNone(path)
+        with Image.open(path) as img:
+            self.assertLessEqual(max(img.size), media.MAX_EDGE_PORTFOLIO)
+
     def test_copy_product_media(self) -> None:
         product_id = str(uuid.uuid4())
         target_id = str(uuid.uuid4())

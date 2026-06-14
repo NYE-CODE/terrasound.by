@@ -54,6 +54,10 @@ def invalidate_content_cache() -> None:
     for key in (CONTENT_CATEGORIES, CONTENT_BRANDS, CONTENT_SERVICES, PRODUCT_BRANDS, CATALOG_PRICE_BOUNDS):
         content_cache.invalidate(key)
 
+    from app.services.site_home import invalidate_site_home_cache
+
+    invalidate_site_home_cache()
+
 
 def invalidate_category_filters_cache(category_id: str) -> None:
     content_cache.invalidate(category_filters_cache_key(category_id))

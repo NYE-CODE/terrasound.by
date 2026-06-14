@@ -36,6 +36,7 @@ from app.routers.v2 import installation as v2_installation
 from app.routers.v2 import orders as v2_orders
 from app.routers.v2 import products as v2_products
 from app.routers.v2 import reviews as v2_reviews
+from app.routers.v2 import site_home as v2_site_home
 from app.routers.v2 import site_settings as v2_site_settings
 from app.routers.v2 import vehicles as v2_vehicles
 from app.routers.v2.admin import auth as v2_admin_auth
@@ -126,6 +127,7 @@ app.include_router(v2_reviews.router)
 app.include_router(v2_installation.router)
 app.include_router(v2_vehicles.router)
 app.include_router(v2_site_settings.public_router)
+app.include_router(v2_site_home.router)
 app.include_router(v2_admin_auth.router)
 app.include_router(v2_admin_core.dashboard_router)
 app.include_router(v2_admin_core.orders_router)

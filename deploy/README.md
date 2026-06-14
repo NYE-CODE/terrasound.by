@@ -77,6 +77,7 @@ bash deploy/deploy.sh
 | `/fonts/*` | то же | Self-hosted шрифты, редко меняются |
 | `*.html` | `no-cache` | После деплоя браузер подтягивает свежий HTML с новыми хэшами |
 | favicon, `.webmanifest` | `max-age=604800` (7 дней) | Иконки в корне `public/` |
+| `/uploads/*` | `max-age=2592000, immutable` (30 дней) | UUID в имени файла — безопасно кэшировать дольше |
 
 ### Security headers (nginx)
 

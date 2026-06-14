@@ -40,6 +40,7 @@ export default defineConfig({
   assetsInclude: ['**/*.svg', '**/*.csv'],
 
   build: {
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
