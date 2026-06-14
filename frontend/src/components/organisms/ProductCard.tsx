@@ -39,7 +39,6 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!inStock) return;
     addItem({ id, brand, name, price: getEffectivePrice(price, salePrice), image });
     toast.success("Добавлено в корзину");
   };
@@ -57,17 +56,15 @@ export function ProductCard({
               <Badge text="Под заказ" variant="preorder" />
             </div>
           )}
-          {inStock && (
-            <button
-              type="button"
-              onClick={handleAddToCart}
-              className="absolute bottom-3 right-3 lg:opacity-0 lg:group-hover:opacity-100 flex items-center gap-2 px-3 py-2 bg-background/95 border border-border rounded text-xs font-heading uppercase tracking-wider text-accent hover:text-foreground transition-all"
-              aria-label="Добавить в корзину"
-            >
-              <ShoppingCart size={14} />
-              <span className="hidden sm:inline">В корзину</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            className="absolute bottom-3 right-3 lg:opacity-0 lg:group-hover:opacity-100 flex items-center gap-2 px-3 py-2 bg-background/95 border border-border rounded text-xs font-heading uppercase tracking-wider text-accent hover:text-foreground transition-all"
+            aria-label="Добавить в корзину"
+          >
+            <ShoppingCart size={14} />
+            <span className="hidden sm:inline">В корзину</span>
+          </button>
         </div>
         <div className="flex-1 flex flex-col">
           <div className="text-xs text-accent font-heading uppercase tracking-wider mb-2">

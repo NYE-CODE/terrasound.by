@@ -169,6 +169,7 @@
   .site-logo-title {
     font-family: var(--font-heading);
     font-weight: 700;
+    letter-spacing: 0.025em;
   }
 
   .site-logo-tagline {

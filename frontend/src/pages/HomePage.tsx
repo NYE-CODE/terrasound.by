@@ -12,6 +12,7 @@ import { TAGLINE } from "../lib/site";
 import { pageContentPy, pageSectionPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
+import { HERO_IMAGE_HEIGHT, HERO_IMAGE_WIDTH } from "../lib/brandAssets";
 import heroSection from "../assets/hero-section.webp";
 
 const HERO_IMAGE = heroSection;
@@ -49,6 +50,10 @@ export function HomePage() {
           <img
             src={HERO_IMAGE}
             alt=""
+            width={HERO_IMAGE_WIDTH}
+            height={HERO_IMAGE_HEIGHT}
+            fetchPriority="high"
+            decoding="async"
             className="absolute inset-0 z-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 z-[1] bg-background/75" />
@@ -74,6 +79,9 @@ export function HomePage() {
               <img
                 src={HERO_IMAGE}
                 alt="Салон автомобиля с премиальной аудиосистемой"
+                width={HERO_IMAGE_WIDTH}
+                height={HERO_IMAGE_HEIGHT}
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -132,13 +140,13 @@ export function HomePage() {
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="grid md:grid-cols-3 gap-12">
             <div>
-              <div className="font-heading text-4xl sm:text-5xl md:text-6xl mb-4 text-accent">
+              <div className="font-heading text-4xl sm:text-5xl md:text-6xl mb-4 text-accent tabular-nums">
                 {siteStats.installationsCompleted}
               </div>
               <div className="text-muted-foreground">Подобранных систем</div>
             </div>
             <div>
-              <div className="font-heading text-4xl sm:text-5xl md:text-6xl mb-4 text-accent">
+              <div className="font-heading text-4xl sm:text-5xl md:text-6xl mb-4 text-accent tabular-nums">
                 {siteStats.yearsExpertise}
               </div>
               <div className="text-muted-foreground">Опыт установки и подбора систем</div>

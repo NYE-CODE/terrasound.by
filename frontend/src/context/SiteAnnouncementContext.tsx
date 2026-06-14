@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, type SiteAnnouncement } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
+import { readSiteBootstrap } from "../lib/siteBootstrap";
 
 const DEFAULT_SITE_ANNOUNCEMENT: SiteAnnouncement = {
   text: "",
@@ -10,8 +11,12 @@ const DEFAULT_SITE_ANNOUNCEMENT: SiteAnnouncement = {
 
 const SiteAnnouncementContext = createContext<SiteAnnouncement>(DEFAULT_SITE_ANNOUNCEMENT);
 
+function initialAnnouncement(): SiteAnnouncement {
+  return readSiteBootstrap()?.announcement ?? DEFAULT_SITE_ANNOUNCEMENT;
+}
+
 export function SiteAnnouncementProvider({ children }: { children: ReactNode }) {
-  const [announcement, setAnnouncement] = useState<SiteAnnouncement>(DEFAULT_SITE_ANNOUNCEMENT);
+  const [announcement, setAnnouncement] = useState<SiteAnnouncement>(initialAnnouncement);
 
   useEffect(() => {
     api.getSiteAnnouncement().then(setAnnouncement).catch(reportLoadError);

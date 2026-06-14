@@ -8,6 +8,7 @@ import { COMPANY_NAME, SITE_NAME, TAGLINE } from "../../../lib/site";
 import { useCategories } from "../../../context/CategoriesContext";
 import { useSiteContact } from "../../../context/SiteContactContext";
 import logo from "../../../assets/logo.png";
+import { LOGO_HEIGHT, LOGO_WIDTH } from "../../../lib/brandAssets";
 
 export function Footer() {
   const contact = useSiteContact();
@@ -19,7 +20,7 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
             <Link to="/" className="inline-flex mb-4" aria-label={SITE_NAME}>
-              <img src={logo} alt={SITE_NAME} className="h-14 w-auto" />
+              <img src={logo} alt={SITE_NAME} width={LOGO_WIDTH} height={LOGO_HEIGHT} className="h-14 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground mb-2">{COMPANY_NAME}</p>
             <p className="text-sm text-muted-foreground mb-6">{TAGLINE}</p>

@@ -79,11 +79,6 @@ export function CheckoutPage() {
         }
 
         const product = result.value;
-        if (!product.inStock) {
-          changed = true;
-          continue;
-        }
-
         const primaryImage = product.images[0]?.trim() ?? "";
         if (!primaryImage) {
           changed = true;
@@ -121,7 +116,7 @@ export function CheckoutPage() {
       } else {
         replaceItems(reconciled);
         if (changed) {
-          toast.info("Корзина обновлена по актуальным ценам и наличию");
+          toast.info("Корзина обновлена по актуальным ценам");
         }
       }
 

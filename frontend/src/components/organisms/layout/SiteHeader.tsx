@@ -1,20 +1,20 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { Navbar } from "./Navbar";
 import {
   useSiteAnnouncement,
   useSiteAnnouncementBarVisible,
 } from "../../../context/SiteAnnouncementContext";
+import { applyAnnouncementStackHeight } from "../../../lib/siteBootstrap";
 
 export function SiteHeader() {
   const announcement = useSiteAnnouncement();
   const showBar = useSiteAnnouncementBarVisible();
 
-  useEffect(() => {
-    const height = showBar ? "var(--site-announcement-bar-height)" : "0px";
-    document.documentElement.style.setProperty("--site-announcement-height", height);
+  useLayoutEffect(() => {
+    applyAnnouncementStackHeight(showBar);
     return () => {
-      document.documentElement.style.setProperty("--site-announcement-height", "0px");
+      applyAnnouncementStackHeight(false);
     };
   }, [showBar]);
 

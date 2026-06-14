@@ -80,7 +80,7 @@ export function ProductPage() {
   const reviews = [...(product?.reviews ?? []), ...pendingReviews];
 
   const handleAddToCart = () => {
-    if (!product || !product.inStock) return;
+    if (!product) return;
     for (let i = 0; i < quantity; i++) {
       addItem({
         id: productId,
@@ -190,45 +190,30 @@ export function ProductPage() {
           <Price amount={product.price} saleAmount={product.salePrice} size="xl" className="mb-8" />
 
           <div className="space-y-4 mb-8">
-            {product.inStock ? (
-              <>
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-heading uppercase tracking-wider">Количество</label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 bg-secondary border border-border rounded flex items-center justify-center hover:border-accent transition-all duration-300"
-                    >
-                      -
-                    </button>
-                    <span className="w-12 text-center font-heading">{quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 bg-secondary border border-border rounded flex items-center justify-center hover:border-accent transition-all duration-300"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-heading uppercase tracking-wider">Количество</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 bg-secondary border border-border rounded flex items-center justify-center hover:border-accent transition-all duration-300"
+                >
+                  -
+                </button>
+                <span className="w-12 text-center font-heading">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 bg-secondary border border-border rounded flex items-center justify-center hover:border-accent transition-all duration-300"
+                >
+                  +
+                </button>
+              </div>
+            </div>
 
-                <Button variant="primary" className="w-full" onClick={handleAddToCart}>
-                  В корзину
-                </Button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Товар сейчас отсутствует на складе, но доступен под заказ. Свяжитесь с нами — уточним сроки и стоимость.
-                </p>
-                <Link to="/contact" className="block">
-                  <Button variant="ghost" className="w-full">
-                    Уточнить наличие
-                  </Button>
-                </Link>
-              </>
-            )}
+            <Button variant="primary" className="w-full" onClick={handleAddToCart}>
+              В корзину
+            </Button>
           </div>
 
           <ProductHighlightsList />

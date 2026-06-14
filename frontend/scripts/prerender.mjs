@@ -18,7 +18,7 @@ const staticRoutes = [
   { path: "/contact", title: "Контакты | TerraSound", description: "Контакты TerraSound в Гродно." },
 ];
 
-function patchHtml(template, { title, description, canonical }) {
+function patchHtml(template, { title, description, canonical, headExtras = "" }) {
   return template
     .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
     .replace(
@@ -26,7 +26,22 @@ function patchHtml(template, { title, description, canonical }) {
       `<meta name="description" content="${description}" />`,
     )
     .replace(/<meta name="robots" content=".*?" \/>/, `<meta name="robots" content="index, follow" />`)
+    .replace("</head>", `${headExtras}\n    </head>`)
     .concat(`\n<!-- prerender: ${canonical} -->`);
+}
+
+function buildBootstrapHeadExtras(bootstrap) {
+  if (!bootstrap) return "";
+
+  const json = JSON.stringify(bootstrap).replace(/</g, "\\u003c");
+  let extras = `\n      <script>window.__SITE_BOOTSTRAP__=${json};</script>`;
+
+  const announcement = bootstrap.announcement;
+  if (announcement?.enabled && announcement.text?.trim()) {
+    extras += `\n      <style>:root{--site-announcement-height:var(--site-announcement-bar-height);}</style>`;
+  }
+
+  return extras;
 }
 
 function writeRoute(routePath, html) {
@@ -50,6 +65,7 @@ async function main() {
 
   const template = fs.readFileSync(templatePath, "utf8");
   const routes = [...staticRoutes];
+  let siteBootstrap = null;
 
   try {
     const productList = await fetchJson(`${apiUrl}/api/products`);
@@ -74,11 +90,28 @@ async function main() {
     console.warn("API unavailable during prerender — only static routes will be generated.");
   }
 
+  try {
+    const response = await fetch(`${apiUrl}/api/v2/site/settings/announcement`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        siteBootstrap = data;
+      }
+    }
+  } catch {
+    // announcement bootstrap optional
+  }
+
+  const headExtras = buildBootstrapHeadExtras(
+    siteBootstrap ? { announcement: siteBootstrap } : null,
+  );
+
   for (const route of routes) {
     const html = patchHtml(template, {
       title: route.title,
       description: route.description,
       canonical: `${siteOrigin}${route.path}`,
+      headExtras,
     });
     writeRoute(route.path, html);
   }

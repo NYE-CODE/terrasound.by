@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 /** Минимальная разрядка +25 (Adobe tracking) в em. */
 const LOGO_TRACKING_BASE_EM = 0.025;
@@ -44,7 +44,6 @@ export function SiteLogoWordmark({ title, tagline }: SiteLogoWordmarkProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLSpanElement>(null);
   const taglineRef = useRef<HTMLSpanElement>(null);
-  const [titleTracking, setTitleTracking] = useState(LOGO_TRACKING_BASE_EM);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -62,10 +61,7 @@ export function SiteLogoWordmark({ title, tagline }: SiteLogoWordmarkProps) {
       if (targetWidth <= 0) return;
 
       const nextTitleTracking = fitTitleToWidth(titleEl, targetWidth, LOGO_TRACKING_BASE_EM);
-
-      setTitleTracking((prev) =>
-        Math.abs(prev - nextTitleTracking) < 0.0001 ? prev : nextTitleTracking,
-      );
+      titleEl.style.letterSpacing = `${nextTitleTracking}em`;
     };
 
     sync();
@@ -87,11 +83,7 @@ export function SiteLogoWordmark({ title, tagline }: SiteLogoWordmarkProps) {
 
   return (
     <div ref={containerRef} className="site-logo-wordmark hidden md:flex md:flex-col md:items-start leading-tight">
-      <span
-        ref={titleRef}
-        className="site-logo-title site-logo-line text-sm sm:text-base uppercase"
-        style={{ letterSpacing: `${titleTracking}em` }}
-      >
+      <span ref={titleRef} className="site-logo-title site-logo-line text-sm sm:text-base uppercase">
         {title}
       </span>
       <span

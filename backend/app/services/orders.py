@@ -23,8 +23,6 @@ def create_order(db: Session, payload: OrderCreate) -> Order:
 
     for line in payload.items:
         product = products_by_id[line.product_id]
-        if not product.in_stock:
-            raise HTTPException(status_code=400, detail="Один или несколько товаров недоступны")
 
         unit_price = effective_price(product)
         line_total = unit_price * line.quantity

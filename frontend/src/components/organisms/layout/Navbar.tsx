@@ -13,6 +13,7 @@ import { useSiteContact } from "../../../context/SiteContactContext";
 import { SITE_BRAND_TAGLINE, SITE_BRAND_TITLE } from "../../../lib/site";
 import { SiteLogoWordmark } from "../../molecules/SiteLogoWordmark";
 import logo from "../../../assets/logo.png";
+import { LOGO_HEIGHT, LOGO_WIDTH } from "../../../lib/brandAssets";
 
 export function Navbar() {
   const location = useLocation();
@@ -33,7 +34,14 @@ export function Navbar() {
               className="flex items-center gap-3 shrink-0 text-foreground"
               aria-label={`${SITE_BRAND_TITLE}. ${SITE_BRAND_TAGLINE}`}
             >
-              <img src={logo} alt="" aria-hidden className="h-8 w-auto md:h-10" />
+              <img
+                src={logo}
+                alt=""
+                aria-hidden
+                width={LOGO_WIDTH}
+                height={LOGO_HEIGHT}
+                className="h-8 w-auto md:h-10"
+              />
               <SiteLogoWordmark title={SITE_BRAND_TITLE} tagline={SITE_BRAND_TAGLINE} />
             </Link>
 
