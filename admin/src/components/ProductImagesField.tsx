@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { FormField } from "./FormField";
 import { resolveMediaUrl } from "../lib/mediaUrl";
+import { validateUploadFile } from "../lib/uploadHelpers";
 
 interface ProductImagesFieldProps {
   images: string[];
@@ -15,6 +16,16 @@ export function ProductImagesField({ images, onChange, onUpload }: ProductImages
 
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) return;
+
+    for (const file of Array.from(files)) {
+      const validationError = validateUploadFile(file);
+      if (validationError) {
+        setError(validationError);
+        if (inputRef.current) inputRef.current.value = "";
+        return;
+      }
+    }
+
     setUploading(true);
     setError(null);
     try {
@@ -64,17 +75,27 @@ export function ProductImagesField({ images, onChange, onUpload }: ProductImages
             ))}
           </div>
         ) : null}
+
         <input
           ref={inputRef}
           id="product-gallery-upload"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
-          className="block w-full text-sm text-[var(--muted-foreground)] file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-[var(--secondary)] file:text-[var(--foreground)]"
+          className="sr-only"
           disabled={uploading}
           onChange={(e) => void handleFiles(e.target.files)}
         />
-        {uploading ? <p className="text-sm text-[var(--muted-foreground)]">Загрузка…</p> : null}
+
+        <button
+          type="button"
+          className="px-4 py-2 rounded text-sm bg-[var(--secondary)] text-[var(--foreground)] hover:opacity-90 disabled:opacity-50"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          {uploading ? "Загрузка…" : "Добавить изображения"}
+        </button>
+
         {error ? <p className="text-sm text-red-400">{error}</p> : null}
       </div>
     </FormField>

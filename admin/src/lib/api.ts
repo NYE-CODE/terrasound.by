@@ -3,6 +3,7 @@
  * При 401 с токеном вызывается обработчик из setUnauthorizedHandler (logout).
  */
 import { resolveApiUrl } from "./apiUrl";
+import { parseUploadError } from "./uploadHelpers";
 
 const API_URL = resolveApiUrl();
 const API_V1_ADMIN = "/api/v1/admin";
@@ -94,8 +95,7 @@ async function uploadRequest<T>(
       unauthorizedHandler?.();
     }
     const payload = await response.json().catch(() => ({}));
-    const detail = parseApiDetail(payload) ?? "Ошибка загрузки файла";
-    throw new ApiError(detail, response.status);
+    throw new ApiError(parseUploadError(response, payload), response.status);
   }
 
   return response.json();
