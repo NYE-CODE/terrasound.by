@@ -19,7 +19,7 @@ const emptyForm: InstallationServiceInput = {
 export function ServiceFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState(emptyForm);
@@ -27,8 +27,8 @@ export function ServiceFormPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token || !id) return;
-    api.services(token).then((items) => {
+    if (status !== "authenticated" || !id) return;
+    api.services().then((items) => {
       const item = items.find((s) => s.id === id);
       if (item) {
         setForm({
@@ -39,17 +39,17 @@ export function ServiceFormPage() {
         });
       }
     }).catch(reportLoadError).finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     try {
       if (isEdit && id) {
-        await api.updateService(token, id, form);
+        await api.updateService(id, form);
       } else {
-        await api.createService(token, form);
+        await api.createService(form);
       }
       navigate("/services");
     } catch (error) {

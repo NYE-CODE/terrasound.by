@@ -16,6 +16,7 @@ _LOCK = Lock()
 
 _RULES: list[tuple[str, str | re.Pattern[str], int, int]] = [
     ("POST", re.compile(r"^/api/v[12]/admin/sessions$"), 5, 900),
+    ("DELETE", re.compile(r"^/api/v[12]/admin/sessions$"), 30, 900),
     ("PATCH", re.compile(r"^/api/v[12]/admin/me/password$"), 10, 900),
     ("POST", re.compile(r"^/api/v[12]/orders$"), 10, 60),
     ("POST", re.compile(r"^/api/v[12]/installation-requests$"), 10, 60),

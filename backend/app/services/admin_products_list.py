@@ -1,10 +1,15 @@
+import csv
+import io
 from dataclasses import dataclass
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Query, Session, joinedload
 
+from app.models.content import Category
 from app.models.product import Product
 from app.services.admin_list_filters import normalize_search_query
+
+MAX_EXPORT_ROWS = 10_000
 
 
 @dataclass(frozen=True)
@@ -69,3 +74,50 @@ def list_products(
         .limit(limit)
         .all()
     )
+
+
+def _category_name_map(db: Session) -> dict[str, str]:
+    rows = db.query(Category.id, Category.name).all()
+    return {category_id: name for category_id, name in rows}
+
+
+def export_products_csv(db: Session, filters: ProductListFilters) -> tuple[bytes, int]:
+    products = (
+        _build_products_query(db, filters)
+        .options(*_product_list_options())
+        .limit(MAX_EXPORT_ROWS)
+        .all()
+    )
+    category_names = _category_name_map(db)
+
+    buffer = io.StringIO()
+    buffer.write("\ufeff")
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(
+        [
+            "ID",
+            "Бренд",
+            "Название",
+            "Категория",
+            "Цена (BYN)",
+            "Цена со скидкой (BYN)",
+            "Наличие",
+            "Краткие характеристики",
+        ]
+    )
+
+    for product in products:
+        writer.writerow(
+            [
+                product.id,
+                product.brand,
+                product.name,
+                category_names.get(product.category, product.category),
+                f"{product.price:.2f}",
+                f"{product.sale_price:.2f}" if product.sale_price is not None else "",
+                "В наличии" if product.in_stock else "Под заказ",
+                product.specs_short,
+            ]
+        )
+
+    return buffer.getvalue().encode("utf-8"), len(products)

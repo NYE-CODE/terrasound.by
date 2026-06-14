@@ -3,10 +3,11 @@ import { FormField, FormRequiredNote } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
 import { formCardClass, inputClass } from "../lib/formStyles";
+import { STRONG_PASSWORD_HINT, STRONG_PASSWORD_MIN_LENGTH, validateStrongPassword } from "../lib/passwordPolicy";
 import { ApiError, api } from "../lib/api";
 
 export function ChangePasswordPage() {
-  const { token, logout } = useAuth();
+  const { status, logout } = useAuth();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,8 +18,9 @@ export function ChangePasswordPage() {
     e.preventDefault();
     setError("");
 
-    if (newPassword.length < 8) {
-      setError("Новый пароль должен быть не короче 8 символов");
+    const passwordError = validateStrongPassword(newPassword);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -27,11 +29,11 @@ export function ChangePasswordPage() {
       return;
     }
 
-    if (!token) return;
+    if (status !== "authenticated") return;
 
     setSubmitting(true);
     try {
-      await api.changePassword(token, {
+      await api.changePassword({
         currentPassword,
         newPassword,
       });
@@ -66,14 +68,14 @@ export function ChangePasswordPage() {
           />
         </FormField>
 
-        <FormField label="Новый пароль" htmlFor="password-new" required hint="Не короче 8 символов">
+        <FormField label="Новый пароль" htmlFor="password-new" required hint={STRONG_PASSWORD_HINT}>
           <input
             id="password-new"
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             autoComplete="new-password"
-            minLength={8}
+            minLength={STRONG_PASSWORD_MIN_LENGTH}
             className={inputClass}
             required
           />
@@ -86,7 +88,7 @@ export function ChangePasswordPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             autoComplete="new-password"
-            minLength={8}
+            minLength={STRONG_PASSWORD_MIN_LENGTH}
             className={inputClass}
             required
           />

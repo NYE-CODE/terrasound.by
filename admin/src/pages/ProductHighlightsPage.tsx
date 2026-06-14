@@ -24,29 +24,29 @@ function textToHighlights(text: string): string[] {
 }
 
 export function ProductHighlightsPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [text, setText] = useState(highlightsToText(DEFAULT_LINES));
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     api
-      .productHighlights(token)
+      .productHighlights()
       .then((data: ProductHighlights) => setText(highlightsToText(data.highlights)))
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [status]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     setSaved(false);
     const payload: ProductHighlightsInput = { highlights: textToHighlights(text) };
     try {
-      const data = await api.updateProductHighlights(token, payload);
+      const data = await api.updateProductHighlights(payload);
       setText(highlightsToText(data.highlights));
       setSaved(true);
     } catch (error) {

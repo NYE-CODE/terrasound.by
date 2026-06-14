@@ -4,13 +4,13 @@ import { useAuth } from "../context/AuthContext";
 import { ApiError } from "../lib/api";
 
 export function LoginPage() {
-  const { token, status, login } = useAuth();
+  const { status, login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (token && status === "authenticated") return <Navigate to="/" replace />;
+  if (status === "authenticated") return <Navigate to="/" replace />;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

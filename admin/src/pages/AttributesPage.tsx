@@ -8,20 +8,20 @@ import { api, type AttributeDef } from "../lib/api";
 import { FILTER_TYPE_LABELS, VALUE_TYPE_LABELS } from "../lib/filterTypes";
 
 export function AttributesPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [items, setItems] = useState<AttributeDef[]>([]);
 
   const load = () => {
-    if (!token) return;
-    api.attributes(token).then(setItems).catch(reportLoadError);
+    if (status !== "authenticated") return;
+    api.attributes().then(setItems).catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [status]);
 
   const remove = async (id: string) => {
-    if (!token || !confirm("Удалить атрибут?")) return;
+    if (status !== "authenticated" || !confirm("Удалить атрибут?")) return;
     try {
-      await api.deleteAttribute(token, id);
+      await api.deleteAttribute(id);
       load();
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
@@ -30,7 +30,7 @@ export function AttributesPage() {
         );
         if (!cascade) return;
         try {
-          await api.deleteAttribute(token, id, { cascade: true });
+          await api.deleteAttribute(id, { cascade: true });
           load();
         } catch (cascadeError) {
           reportActionError(cascadeError);

@@ -5,6 +5,7 @@ import { OrderStatusFilter, PaymentMethodFilter } from "../components/molecules/
 import { OrderStatusSelect } from "../components/molecules/OrderStatusSelect";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
+import { useAdminStats } from "../context/AdminStatsContext";
 import { useAuth } from "../context/AuthContext";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { PAGE_SIZE } from "../hooks/usePagination";
@@ -25,32 +26,33 @@ const emptyFilters = {
 };
 
 export function OrdersPage() {
-  const { token } = useAuth();
+  const { status: authStatus } = useAuth();
+  const { refreshOrdersNew } = useAdminStats();
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [search, setSearch] = useState(emptyFilters.search);
-  const [status, setStatus] = useState<OrderStatus | "">(emptyFilters.status);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus | "">(emptyFilters.status);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">(emptyFilters.paymentMethod);
   const [dateFrom, setDateFrom] = useState(emptyFilters.dateFrom);
   const [dateTo, setDateTo] = useState(emptyFilters.dateTo);
   const debouncedSearch = useDebouncedValue(search);
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-  const filterSignature = [debouncedSearch, status, paymentMethod, dateFrom, dateTo].join("\0");
+  const filterSignature = [debouncedSearch, orderStatus, paymentMethod, dateFrom, dateTo].join("\0");
   const prevFilterSignature = useRef(filterSignature);
 
   const listParams = {
     q: debouncedSearch || undefined,
-    status: status || undefined,
+    status: orderStatus || undefined,
     paymentMethod: paymentMethod || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
   };
 
   useEffect(() => {
-    if (!token) return;
+    if (authStatus !== "authenticated") return;
 
     if (prevFilterSignature.current !== filterSignature) {
       prevFilterSignature.current = filterSignature;
@@ -62,38 +64,40 @@ export function OrdersPage() {
 
     const offset = (page - 1) * PAGE_SIZE;
     api
-      .orders(token, { limit: PAGE_SIZE, offset, ...listParams })
+      .orders({ limit: PAGE_SIZE, offset, ...listParams })
       .then((result) => {
         setOrders(result.data);
         setTotalItems(result.meta.total);
       })
       .catch(reportLoadError);
-  }, [token, page, filterSignature]);
+  }, [authStatus, page, filterSignature]);
 
   const updateStatus = async (orderId: string, nextStatus: OrderStatus) => {
-    if (!token) return;
+    if (authStatus !== "authenticated") return;
     try {
-      await api.updateOrderStatus(token, orderId, nextStatus);
+      await api.updateOrderStatus(orderId, nextStatus);
       setOrders((prev) =>
         prev.map((order) => (order.id === orderId ? { ...order, status: nextStatus } : order)),
       );
+      void refreshOrdersNew();
     } catch (error) {
       reportActionError(error, "Не удалось обновить статус заказа.");
     }
   };
 
   const remove = async (orderId: string) => {
-    if (!token || !confirm("Удалить заказ?")) return;
+    if (authStatus !== "authenticated" || !confirm("Удалить заказ?")) return;
     try {
-      await api.deleteOrder(token, orderId);
+      await api.deleteOrder(orderId);
       if (expandedId === orderId) setExpandedId(null);
       const offset = (page - 1) * PAGE_SIZE;
-      const result = await api.orders(token, { limit: PAGE_SIZE, offset, ...listParams });
+      const result = await api.orders({ limit: PAGE_SIZE, offset, ...listParams });
       setOrders(result.data);
       setTotalItems(result.meta.total);
       if (result.data.length === 0 && page > 1) {
         setPage(page - 1);
       }
+      void refreshOrdersNew();
     } catch (error) {
       reportActionError(error);
     }
@@ -101,17 +105,17 @@ export function OrdersPage() {
 
   const resetFilters = () => {
     setSearch(emptyFilters.search);
-    setStatus(emptyFilters.status);
+    setOrderStatus(emptyFilters.status);
     setPaymentMethod(emptyFilters.paymentMethod);
     setDateFrom(emptyFilters.dateFrom);
     setDateTo(emptyFilters.dateTo);
   };
 
   const exportCsv = async () => {
-    if (!token) return;
+    if (authStatus !== "authenticated") return;
     setExporting(true);
     try {
-      await api.exportOrders(token, listParams);
+      await api.exportOrders(listParams);
     } catch (error) {
       reportActionError(error, "Не удалось экспортировать заказы.");
     } finally {
@@ -139,7 +143,7 @@ export function OrdersPage() {
         totalItems={totalItems}
         totalLabel="Найдено заказов"
       >
-        <OrderStatusFilter value={status} onChange={setStatus} />
+        <OrderStatusFilter value={orderStatus} onChange={setOrderStatus} />
         <PaymentMethodFilter value={paymentMethod} onChange={setPaymentMethod} />
       </AdminListToolbar>
 

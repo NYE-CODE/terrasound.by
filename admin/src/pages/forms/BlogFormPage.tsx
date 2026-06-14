@@ -19,7 +19,7 @@ const emptyForm: BlogPostInput = {
 export function BlogFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState(emptyForm);
@@ -27,8 +27,8 @@ export function BlogFormPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token || !id) return;
-    api.blogPosts(token).then((items) => {
+    if (status !== "authenticated" || !id) return;
+    api.blogPosts().then((items) => {
       const item = items.find((p) => p.id === id);
       if (item) {
         setForm({
@@ -40,17 +40,17 @@ export function BlogFormPage() {
         });
       }
     }).catch(reportLoadError).finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     try {
       if (isEdit && id) {
-        await api.updateBlogPost(token, id, form);
+        await api.updateBlogPost(id, form);
       } else {
-        await api.createBlogPost(token, form);
+        await api.createBlogPost(form);
       }
       navigate("/blog");
     } catch (error) {

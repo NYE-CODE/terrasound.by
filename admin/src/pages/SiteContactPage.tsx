@@ -40,28 +40,28 @@ function toForm(contact: SiteContact): SiteContactInput {
 }
 
 export function SiteContactPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [form, setForm] = useState<SiteContactInput>(defaultForm);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     api
-      .siteContact(token)
+      .siteContact()
       .then((contact) => setForm(toForm(contact)))
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [status]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     setSaved(false);
     try {
-      const contact = await api.updateSiteContact(token, form);
+      const contact = await api.updateSiteContact(form);
       setForm(toForm(contact));
       setSaved(true);
     } catch (error) {

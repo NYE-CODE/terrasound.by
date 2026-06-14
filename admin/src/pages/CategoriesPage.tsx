@@ -10,20 +10,20 @@ import { api, type CategoryAdmin } from "../lib/api";
 import { resolveMediaUrl } from "../lib/mediaUrl";
 
 export function CategoriesPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [items, setItems] = useState<CategoryAdmin[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<CategoryAdmin | null>(null);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(items);
 
   const load = () => {
-    if (!token) return;
-    api.categories(token).then(setItems).catch(reportLoadError);
+    if (status !== "authenticated") return;
+    api.categories().then(setItems).catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [status]);
 
   const remove = async (id: string) => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     const item = items.find((entry) => entry.id === id);
     if (!item) return;
 
@@ -34,7 +34,7 @@ export function CategoriesPage() {
 
     if (!confirm(`Удалить категорию «${item.name}»?`)) return;
     try {
-      await api.deleteCategory(token, id);
+      await api.deleteCategory(id);
       load();
     } catch (error) {
       reportActionError(error);
@@ -67,15 +67,14 @@ export function CategoriesPage() {
 
       <Pagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
 
-      {deleteTarget && token && (
+      {deleteTarget ? (
         <CategoryDeleteDialog
           category={deleteTarget}
           otherCategories={items.filter((item) => item.id !== deleteTarget.id)}
-          token={token}
           onClose={() => setDeleteTarget(null)}
           onDeleted={load}
         />
-      )}
+      ) : null}
     </div>
   );
 }

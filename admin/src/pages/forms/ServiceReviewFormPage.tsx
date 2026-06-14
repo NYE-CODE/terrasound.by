@@ -11,7 +11,7 @@ import { api } from "../../lib/api";
 
 export function ServiceReviewFormPage() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [author, setAuthor] = useState("");
   const [car, setCar] = useState("");
   const [rating, setRating] = useState(5);
@@ -20,10 +20,10 @@ export function ServiceReviewFormPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     try {
-      await api.createServiceReview(token, { author, car: car || undefined, rating, text, published: true });
+      await api.createServiceReview({ author, car: car || undefined, rating, text, published: true });
       navigate("/reviews/service");
     } catch (error) {
       reportFormError(error);

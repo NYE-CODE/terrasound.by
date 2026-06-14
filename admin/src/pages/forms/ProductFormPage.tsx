@@ -48,7 +48,7 @@ function textToSpecs(value: string) {
 export function ProductFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<ProductInput>(emptyForm);
@@ -64,21 +64,21 @@ export function ProductFormPage() {
   const [attributeValues, setAttributeValues] = useState<Record<string, string | number | boolean | null>>({});
 
   useEffect(() => {
-    if (!token) return;
-    Promise.all([api.categories(token), api.brands(token)])
+    if (status !== "authenticated") return;
+    Promise.all([api.categories(), api.brands()])
       .then(([categoryItems, brandItems]) => {
         setCategories(categoryItems);
         setBrands(brandItems);
       })
       .catch(reportLoadError);
-  }, [token]);
+  }, [status]);
 
   const brandNames = useMemo(() => new Set(brands.map((brand) => brand.name)), [brands]);
   const currentBrandMissing = Boolean(form.brand && !brandNames.has(form.brand));
 
   useEffect(() => {
-    if (!token || !id) return;
-    api.product(token, id).then((product) => {
+    if (status !== "authenticated" || !id) return;
+    api.product(id).then((product) => {
       setForm({
         brand: product.brand,
         name: product.name,
@@ -94,17 +94,17 @@ export function ProductFormPage() {
       setCompatibilityText(listToLines(product.compatibility));
       setAttributeValues(product.attributes ?? {});
     }).catch(reportLoadError).finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   useEffect(() => {
-    if (!token || !form.category) {
+    if (status !== "authenticated" || !form.category) {
       setAttributeSchema([]);
       setAttributeSchemaLoading(false);
       return;
     }
     setAttributeSchemaLoading(true);
     api
-      .categoryAttributeSchema(token, form.category)
+      .categoryAttributeSchema(form.category)
       .then((schema) => {
         setAttributeSchema(schema);
         setAttributeValues((prev) => {
@@ -119,11 +119,11 @@ export function ProductFormPage() {
       })
       .catch(reportLoadError)
       .finally(() => setAttributeSchemaLoading(false));
-  }, [token, form.category]);
+  }, [status, form.category]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     if (attributeSchemaLoading) {
       alert("Подождите, загружаются характеристики товара.");
       return;
@@ -175,9 +175,9 @@ export function ProductFormPage() {
         if (payload.attributes !== undefined) {
           updatePayload.attributes = payload.attributes;
         }
-        await api.updateProduct(token, id, updatePayload);
+        await api.updateProduct(id, updatePayload);
       } else {
-        await api.createProduct(token, payload);
+        await api.createProduct(payload);
       }
       navigate("/products");
     } catch (error) {
@@ -311,8 +311,7 @@ export function ProductFormPage() {
           value={form.imageUrl}
           onChange={(imageUrl) => setForm({ ...form, imageUrl })}
           onUpload={async (file) => {
-            if (!token) throw new Error("Нужна авторизация");
-            return api.uploadProductImage(token, file, isEdit ? id : undefined);
+            return api.uploadProductImage(file, isEdit ? id : undefined);
           }}
         />
 
@@ -330,8 +329,7 @@ export function ProductFormPage() {
             images={galleryImages}
             onChange={setGalleryImages}
             onUpload={async (file) => {
-              if (!token) throw new Error("Нужна авторизация");
-              return api.uploadProductImage(token, file, isEdit ? id : undefined);
+              return api.uploadProductImage(file, isEdit ? id : undefined);
             }}
           />
         </div>

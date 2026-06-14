@@ -20,7 +20,7 @@ const emptyForm: PortfolioWorkInput = {
 export function PortfolioFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState(emptyForm);
@@ -28,9 +28,9 @@ export function PortfolioFormPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (status !== "authenticated" || !id) return;
     api
-      .portfolioWorks(token)
+      .portfolioWorks()
       .then((items) => {
         const item = items.find((work) => work.id === id);
         if (item) {
@@ -44,11 +44,11 @@ export function PortfolioFormPage() {
       })
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     if (!form.imageUrl.trim()) {
       alert("Загрузите фото работы.");
       return;
@@ -56,9 +56,9 @@ export function PortfolioFormPage() {
     setSubmitting(true);
     try {
       if (isEdit && id) {
-        await api.updatePortfolioWork(token, id, form);
+        await api.updatePortfolioWork(id, form);
       } else {
-        await api.createPortfolioWork(token, form);
+        await api.createPortfolioWork(form);
       }
       navigate("/portfolio");
     } catch (error) {
@@ -99,8 +99,7 @@ export function PortfolioFormPage() {
           value={form.imageUrl}
           onChange={(imageUrl) => setForm({ ...form, imageUrl })}
           onUpload={async (file) => {
-            if (!token) throw new Error("Нужна авторизация");
-            return api.uploadPortfolioImage(token, file, isEdit ? id : undefined);
+            return api.uploadPortfolioImage(file, isEdit ? id : undefined);
           }}
         />
 

@@ -1,4 +1,4 @@
-import { Children, type CSSProperties } from "react";
+import { Children } from "react";
 import { Download, RotateCcw } from "lucide-react";
 import { SearchInput } from "../atoms/SearchInput";
 import { DateRangePicker } from "./DateRangePicker";
@@ -20,10 +20,11 @@ interface AdminListToolbarProps {
   children?: React.ReactNode;
 }
 
-function buildToolbarColumns(middleSlotCount: number): string {
-  const slots = Array.from({ length: middleSlotCount }, () => "minmax(0,1fr)").join("_");
-  return `minmax(0,2fr)${slots ? `_${slots}` : ""}_auto`;
-}
+const TOOLBAR_GRID_CLASS: Record<number, string> = {
+  2: "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]",
+  3: "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]",
+  4: "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]",
+};
 
 export function AdminListToolbar({
   search,
@@ -42,14 +43,11 @@ export function AdminListToolbar({
   children,
 }: AdminListToolbarProps) {
   const filterSlotCount = Children.count(children) + (showDateRange ? 1 : 0);
-  const toolbarColumns = buildToolbarColumns(filterSlotCount);
+  const toolbarGridClass = TOOLBAR_GRID_CLASS[filterSlotCount] ?? TOOLBAR_GRID_CLASS[3];
 
   return (
     <div className="mb-6 space-y-3 min-w-0">
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center min-w-0 xl:[grid-template-columns:var(--toolbar-cols)]"
-        style={{ "--toolbar-cols": toolbarColumns } as CSSProperties}
-      >
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 items-center min-w-0 ${toolbarGridClass}`}>
         <SearchInput
           value={search}
           onChange={onSearchChange}

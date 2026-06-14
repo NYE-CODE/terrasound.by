@@ -8,21 +8,21 @@ import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type InstallationService } from "../lib/api";
 
 export function ServicesPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [items, setItems] = useState<InstallationService[]>([]);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(items);
 
   const load = () => {
-    if (!token) return;
-    api.services(token).then(setItems).catch(reportLoadError);
+    if (status !== "authenticated") return;
+    api.services().then(setItems).catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [status]);
 
   const remove = async (id: string) => {
-    if (!token || !confirm("Удалить услугу?")) return;
+    if (status !== "authenticated" || !confirm("Удалить услугу?")) return;
     try {
-      await api.deleteService(token, id);
+      await api.deleteService(id);
       load();
     } catch (error) {
       reportActionError(error);

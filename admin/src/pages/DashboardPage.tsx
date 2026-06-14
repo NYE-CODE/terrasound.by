@@ -6,13 +6,13 @@ import { useAuth } from "../context/AuthContext";
 import { api, type DashboardStats } from "../lib/api";
 
 export function DashboardPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-    api.dashboard(token).then(setStats).catch(reportLoadError);
-  }, [token]);
+    if (status !== "authenticated") return;
+    api.dashboard().then(setStats).catch(reportLoadError);
+  }, [status]);
 
   return (
     <div>

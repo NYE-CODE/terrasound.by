@@ -8,17 +8,17 @@ import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type ServiceReview } from "../lib/api";
 
 export function ServiceReviewsPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [reviews, setReviews] = useState<ServiceReview[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const load = () => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     const offset = (page - 1) * PAGE_SIZE;
     api
-      .serviceReviews(token, { limit: PAGE_SIZE, offset })
+      .serviceReviews({ limit: PAGE_SIZE, offset })
       .then((result) => {
         setReviews(result.data);
         setTotalItems(result.meta.total);
@@ -26,12 +26,12 @@ export function ServiceReviewsPage() {
       .catch(reportLoadError);
   };
 
-  useEffect(load, [token, page]);
+  useEffect(load, [status, page]);
 
   const togglePublished = async (review: ServiceReview) => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     try {
-      await api.updateServiceReview(token, review.id, { published: !review.published });
+      await api.updateServiceReview(review.id, { published: !review.published });
       load();
     } catch (error) {
       reportActionError(error, "Не удалось изменить статус публикации.");
@@ -39,9 +39,9 @@ export function ServiceReviewsPage() {
   };
 
   const remove = async (reviewId: string) => {
-    if (!token || !confirm("Удалить отзыв?")) return;
+    if (status !== "authenticated" || !confirm("Удалить отзыв?")) return;
     try {
-      await api.deleteServiceReview(token, reviewId);
+      await api.deleteServiceReview(reviewId);
       load();
     } catch (error) {
       reportActionError(error);

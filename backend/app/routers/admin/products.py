@@ -1,6 +1,8 @@
+from datetime import date
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
 
 from app.api_constants import ADMIN_V1_PREFIX
@@ -9,7 +11,12 @@ from app.models.product import Product
 from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.content import ProductAdminOut, ProductCreate, ProductUpdate
 from app.schemas.pagination import PaginatedOut, paginated
-from app.services.admin_products_list import ProductListFilters, count_products, list_products
+from app.services.admin_products_list import (
+    ProductListFilters,
+    count_products,
+    export_products_csv,
+    list_products,
+)
 from app.services.product_admin import (
     create_product,
     delete_product,
@@ -23,6 +30,24 @@ router = APIRouter(
     tags=["admin-products"],
     dependencies=ADMIN_ROUTER_DEPENDENCIES,
 )
+
+
+@router.get("/export")
+def export_products_admin(
+    db: Annotated[Session, Depends(get_db)],
+    q: str | None = Query(default=None, max_length=200),
+    category: str | None = Query(default=None, max_length=50),
+    brand: str | None = Query(default=None, max_length=100),
+    in_stock: bool | None = Query(default=None, alias="inStock"),
+) -> Response:
+    filters = ProductListFilters(q=q, category=category, brand=brand, in_stock=in_stock)
+    content, _count = export_products_csv(db, filters)
+    filename = f"products-{date.today().isoformat()}.csv"
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("", response_model=PaginatedOut[ProductAdminOut])

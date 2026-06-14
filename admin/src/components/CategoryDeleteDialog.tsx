@@ -6,7 +6,6 @@ import { api, type CategoryAdmin } from "../lib/api";
 interface CategoryDeleteDialogProps {
   category: CategoryAdmin;
   otherCategories: CategoryAdmin[];
-  token: string;
   onClose: () => void;
   onDeleted: () => void;
 }
@@ -14,7 +13,6 @@ interface CategoryDeleteDialogProps {
 export function CategoryDeleteDialog({
   category,
   otherCategories,
-  token,
   onClose,
   onDeleted,
 }: CategoryDeleteDialogProps) {
@@ -45,7 +43,7 @@ export function CategoryDeleteDialog({
         if (!ok) return;
       }
 
-      await api.deleteCategory(token, category.id, {
+      await api.deleteCategory(category.id, {
         strategy: strategy === "default" ? undefined : strategy,
         moveToCategoryId: strategy === "move" ? moveToCategoryId : undefined,
       });

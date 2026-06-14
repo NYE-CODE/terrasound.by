@@ -21,7 +21,7 @@ const emptyForm: BrandInput = {
 export function BrandFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState(emptyForm);
@@ -29,8 +29,8 @@ export function BrandFormPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token || !id) return;
-    api.brands(token).then((items) => {
+    if (status !== "authenticated" || !id) return;
+    api.brands().then((items) => {
       const item = items.find((b) => b.id === id);
       if (item) {
         setForm({
@@ -43,17 +43,17 @@ export function BrandFormPage() {
         });
       }
     }).catch(reportLoadError).finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     try {
       if (isEdit && id) {
-        await api.updateBrand(token, id, form);
+        await api.updateBrand(id, form);
       } else {
-        await api.createBrand(token, form);
+        await api.createBrand(form);
       }
       navigate("/brands");
     } catch (error) {

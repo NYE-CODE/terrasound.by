@@ -12,65 +12,53 @@ import { api, setUnauthorizedHandler } from "../lib/api";
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
 interface AuthContextValue {
-  token: string | null;
   status: AuthStatus;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const TOKEN_KEY = "terrasound_admin_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
-  const [status, setStatus] = useState<AuthStatus>(() => (token ? "loading" : "unauthenticated"));
+  const [status, setStatus] = useState<AuthStatus>("loading");
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
+    void api.logout().catch(() => undefined);
     setStatus("unauthenticated");
   }, []);
 
   useEffect(() => {
-    setUnauthorizedHandler(logout);
+    setUnauthorizedHandler(() => setStatus("unauthenticated"));
     return () => setUnauthorizedHandler(null);
-  }, [logout]);
+  }, []);
 
   useEffect(() => {
-    if (!token) {
-      setStatus("unauthenticated");
-      return;
-    }
-
     let cancelled = false;
-    setStatus("loading");
 
     api
-      .dashboard(token)
+      .dashboard()
       .then(() => {
         if (!cancelled) setStatus("authenticated");
       })
       .catch(() => {
-        if (!cancelled) logout();
+        if (!cancelled) setStatus("unauthenticated");
       });
 
     return () => {
       cancelled = true;
     };
-  }, [token, logout]);
+  }, []);
 
   const value = useMemo(
     () => ({
-      token,
       status,
       async login(username: string, password: string) {
-        const result = await api.login(username, password);
-        localStorage.setItem(TOKEN_KEY, result.accessToken);
-        setToken(result.accessToken);
+        await api.login(username, password);
+        setStatus("authenticated");
       },
       logout,
     }),
-    [token, status, logout],
+    [status, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

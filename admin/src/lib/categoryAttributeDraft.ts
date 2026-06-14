@@ -79,7 +79,6 @@ function draftToSyncItem(draft: CategoryAttributeDraft, sortOrder: number): Cate
 }
 
 export async function syncCategoryAttributes(
-  token: string,
   categoryId: string,
   draft: CategoryAttributeDraft[],
 ) {
@@ -92,7 +91,7 @@ export async function syncCategoryAttributes(
   }
 
   const items = draft.map((item, index) => draftToSyncItem(item, index));
-  await api.syncCategoryAttributes(token, categoryId, items);
+  await api.syncCategoryAttributes(categoryId, items);
 }
 
 export function patchDraft(

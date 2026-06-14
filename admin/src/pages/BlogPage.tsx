@@ -8,21 +8,21 @@ import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type BlogPost } from "../lib/api";
 
 export function BlogPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [items, setItems] = useState<BlogPost[]>([]);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(items);
 
   const load = () => {
-    if (!token) return;
-    api.blogPosts(token).then(setItems).catch(reportLoadError);
+    if (status !== "authenticated") return;
+    api.blogPosts().then(setItems).catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [status]);
 
   const remove = async (id: string) => {
-    if (!token || !confirm("Удалить статью?")) return;
+    if (status !== "authenticated" || !confirm("Удалить статью?")) return;
     try {
-      await api.deleteBlogPost(token, id);
+      await api.deleteBlogPost(id);
       load();
     } catch (error) {
       reportActionError(error);

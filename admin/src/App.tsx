@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AdminStatsProvider } from "./context/AdminStatsContext";
 import { AdminLayout } from "./components/AdminLayout";
 import { BlogPage } from "./pages/BlogPage";
 import { BrandsPage } from "./pages/BrandsPage";
@@ -29,7 +30,7 @@ import { SiteStatsPage } from "./pages/SiteStatsPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { token, status } = useAuth();
+  const { status } = useAuth();
 
   if (status === "loading") {
     return (
@@ -39,7 +40,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!token || status !== "authenticated") {
+  if (status !== "authenticated") {
     return <Navigate to="/login" replace />;
   }
 
@@ -55,7 +56,9 @@ export default function App() {
           <Route
             element={
               <ProtectedRoute>
-                <AdminLayout />
+                <AdminStatsProvider>
+                  <AdminLayout />
+                </AdminStatsProvider>
               </ProtectedRoute>
             }
           >

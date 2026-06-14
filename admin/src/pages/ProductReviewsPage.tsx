@@ -8,7 +8,7 @@ import { api, type ProductReview } from "../lib/api";
 import { maskEmail } from "../lib/maskEmail";
 
 export function ProductReviewsPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(1);
@@ -16,10 +16,10 @@ export function ProductReviewsPage() {
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
   const load = () => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     const offset = (page - 1) * PAGE_SIZE;
     api
-      .productReviews(token, { limit: PAGE_SIZE, offset })
+      .productReviews({ limit: PAGE_SIZE, offset })
       .then((result) => {
         setReviews(result.data);
         setTotalItems(result.meta.total);
@@ -27,12 +27,12 @@ export function ProductReviewsPage() {
       .catch(reportLoadError);
   };
 
-  useEffect(load, [token, page]);
+  useEffect(load, [status, page]);
 
   const togglePublished = async (review: ProductReview) => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     try {
-      await api.updateProductReview(token, review.id, !review.published);
+      await api.updateProductReview(review.id, !review.published);
       load();
     } catch (error) {
       reportActionError(error, "Не удалось изменить статус публикации.");

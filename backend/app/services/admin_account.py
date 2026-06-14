@@ -5,6 +5,8 @@ from app.config import settings
 from app.db_commit import commit_or_raise
 from app.models.admin_account import AdminAccount
 
+from app.services.password_policy import validate_strong_password
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -52,6 +54,8 @@ def change_admin_password(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный текущий пароль",
         )
+
+    validate_strong_password(new_password)
 
     account.password_hash = hash_password(new_password)
     # Инвалидирует все выданные JWT — ver в токене перестаёт совпадать с БД.

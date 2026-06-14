@@ -20,13 +20,14 @@ const emptyFilters = {
 
 export function ProductsPage() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<CategoryAdmin[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(1);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
   const [search, setSearch] = useState(emptyFilters.search);
   const [category, setCategory] = useState(emptyFilters.category);
   const [brand, setBrand] = useState(emptyFilters.brand);
@@ -44,17 +45,17 @@ export function ProductsPage() {
   };
 
   useEffect(() => {
-    if (!token) return;
-    Promise.all([api.categories(token), api.brands(token)])
+    if (status !== "authenticated") return;
+    Promise.all([api.categories(), api.brands()])
       .then(([categoryItems, brandItems]) => {
         setCategories(categoryItems);
         setBrands(brandItems);
       })
       .catch(reportLoadError);
-  }, [token]);
+  }, [status]);
 
   useEffect(() => {
-    if (!token) return;
+    if (status !== "authenticated") return;
 
     if (prevFilterSignature.current !== filterSignature) {
       prevFilterSignature.current = filterSignature;
@@ -66,20 +67,20 @@ export function ProductsPage() {
 
     const offset = (page - 1) * PAGE_SIZE;
     api
-      .products(token, { limit: PAGE_SIZE, offset, ...listParams })
+      .products({ limit: PAGE_SIZE, offset, ...listParams })
       .then((result) => {
         setProducts(result.data);
         setTotalItems(result.meta.total);
       })
       .catch(reportLoadError);
-  }, [token, page, filterSignature]);
+  }, [status, page, filterSignature]);
 
   const remove = async (productId: string) => {
-    if (!token || !confirm("Удалить товар?")) return;
+    if (status !== "authenticated" || !confirm("Удалить товар?")) return;
     try {
-      await api.deleteProduct(token, productId);
+      await api.deleteProduct(productId);
       const offset = (page - 1) * PAGE_SIZE;
-      const result = await api.products(token, { limit: PAGE_SIZE, offset, ...listParams });
+      const result = await api.products({ limit: PAGE_SIZE, offset, ...listParams });
       setProducts(result.data);
       setTotalItems(result.meta.total);
       if (result.data.length === 0 && page > 1) {
@@ -91,10 +92,10 @@ export function ProductsPage() {
   };
 
   const duplicate = async (productId: string) => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     setDuplicatingId(productId);
     try {
-      const copy = await api.duplicateProduct(token, productId);
+      const copy = await api.duplicateProduct(productId);
       navigate(`/products/${copy.id}/edit`);
     } catch (error) {
       reportActionError(error);
@@ -108,6 +109,18 @@ export function ProductsPage() {
     setCategory(emptyFilters.category);
     setBrand(emptyFilters.brand);
     setInStock(emptyFilters.inStock);
+  };
+
+  const exportCsv = async () => {
+    if (status !== "authenticated") return;
+    setExporting(true);
+    try {
+      await api.exportProducts(listParams);
+    } catch (error) {
+      reportActionError(error, "Не удалось экспортировать товары.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const categoryNames = Object.fromEntries(categories.map((item) => [item.id, item.name]));
@@ -124,7 +137,8 @@ export function ProductsPage() {
         totalItems={totalItems}
         totalLabel="Найдено товаров"
         showDateRange={false}
-        showExport={false}
+        onExport={exportCsv}
+        exporting={exporting}
       >
         <CategoryFilter value={category} onChange={setCategory} categories={categories} />
         <BrandFilter value={brand} onChange={setBrand} brands={brands} />

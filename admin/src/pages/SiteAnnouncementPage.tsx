@@ -30,24 +30,24 @@ function toForm(announcement: SiteAnnouncement): SiteAnnouncementInput {
 }
 
 export function SiteAnnouncementPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [form, setForm] = useState<SiteAnnouncementInput>(defaultForm);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     api
-      .siteAnnouncement(token)
+      .siteAnnouncement()
       .then((announcement) => setForm(toForm(announcement)))
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [status]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     setSaved(false);
     const payload: SiteAnnouncementInput = {
@@ -55,7 +55,7 @@ export function SiteAnnouncementPage() {
       scrollDurationSeconds: clampScrollDuration(form.scrollDurationSeconds),
     };
     try {
-      const announcement = await api.updateSiteAnnouncement(token, payload);
+      const announcement = await api.updateSiteAnnouncement(payload);
       setForm(toForm(announcement));
       setSaved(true);
     } catch (error) {

@@ -9,21 +9,21 @@ import { api, type PortfolioWork } from "../lib/api";
 import { resolveMediaUrl } from "../lib/mediaUrl";
 
 export function PortfolioPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [items, setItems] = useState<PortfolioWork[]>([]);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(items);
 
   const load = () => {
-    if (!token) return;
-    api.portfolioWorks(token).then(setItems).catch(reportLoadError);
+    if (status !== "authenticated") return;
+    api.portfolioWorks().then(setItems).catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [status]);
 
   const remove = async (id: string) => {
-    if (!token || !confirm("Удалить работу?")) return;
+    if (status !== "authenticated" || !confirm("Удалить работу?")) return;
     try {
-      await api.deletePortfolioWork(token, id);
+      await api.deletePortfolioWork(id);
       load();
     } catch (error) {
       reportActionError(error);

@@ -8,21 +8,21 @@ import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type Brand } from "../lib/api";
 
 export function BrandsPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [items, setItems] = useState<Brand[]>([]);
   const { paginatedItems, page, totalPages, setPage, totalItems, pageSize } = usePagination(items);
 
   const load = () => {
-    if (!token) return;
-    api.brands(token).then(setItems).catch(reportLoadError);
+    if (status !== "authenticated") return;
+    api.brands().then(setItems).catch(reportLoadError);
   };
 
-  useEffect(load, [token]);
+  useEffect(load, [status]);
 
   const remove = async (id: string) => {
-    if (!token || !confirm("Удалить бренд?")) return;
+    if (status !== "authenticated" || !confirm("Удалить бренд?")) return;
     try {
-      await api.deleteBrand(token, id);
+      await api.deleteBrand(id);
       load();
     } catch (error) {
       reportActionError(error);

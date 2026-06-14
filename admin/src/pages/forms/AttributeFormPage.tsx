@@ -34,7 +34,7 @@ const TYPE_HINTS: Record<string, string> = {
 export function AttributeFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<AttributeInput>(emptyForm);
@@ -48,9 +48,9 @@ export function AttributeFormPage() {
   );
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (status !== "authenticated" || !id) return;
     api
-      .attribute(token, id)
+      .attribute(id)
       .then((item) => {
         setForm({
           id: item.id,
@@ -64,11 +64,11 @@ export function AttributeFormPage() {
       })
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     try {
       const options = form.valueType === "enum" ? textToOptions(optionsText) : [];
@@ -94,9 +94,9 @@ export function AttributeFormPage() {
         if (form.valueType === "enum") {
           update.options = options;
         }
-        await api.updateAttribute(token, id, update);
+        await api.updateAttribute(id, update);
       } else {
-        await api.createAttribute(token, payload);
+        await api.createAttribute(payload);
       }
       navigate("/attributes");
     } catch (error) {

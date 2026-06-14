@@ -12,16 +12,16 @@ const defaultForm: SiteStatsInput = {
 };
 
 export function SiteStatsPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [form, setForm] = useState<SiteStatsInput>(defaultForm);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     api
-      .siteStats(token)
+      .siteStats()
       .then((stats: SiteStats) => {
         setForm({
           installationsCompleted: stats.installationsCompleted,
@@ -30,15 +30,15 @@ export function SiteStatsPage() {
       })
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [status]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     setSaved(false);
     try {
-      const stats = await api.updateSiteStats(token, form);
+      const stats = await api.updateSiteStats(form);
       setForm({
         installationsCompleted: stats.installationsCompleted,
         yearsExpertise: stats.yearsExpertise,

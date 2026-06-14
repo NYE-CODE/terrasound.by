@@ -19,7 +19,7 @@ const emptyFilters = {
 };
 
 export function InstallationRequestsPage() {
-  const { token } = useAuth();
+  const { status } = useAuth();
   const [requests, setRequests] = useState<InstallationRequest[]>([]);
   const [services, setServices] = useState<string[]>([]);
   const [totalItems, setTotalItems] = useState(0);
@@ -42,12 +42,12 @@ export function InstallationRequestsPage() {
   };
 
   useEffect(() => {
-    if (!token) return;
-    api.installationRequestServices(token).then(setServices).catch(reportLoadError);
-  }, [token]);
+    if (status !== "authenticated") return;
+    api.installationRequestServices().then(setServices).catch(reportLoadError);
+  }, [status]);
 
   useEffect(() => {
-    if (!token) return;
+    if (status !== "authenticated") return;
 
     if (prevFilterSignature.current !== filterSignature) {
       prevFilterSignature.current = filterSignature;
@@ -59,20 +59,20 @@ export function InstallationRequestsPage() {
 
     const offset = (page - 1) * PAGE_SIZE;
     api
-      .installationRequests(token, { limit: PAGE_SIZE, offset, ...listParams })
+      .installationRequests({ limit: PAGE_SIZE, offset, ...listParams })
       .then((result) => {
         setRequests(result.data);
         setTotalItems(result.meta.total);
       })
       .catch(reportLoadError);
-  }, [token, page, filterSignature]);
+  }, [status, page, filterSignature]);
 
   const remove = async (requestId: string) => {
-    if (!token || !confirm("Удалить заявку?")) return;
+    if (status !== "authenticated" || !confirm("Удалить заявку?")) return;
     try {
-      await api.deleteInstallationRequest(token, requestId);
+      await api.deleteInstallationRequest(requestId);
       const offset = (page - 1) * PAGE_SIZE;
-      const result = await api.installationRequests(token, { limit: PAGE_SIZE, offset, ...listParams });
+      const result = await api.installationRequests({ limit: PAGE_SIZE, offset, ...listParams });
       setRequests(result.data);
       setTotalItems(result.meta.total);
       if (result.data.length === 0 && page > 1) {
@@ -91,10 +91,10 @@ export function InstallationRequestsPage() {
   };
 
   const exportCsv = async () => {
-    if (!token) return;
+    if (status !== "authenticated") return;
     setExporting(true);
     try {
-      await api.exportInstallationRequests(token, listParams);
+      await api.exportInstallationRequests(listParams);
     } catch (error) {
       reportActionError(error, "Не удалось экспортировать заявки.");
     } finally {

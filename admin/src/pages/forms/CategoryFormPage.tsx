@@ -29,7 +29,7 @@ const emptyForm: CategoryInput = {
 export function CategoryFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { status } = useAuth();
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<CategoryInput>(emptyForm);
@@ -40,11 +40,11 @@ export function CategoryFormPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token || !id) return;
+    if (status !== "authenticated" || !id) return;
     Promise.all([
-      api.category(token, id),
-      api.categoryAttributes(token, id),
-      api.attributes(token),
+      api.category(id),
+      api.categoryAttributes(id),
+      api.attributes(),
     ])
       .then(([category, links, attributes]) => {
         setForm({
@@ -62,11 +62,11 @@ export function CategoryFormPage() {
       })
       .catch(reportLoadError)
       .finally(() => setLoading(false));
-  }, [token, id]);
+  }, [status, id]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (status !== "authenticated") return;
     setSubmitting(true);
     try {
       if (isEdit && id) {
@@ -78,11 +78,11 @@ export function CategoryFormPage() {
           gridTall: form.gridTall,
           published: form.published,
         };
-        await api.updateCategory(token, id, payload);
-        await syncCategoryAttributes(token, id, attributeLinks);
+        await api.updateCategory(id, payload);
+        await syncCategoryAttributes(id, attributeLinks);
         navigate("/categories");
       } else {
-        await api.createCategory(token, form);
+        await api.createCategory(form);
         navigate(`/categories/${form.id}/edit`);
       }
     } catch (error) {
@@ -149,10 +149,9 @@ export function CategoryFormPage() {
             value={form.imageUrl}
             onChange={(imageUrl) => setForm({ ...form, imageUrl })}
             onUpload={async (file) => {
-              if (!token) throw new Error("Нужна авторизация");
               const categoryId = isEdit ? id! : form.id;
               if (!categoryId) throw new Error("Сначала укажите slug категории");
-              return api.uploadCategoryImage(token, categoryId, file);
+              return api.uploadCategoryImage(categoryId, file);
             }}
           />
 
