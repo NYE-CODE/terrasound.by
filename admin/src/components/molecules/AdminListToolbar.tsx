@@ -1,6 +1,6 @@
-import { Download, RotateCcw, Search } from "lucide-react";
+import { Download, RotateCcw } from "lucide-react";
+import { SearchInput } from "../atoms/SearchInput";
 import { DateRangePicker } from "./DateRangePicker";
-import { inputClass } from "../lib/formStyles";
 
 interface AdminListToolbarProps {
   search: string;
@@ -14,10 +14,14 @@ interface AdminListToolbarProps {
   exporting?: boolean;
   totalItems: number;
   totalLabel: string;
+  filterColumns?: 3 | 4;
   children?: React.ReactNode;
 }
 
-const selectClass = `${inputClass} shrink-0 min-w-[9.5rem]`;
+const filterGridClass: Record<3 | 4, string> = {
+  3: "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2",
+  4: "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2",
+};
 
 export function AdminListToolbar({
   search,
@@ -31,32 +35,24 @@ export function AdminListToolbar({
   exporting = false,
   totalItems,
   totalLabel,
+  filterColumns = 4,
   children,
 }: AdminListToolbarProps) {
   return (
-    <div className="mb-6 space-y-3">
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <div className="relative flex-1 min-w-[12rem]">
-          <Search
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] pointer-events-none"
-          />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={searchPlaceholder}
-            className={`${inputClass} pl-9 w-full`}
-          />
-        </div>
+    <div className="mb-6 space-y-3 min-w-0">
+      <div className={filterGridClass[filterColumns]}>
+        <SearchInput
+          value={search}
+          onChange={onSearchChange}
+          placeholder={searchPlaceholder}
+        />
 
-        {children}
+        <div className="contents">{children}</div>
 
         <DateRangePicker
           dateFrom={dateFrom}
           dateTo={dateTo}
           onChange={onDateRangeChange}
-          className="min-w-[12rem]"
         />
       </div>
 
@@ -88,5 +84,3 @@ export function AdminListToolbar({
     </div>
   );
 }
-
-export { selectClass };

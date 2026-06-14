@@ -15,8 +15,8 @@ import {
   startOfDay,
   type DatePresetId,
   WEEKDAY_LABELS,
-} from "../lib/dateRange";
-import { inputClass } from "../lib/formStyles";
+} from "../../lib/dateRange";
+import { inputClass } from "../../lib/formStyles";
 
 interface DateRangePickerProps {
   dateFrom: string;
@@ -173,16 +173,20 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
   const rangeTo = parseDateInput(pendingStart ? "" : draftTo) ?? (pendingStart ? pendingStart : null);
 
   return (
-    <div ref={rootRef} className={`relative shrink-0 ${className}`}>
+    <div ref={rootRef} className={`relative min-w-0 ${className}`.trim()}>
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`${inputClass} min-w-[12rem] inline-flex items-center gap-2 text-left`}
+        className={`${inputClass} w-full min-w-0 inline-flex items-center gap-2 text-left`}
         aria-expanded={open}
         aria-haspopup="dialog"
       >
         <Calendar size={16} className="text-[var(--muted-foreground)] shrink-0" />
-        <span className={dateFrom || dateTo ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}>
+        <span
+          className={`truncate ${
+            dateFrom || dateTo ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
+          }`}
+        >
           {formatDateRangeDisplay(dateFrom, dateTo)}
         </span>
       </button>
@@ -191,9 +195,9 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
         <div
           role="dialog"
           aria-labelledby={listboxId}
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl overflow-hidden"
+          className="absolute left-0 top-[calc(100%+0.5rem)] z-50 flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl overflow-hidden"
         >
-          <div className="w-44 border-r border-[var(--border)] p-2 space-y-1">
+          <div className="w-44 shrink-0 border-r border-[var(--border)] p-2 space-y-1">
             <div id={listboxId} className="sr-only">
               Выбор периода
             </div>

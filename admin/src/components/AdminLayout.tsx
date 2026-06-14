@@ -219,7 +219,7 @@ export function AdminLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 min-w-0 p-8 overflow-auto">
         <Outlet />
       </main>
     </div>

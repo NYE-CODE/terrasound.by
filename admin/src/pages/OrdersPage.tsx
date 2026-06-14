@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
-import { AdminListToolbar, selectClass } from "../components/AdminListToolbar";
+import { AdminListToolbar } from "../components/molecules/AdminListToolbar";
+import { FilterSelect } from "../components/atoms/FilterSelect";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { StatusBadge } from "../components/StatusBadge";
@@ -140,12 +141,12 @@ export function OrdersPage() {
         exporting={exporting}
         totalItems={totalItems}
         totalLabel="Найдено заказов"
+        filterColumns={4}
       >
-        <select
+        <FilterSelect
           value={status}
-          onChange={(e) => setStatus(e.target.value as OrderStatus | "")}
-          className={selectClass}
-          aria-label="Статус"
+          onChange={(value) => setStatus(value as OrderStatus | "")}
+          ariaLabel="Статус"
         >
           <option value="">Все статусы</option>
           {ORDER_STATUSES.map((item) => (
@@ -153,13 +154,12 @@ export function OrdersPage() {
               {ORDER_STATUS_LABELS[item]}
             </option>
           ))}
-        </select>
+        </FilterSelect>
 
-        <select
+        <FilterSelect
           value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}
-          className={selectClass}
-          aria-label="Способ оплаты"
+          onChange={(value) => setPaymentMethod(value as PaymentMethod | "")}
+          ariaLabel="Способ оплаты"
         >
           <option value="">Вся оплата</option>
           {PAYMENT_METHODS.map((item) => (
@@ -167,7 +167,7 @@ export function OrdersPage() {
               {PAYMENT_METHOD_LABELS[item]}
             </option>
           ))}
-        </select>
+        </FilterSelect>
       </AdminListToolbar>
 
       <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg overflow-hidden">
