@@ -1,10 +1,10 @@
 import { Link } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { ProductCard } from "../components/organisms/ProductCard";
-import Masonry from "react-responsive-masonry";
 import { useEffect, useState } from "react";
 import { ReviewCard } from "../components/organisms/ReviewCard";
 import { api, type Brand, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
+import { resolveMediaUrl } from "../lib/mediaUrl";
 import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
@@ -95,7 +95,7 @@ export function HomePage() {
                 } ${category.gridTall ? "md:row-span-2 md:min-h-[400px]" : ""}`}
               >
                 <img
-                  src={category.imageUrl}
+                  src={resolveMediaUrl(category.imageUrl)}
                   alt={category.name}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -156,16 +156,20 @@ export function HomePage() {
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Наши работы</h2>
           {portfolioWorks.length > 0 ? (
-            <Masonry columnsCount={3} gutter="16px">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {portfolioWorks.map((work) => (
-                <div key={work.id} className="relative overflow-hidden rounded group">
-                  <img src={work.imageUrl} alt={work.title} className="w-full" />
+                <div key={work.id} className="relative overflow-hidden rounded aspect-[4/3] group">
+                  <img
+                    src={resolveMediaUrl(work.imageUrl)}
+                    alt={work.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/90 to-transparent">
                     <div className="text-sm font-heading">{work.title}</div>
                   </div>
                 </div>
               ))}
-            </Masonry>
+            </div>
           ) : (
             <p className="text-muted-foreground">Работы скоро появятся</p>
           )}

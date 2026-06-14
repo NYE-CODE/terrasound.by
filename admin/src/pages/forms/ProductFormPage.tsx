@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ProductAttributeFields } from "../../components/ProductAttributeFields";
 import { FormActions } from "../../components/FormActions";
 import { FormField, FormRequiredNote } from "../../components/FormField";
+import { ImageUploadField } from "../../components/ImageUploadField";
+import { ProductImagesField } from "../../components/ProductImagesField";
 import { MoneyInput } from "../../components/MoneyInput";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
@@ -50,7 +52,7 @@ export function ProductFormPage() {
   const isEdit = Boolean(id);
 
   const [form, setForm] = useState<ProductInput>(emptyForm);
-  const [imagesText, setImagesText] = useState("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [specsText, setSpecsText] = useState("");
   const [compatibilityText, setCompatibilityText] = useState("");
   const [loading, setLoading] = useState(isEdit);
@@ -87,7 +89,7 @@ export function ProductFormPage() {
         specsShort: product.specsShort,
         inStock: product.inStock,
       });
-      setImagesText(listToLines(product.images));
+      setGalleryImages(product.images.filter((url) => url !== product.imageUrl));
       setSpecsText(specsToText(product.specs));
       setCompatibilityText(listToLines(product.compatibility));
       setAttributeValues(product.attributes ?? {});
@@ -127,13 +129,18 @@ export function ProductFormPage() {
       return;
     }
 
+    if (!form.imageUrl.trim()) {
+      alert("Загрузите главное изображение товара.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload: ProductInput = {
         ...form,
         price: roundMoney(form.price),
         salePrice: form.salePrice != null ? roundMoney(form.salePrice) : null,
-        images: linesToList(imagesText),
+        images: galleryImages,
         specs: textToSpecs(specsText),
         compatibility: linesToList(compatibilityText),
       };
@@ -297,15 +304,18 @@ export function ProductFormPage() {
           </select>
         </FormField>
 
-        <FormField label="URL главного изображения" htmlFor="product-image-url" required className="md:col-span-2">
-          <input
-            id="product-image-url"
-            value={form.imageUrl}
-            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            className={inputClass}
-            required
-          />
-        </FormField>
+        <ImageUploadField
+          label="Главное изображение"
+          htmlFor="product-main-image"
+          required
+          value={form.imageUrl}
+          onChange={(imageUrl) => setForm({ ...form, imageUrl })}
+          onUpload={async (file) => {
+            if (!token) throw new Error("Нужна авторизация");
+            const result = await api.uploadProductImage(token, file, isEdit ? id : undefined);
+            return result.url;
+          }}
+        />
 
         <FormField label="Краткие характеристики" htmlFor="product-specs-short" optional className="md:col-span-2">
           <input
@@ -316,20 +326,17 @@ export function ProductFormPage() {
           />
         </FormField>
 
-        <FormField
-          label="Дополнительные изображения"
-          htmlFor="product-images"
-          optional
-          hint="По одному URL на строку."
-          className="md:col-span-2"
-        >
-          <textarea
-            id="product-images"
-            value={imagesText}
-            onChange={(e) => setImagesText(e.target.value)}
-            className={textareaClass}
+        <div className="md:col-span-2">
+          <ProductImagesField
+            images={galleryImages}
+            onChange={setGalleryImages}
+            onUpload={async (file) => {
+              if (!token) throw new Error("Нужна авторизация");
+              const result = await api.uploadProductImage(token, file, isEdit ? id : undefined);
+              return result.url;
+            }}
           />
-        </FormField>
+        </div>
         {attributeSchemaLoading ? (
           <p className="md:col-span-2 text-sm text-[var(--muted-foreground)]">Загрузка характеристик товара…</p>
         ) : (

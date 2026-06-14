@@ -69,6 +69,38 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return response.json();
 }
 
+async function uploadRequest<T>(
+  path: string,
+  file: File,
+  token: string,
+  params?: Record<string, string>,
+): Promise<T> {
+  const search = new URLSearchParams(params);
+  const query = search.toString();
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+
+  const body = new FormData();
+  body.append("file", file);
+
+  const response = await fetch(`${API_URL}${path}${query ? `?${query}` : ""}`, {
+    method: "POST",
+    headers,
+    body,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
+    const payload = await response.json().catch(() => ({}));
+    const detail = parseApiDetail(payload) ?? "Ошибка загрузки файла";
+    throw new ApiError(detail, response.status);
+  }
+
+  return response.json();
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ accessToken: string }>(`${API_V1_ADMIN}/sessions`, {
@@ -282,6 +314,30 @@ export const api = {
     const query = params.toString();
     return request<void>(`${API_V1_ADMIN}/categories/${id}${query ? `?${query}` : ""}`, { method: "DELETE" }, token);
   },
+
+  uploadCategoryImage: (token: string, categoryId: string, file: File) =>
+    uploadRequest<{ url: string }>(
+      `${API_V1_ADMIN}/uploads/categories`,
+      file,
+      token,
+      { categoryId },
+    ),
+
+  uploadProductImage: (token: string, file: File, productId?: string) =>
+    uploadRequest<{ url: string }>(
+      `${API_V1_ADMIN}/uploads/products`,
+      file,
+      token,
+      productId ? { productId } : undefined,
+    ),
+
+  uploadPortfolioImage: (token: string, file: File, portfolioId?: string) =>
+    uploadRequest<{ url: string }>(
+      `${API_V1_ADMIN}/uploads/portfolio`,
+      file,
+      token,
+      portfolioId ? { portfolioId } : undefined,
+    ),
 
   attributes: (token: string) =>
     request<Paginated<AttributeDef>>(`${API_V1_ADMIN}/attributes?limit=500`, {}, token).then(

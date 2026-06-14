@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FormActions } from "../../components/FormActions";
 import { FormField, FormRequiredNote } from "../../components/FormField";
+import { ImageUploadField } from "../../components/ImageUploadField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import { formCardClass, inputClass } from "../../lib/formStyles";
@@ -48,6 +49,10 @@ export function PortfolioFormPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!token) return;
+    if (!form.imageUrl.trim()) {
+      alert("Загрузите фото работы.");
+      return;
+    }
     setSubmitting(true);
     try {
       if (isEdit && id) {
@@ -87,15 +92,18 @@ export function PortfolioFormPage() {
           />
         </FormField>
 
-        <FormField label="URL фото" htmlFor="portfolio-image-url" required>
-          <input
-            id="portfolio-image-url"
-            value={form.imageUrl}
-            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-            className={inputClass}
-            required
-          />
-        </FormField>
+        <ImageUploadField
+          label="Фото"
+          htmlFor="portfolio-image-upload"
+          required
+          value={form.imageUrl}
+          onChange={(imageUrl) => setForm({ ...form, imageUrl })}
+          onUpload={async (file) => {
+            if (!token) throw new Error("Нужна авторизация");
+            const result = await api.uploadPortfolioImage(token, file, isEdit ? id : undefined);
+            return result.url;
+          }}
+        />
 
         <FormField label="Порядок сортировки" htmlFor="portfolio-sort-order" optional>
           <input

@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { usePagination } from "../hooks/usePagination";
 import { reportActionError, reportLoadError} from "../lib/formError";
 import { api, type PortfolioWork } from "../lib/api";
+import { resolveMediaUrl } from "../lib/mediaUrl";
 
 export function PortfolioPage() {
   const { token } = useAuth();
@@ -40,7 +41,7 @@ export function PortfolioPage() {
             className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg p-4 flex items-center justify-between gap-4"
           >
             <div className="flex items-center gap-4 min-w-0">
-              <img src={item.imageUrl} alt={item.title} className="w-20 h-14 rounded object-cover shrink-0" />
+              <img src={resolveMediaUrl(item.imageUrl)} alt={item.title} className="w-20 h-14 rounded object-cover shrink-0" />
               <div className="min-w-0">
                 <div className="font-heading truncate">{item.title}</div>
                 <div className="text-sm text-[var(--muted-foreground)]">

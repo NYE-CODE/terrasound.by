@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CategoryFiltersSection } from "../../components/CategoryFiltersSection";
 import { FormActions } from "../../components/FormActions";
 import { FormField, FormRequiredNote } from "../../components/FormField";
+import { ImageUploadField } from "../../components/ImageUploadField";
 import { PageHeader } from "../../components/PageHeader";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -140,15 +141,21 @@ export function CategoryFormPage() {
             />
           </FormField>
 
-          <FormField label="URL изображения" htmlFor="category-image-url" required>
-            <input
-              id="category-image-url"
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              className={inputClass}
-              required
-            />
-          </FormField>
+          <ImageUploadField
+            label="Изображение"
+            htmlFor="category-image-upload"
+            required
+            hint={isEdit ? undefined : "Сначала укажите slug — он используется для имени файла."}
+            value={form.imageUrl}
+            onChange={(imageUrl) => setForm({ ...form, imageUrl })}
+            onUpload={async (file) => {
+              if (!token) throw new Error("Нужна авторизация");
+              const categoryId = isEdit ? id! : form.id;
+              if (!categoryId) throw new Error("Сначала укажите slug категории");
+              const result = await api.uploadCategoryImage(token, categoryId, file);
+              return result.url;
+            }}
+          />
 
           <div className="grid md:grid-cols-2 gap-4">
             <FormField label="Порядок сортировки" htmlFor="category-sort-order" optional>

@@ -16,6 +16,17 @@ class Settings(BaseSettings):
     site_origin: str = "https://terrasound.by"
     environment: str = "development"
     trust_proxy_headers: bool = False
+    uploads_dir: str = "uploads"
+
+    @property
+    def uploads_path(self):
+        from pathlib import Path
+
+        raw = Path(self.uploads_dir)
+        if raw.is_absolute():
+            return raw
+        repo_root = Path(__file__).resolve().parent.parent.parent
+        return (repo_root / raw).resolve()
 
     @property
     def cors_origin_list(self) -> list[str]:

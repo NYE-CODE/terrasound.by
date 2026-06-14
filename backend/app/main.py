@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.exceptions import (
@@ -26,6 +27,7 @@ from app.routers.admin import products as admin_products
 from app.routers.admin import reviews as admin_reviews
 from app.routers.admin import site_contact as admin_site_contact
 from app.routers.admin import site_stats as admin_site_stats
+from app.routers.admin import uploads as admin_uploads
 from app.seed import seed_database
 
 
@@ -39,6 +41,7 @@ async def lifespan(_: FastAPI):
             seed_database(db)
     finally:
         db.close()
+    settings.uploads_path.mkdir(parents=True, exist_ok=True)
     yield
 
 
@@ -93,6 +96,10 @@ app.include_router(admin_attributes.router)
 app.include_router(admin_content.router)
 app.include_router(admin_site_stats.router)
 app.include_router(admin_site_contact.router)
+app.include_router(admin_uploads.router)
+
+if settings.uploads_path.is_dir():
+    app.mount("/uploads", StaticFiles(directory=settings.uploads_path), name="uploads")
 
 
 @app.get("/api/health")

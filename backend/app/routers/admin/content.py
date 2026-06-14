@@ -16,7 +16,12 @@ from app.cache import CONTENT_BRANDS, CONTENT_CATEGORIES, CONTENT_SERVICES, cont
 from app.database import get_db
 from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.product import Product
-from app.services.category_admin import delete_category as delete_category_record
+from app.services.category_admin import cleanup_category_image_update, delete_category as delete_category_record
+from app.services.media import (
+    cleanup_portfolio_image_update,
+    delete_portfolio_media,
+    finalize_portfolio_media,
+)
 from app.schemas.content import (
     BlogPostCreate,
     BlogPostOut,
@@ -260,9 +265,11 @@ def update_category_admin(
     item = db.query(Category).filter(Category.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Категория не найдена")
+    old_image_url = item.image_url
     _apply_updates(item, payload)
     commit_or_raise(db)
     db.refresh(item)
+    cleanup_category_image_update(old_image_url, item.image_url)
     count = db.query(Product).filter(Product.category == item_id).count()
     content_cache.invalidate(CONTENT_CATEGORIES)
     return _category_admin_out(item, count)
@@ -297,7 +304,14 @@ def create_portfolio_work_admin(
     payload: PortfolioWorkCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> PortfolioWorkAdminOut:
-    item = PortfolioWork(id=str(uuid.uuid4()), **payload.model_dump())
+    work_id = str(uuid.uuid4())
+    item = PortfolioWork(
+        id=work_id,
+        title=payload.title,
+        image_url=finalize_portfolio_media(work_id, payload.image_url),
+        sort_order=payload.sort_order,
+        published=payload.published,
+    )
     db.add(item)
     commit_or_raise(db)
     db.refresh(item)
@@ -313,9 +327,13 @@ def update_portfolio_work_admin(
     item = db.query(PortfolioWork).filter(PortfolioWork.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Работа не найдена")
+    old_image_url = item.image_url
     _apply_updates(item, payload)
+    if "image_url" in payload.model_dump(exclude_unset=True):
+        item.image_url = finalize_portfolio_media(item.id, item.image_url)
     commit_or_raise(db)
     db.refresh(item)
+    cleanup_portfolio_image_update(old_image_url, item.image_url)
     return PortfolioWorkAdminOut.model_validate(item)
 
 
@@ -327,5 +345,7 @@ def delete_portfolio_work_admin(
     item = db.query(PortfolioWork).filter(PortfolioWork.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Работа не найдена")
+    image_url = item.image_url
     db.delete(item)
     commit_or_raise(db)
+    delete_portfolio_media(image_url, item_id)

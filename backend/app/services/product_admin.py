@@ -12,6 +12,13 @@ from app.money import round_money
 from app.models.content import Category
 from app.models.product import Product, ProductCompatibility, ProductImage, ProductSpec
 from app.schemas.content import ProductAdminOut, ProductCreate, ProductUpdate
+from app.services.media import (
+    cleanup_removed_urls,
+    collect_product_urls,
+    copy_product_media,
+    delete_product_media,
+    finalize_product_media,
+)
 from app.services.attributes import (
     clear_product_attribute_values,
     product_attributes_dict,
@@ -116,11 +123,12 @@ def _load_product_for_admin(db: Session, product_id: str) -> Product:
     return product
 
 
-def create_product(db: Session, payload: ProductCreate) -> Product:
+def create_product(db: Session, payload: ProductCreate, *, product_id: str | None = None) -> Product:
     _ensure_category_exists(db, payload.category)
     _validate_sale_price(payload.price, payload.sale_price)
-    product_id = str(uuid.uuid4())
+    product_id = product_id or str(uuid.uuid4())
     images = payload.images or [payload.image_url]
+    main_image, gallery = finalize_product_media(product_id, payload.image_url, images)
 
     product = Product(
         id=product_id,
@@ -129,13 +137,13 @@ def create_product(db: Session, payload: ProductCreate) -> Product:
         price=payload.price,
         sale_price=payload.sale_price,
         category=payload.category,
-        image_url=payload.image_url,
+        image_url=main_image,
         specs_short=payload.specs_short,
         in_stock=payload.in_stock,
     )
     db.add(product)
     db.flush()
-    _sync_images(db, product, images)
+    _sync_images(db, product, gallery)
     _sync_specs(db, product, payload.specs)
     normalized_attrs = validate_and_normalize_attributes(db, payload.category, payload.attributes)
     sync_product_attributes(db, product, normalized_attrs, replace_all=True)
@@ -170,6 +178,10 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
 
+    old_urls = collect_product_urls(
+        product.image_url,
+        [img.url for img in product.images],
+    )
     previous_category = product.category
     data = payload.model_dump(exclude_unset=True)
     images = data.pop("images", None)
@@ -194,7 +206,14 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
         db.flush()
 
     if images is not None:
-        _sync_images(db, product, images)
+        main_image = data.get("image_url", product.image_url)
+        main_image, gallery = finalize_product_media(product.id, main_image, images)
+        product.image_url = main_image
+        _sync_images(db, product, gallery)
+    elif "image_url" in data and data["image_url"] is not None:
+        main_image, _ = finalize_product_media(product.id, data["image_url"], [data["image_url"]])
+        product.image_url = main_image
+
     if specs is not None:
         _sync_specs(db, product, specs)
     if attributes is not None:
@@ -210,6 +229,13 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
         _sync_compatibility(db, product, compatibility)
 
     commit_or_raise(db)
+
+    new_urls = collect_product_urls(
+        product.image_url,
+        [img.url for img in product.images],
+    )
+    cleanup_removed_urls(old_urls, new_urls)
+
     next_category = data.get("category", previous_category)
     _invalidate_product_list_caches(previous_category, next_category)
     return (
@@ -228,28 +254,43 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
 def duplicate_product(db: Session, product_id: str) -> Product:
     source = _load_product_for_admin(db, product_id)
     admin = product_to_admin_out(db, source)
+    new_product_id = str(uuid.uuid4())
+    main_image, gallery = copy_product_media(
+        source.id,
+        new_product_id,
+        admin.image_url,
+        admin.images,
+    )
     payload = ProductCreate(
         brand=admin.brand,
         name=duplicate_product_name(admin.name),
         price=admin.price,
         sale_price=admin.sale_price,
         category=admin.category,
-        image_url=admin.image_url,
+        image_url=main_image,
         specs_short=admin.specs_short,
         in_stock=admin.in_stock,
-        images=admin.images,
+        images=gallery,
         specs=admin.specs,
         attributes=admin.attributes,
         compatibility=admin.compatibility,
     )
-    return create_product(db, payload)
+    return create_product(db, payload, product_id=new_product_id)
 
 
 def delete_product(db: Session, product_id: str) -> None:
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = (
+        db.query(Product)
+        .options(joinedload(Product.images))
+        .filter(Product.id == product_id)
+        .first()
+    )
     if not product:
         raise HTTPException(status_code=404, detail="Товар не найден")
     category_id = product.category
+    image_url = product.image_url
+    gallery = [img.url for img in product.images]
     db.delete(product)
     commit_or_raise(db)
+    delete_product_media(image_url, gallery, product_id)
     _invalidate_product_list_caches(category_id)

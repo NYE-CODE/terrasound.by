@@ -93,6 +93,20 @@ bash deploy/deploy.sh
 
 HTTP (порт 80) редиректит на HTTPS; `/.well-known/acme-challenge/` оставлен для продления Let's Encrypt.
 
+### Загрузки изображений
+
+Каталог `uploads/` в корне репозитория (на сервере: `/var/www/terrasound.by/uploads/`):
+
+| Путь | Назначение |
+|---|---|
+| `uploads/categories/` | изображения категорий |
+| `uploads/products/{product_id}/` | главное и галерея товара |
+| `uploads/products/_pending/` | временные файлы до создания товара |
+| `uploads/portfolio/{work_id}/` | фото блока «Наши работы» |
+| `uploads/portfolio/_pending/` | временные файлы до создания работы |
+
+Раздача: nginx `location /uploads/` на `terrasound.by` и `admin.terrasound.by`. API: `POST /api/v1/admin/uploads/categories|products|portfolio` (multipart, JWT).
+
 Проверка после `nginx -t && systemctl reload nginx`:
 
 ```bash
