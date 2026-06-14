@@ -47,7 +47,7 @@ export function ProductCard({
     <Link to={`/product/${id}`} className="group block h-full">
       <motion.div
         whileHover={{ borderColor: "var(--accent)" }}
-        className="bg-card border border-card-border rounded p-4 transition-all duration-300 ease-out h-full flex flex-col relative"
+        className="bg-card border border-transparent rounded p-4 transition-all duration-300 ease-out h-full flex flex-col relative"
       >
         <div className="aspect-square bg-secondary/30 rounded mb-4 overflow-hidden relative">
           <ProductImage src={image} alt={name} />
