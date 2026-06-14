@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   DATE_RANGE_PRESETS,
@@ -16,7 +17,7 @@ import {
   type DatePresetId,
   WEEKDAY_LABELS,
 } from "../../lib/dateRange";
-import { compactControlClass } from "../../lib/formStyles";
+import { inputClass } from "../../lib/formStyles";
 
 interface DateRangePickerProps {
   dateFrom: string;
@@ -100,7 +101,10 @@ function MonthCalendar({
 export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: DateRangePickerProps) {
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
   const [draftFrom, setDraftFrom] = useState(dateFrom);
   const [draftTo, setDraftTo] = useState(dateTo);
   const [activePreset, setActivePreset] = useState<DatePresetId | null>(null);
@@ -122,13 +126,47 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
     if (!open) return;
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !popoverRef.current?.contains(target)) {
         setOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
+
+  const updatePopoverPosition = () => {
+    if (!triggerRef.current || !popoverRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const popoverRect = popoverRef.current.getBoundingClientRect();
+    const top = triggerRect.bottom + 8;
+    const left = triggerRect.right - popoverRect.width;
+
+    setPopoverStyle({
+      position: "fixed",
+      top,
+      left: Math.max(8, Math.min(left, window.innerWidth - popoverRect.width - 8)),
+      zIndex: 300,
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (open) updatePopoverPosition();
+  }, [open, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleReposition = () => updatePopoverPosition();
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
+
+    return () => {
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
+    };
   }, [open]);
 
   const applyRange = (from: string, to: string, preset: DatePresetId | null) => {
@@ -181,13 +219,14 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
   return (
     <div ref={rootRef} className={`relative min-w-0 ${className}`.trim()}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`${compactControlClass} inline-flex items-center gap-2 text-left`}
+        className={`${inputClass} inline-flex items-center gap-2 text-left text-sm`}
         aria-expanded={open}
         aria-haspopup="dialog"
       >
-        <Calendar size={15} className="text-[var(--muted-foreground)] shrink-0" />
+        <Calendar size={16} className="text-[var(--muted-foreground)] shrink-0" />
         <span
           className={`truncate ${
             dateFrom || dateTo ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
@@ -197,70 +236,75 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
         </span>
       </button>
 
-      {open ? (
-        <div
-          role="dialog"
-          aria-labelledby={listboxId}
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-50 flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
-        >
-          <div className="w-44 shrink-0 border-r border-[var(--border)] p-2 space-y-1">
-            <div id={listboxId} className="sr-only">
-              Выбор периода
-            </div>
-            {DATE_RANGE_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => handlePreset(preset.id)}
-                className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
-                  activePreset === preset.id
-                    ? "bg-[var(--accent)] text-[#0e0e0f] font-medium"
-                    : "text-[var(--muted-foreground)] hover:bg-[#222] hover:text-[var(--foreground)]"
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+      {open
+        ? createPortal(
+            <div
+              ref={popoverRef}
+              role="dialog"
+              aria-labelledby={listboxId}
+              style={popoverStyle}
+              className="flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
+            >
+              <div className="w-44 shrink-0 border-r border-[var(--border)] p-2 space-y-1">
+                <div id={listboxId} className="sr-only">
+                  Выбор периода
+                </div>
+                {DATE_RANGE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handlePreset(preset.id)}
+                    className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                      activePreset === preset.id
+                        ? "bg-[var(--accent)] text-[#0e0e0f] font-medium"
+                        : "text-[var(--muted-foreground)] hover:bg-[#222] hover:text-[var(--foreground)]"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
 
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <button
-                type="button"
-                onClick={() => setViewMonth((month) => addMonths(month, -1))}
-                className="h-8 w-8 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0 flex items-center justify-center"
-                aria-label="Предыдущий месяц"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <div className="flex-1" />
-              <button
-                type="button"
-                onClick={() => setViewMonth((month) => addMonths(month, 1))}
-                className="h-8 w-8 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0 flex items-center justify-center"
-                aria-label="Следующий месяц"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setViewMonth((month) => addMonths(month, -1))}
+                    className="h-8 w-8 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0 flex items-center justify-center"
+                    aria-label="Предыдущий месяц"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <div className="flex-1" />
+                  <button
+                    type="button"
+                    onClick={() => setViewMonth((month) => addMonths(month, 1))}
+                    className="h-8 w-8 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0 flex items-center justify-center"
+                    aria-label="Следующий месяц"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
 
-            <div className="flex gap-6">
-              <MonthCalendar
-                month={viewMonth}
-                rangeFrom={rangeFrom}
-                rangeTo={rangeTo}
-                onSelect={handleDaySelect}
-              />
-              <MonthCalendar
-                month={addMonths(viewMonth, 1)}
-                rangeFrom={rangeFrom}
-                rangeTo={rangeTo}
-                onSelect={handleDaySelect}
-              />
-            </div>
-          </div>
-        </div>
-      ) : null}
+                <div className="flex gap-6">
+                  <MonthCalendar
+                    month={viewMonth}
+                    rangeFrom={rangeFrom}
+                    rangeTo={rangeTo}
+                    onSelect={handleDaySelect}
+                  />
+                  <MonthCalendar
+                    month={addMonths(viewMonth, 1)}
+                    rangeFrom={rangeFrom}
+                    rangeTo={rangeTo}
+                    onSelect={handleDaySelect}
+                  />
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

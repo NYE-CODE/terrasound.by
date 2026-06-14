@@ -1,20 +1,16 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { AdminListToolbar } from "../components/molecules/AdminListToolbar";
+import { OrderStatusFilter, PaymentMethodFilter } from "../components/molecules/OrderFilters";
 import { OrderStatusSelect } from "../components/molecules/OrderStatusSelect";
-import { FilterSelect } from "../components/atoms/FilterSelect";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
-import { StatusBadge } from "../components/StatusBadge";
 import { useAuth } from "../context/AuthContext";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { PAGE_SIZE } from "../hooks/usePagination";
 import { reportActionError, reportLoadError } from "../lib/formError";
 import { iconButtonClass } from "../lib/iconButton";
 import {
-  ORDER_STATUSES,
-  ORDER_STATUS_LABELS,
-  PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
   type PaymentMethod,
 } from "../lib/orderStatus";
@@ -144,42 +140,19 @@ export function OrdersPage() {
         totalLabel="Найдено заказов"
         filterColumns={4}
       >
-        <FilterSelect
-          value={status}
-          onChange={(value) => setStatus(value as OrderStatus | "")}
-          ariaLabel="Статус"
-        >
-          <option value="">Все статусы</option>
-          {ORDER_STATUSES.map((item) => (
-            <option key={item} value={item}>
-              {ORDER_STATUS_LABELS[item]}
-            </option>
-          ))}
-        </FilterSelect>
-
-        <FilterSelect
-          value={paymentMethod}
-          onChange={(value) => setPaymentMethod(value as PaymentMethod | "")}
-          ariaLabel="Способ оплаты"
-        >
-          <option value="">Вся оплата</option>
-          {PAYMENT_METHODS.map((item) => (
-            <option key={item} value={item}>
-              {PAYMENT_METHOD_LABELS[item]}
-            </option>
-          ))}
-        </FilterSelect>
+        <OrderStatusFilter value={status} onChange={setStatus} />
+        <PaymentMethodFilter value={paymentMethod} onChange={setPaymentMethod} />
       </AdminListToolbar>
 
-      <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg overflow-hidden">
+      <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-[var(--border)] text-[var(--muted-foreground)]">
             <tr>
               <th className="text-left p-4 font-medium">ID</th>
               <th className="text-left p-4 font-medium">Клиент</th>
               <th className="text-left p-4 font-medium">Сумма</th>
-              <th className="text-left p-4 font-medium">Статус</th>
               <th className="text-left p-4 font-medium">Дата</th>
+              <th className="text-left p-4 font-medium">Статус</th>
               <th className="text-left p-4 font-medium">Действия</th>
             </tr>
           </thead>
@@ -193,14 +166,17 @@ export function OrdersPage() {
                     <div className="text-[var(--muted-foreground)]">{order.phone}</div>
                   </td>
                   <td className="p-4">{order.total.toFixed(2)} BYN</td>
-                  <td className="p-4">
-                    <StatusBadge status={order.status} />
-                  </td>
                   <td className="p-4 text-[var(--muted-foreground)]">
                     {new Date(order.createdAt).toLocaleString("ru-RU")}
                   </td>
                   <td className="p-4">
-                    <div className="flex flex-wrap items-center gap-1">
+                    <OrderStatusSelect
+                      value={order.status}
+                      onChange={(nextStatus) => updateStatus(order.id, nextStatus)}
+                    />
+                  </td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
@@ -210,10 +186,6 @@ export function OrdersPage() {
                       >
                         {expandedId === order.id ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
-                      <OrderStatusSelect
-                        value={order.status}
-                        onChange={(nextStatus) => updateStatus(order.id, nextStatus)}
-                      />
                       <button
                         type="button"
                         onClick={() => remove(order.id)}
