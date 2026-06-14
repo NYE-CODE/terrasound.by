@@ -1,6 +1,10 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  DATE_RANGE_POPOVER_ESTIMATED_WIDTH,
+  useFloatingPosition,
+} from "../../hooks/useFloatingPosition";
 import {
   DATE_RANGE_PRESETS,
   addMonths,
@@ -104,7 +108,15 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+  const popoverStyle = useFloatingPosition({
+    open,
+    triggerRef,
+    floatingRef: popoverRef,
+    align: "right",
+    gap: 8,
+    estimatedWidth: DATE_RANGE_POPOVER_ESTIMATED_WIDTH,
+    deps: [dateFrom, dateTo],
+  });
   const [draftFrom, setDraftFrom] = useState(dateFrom);
   const [draftTo, setDraftTo] = useState(dateTo);
   const [activePreset, setActivePreset] = useState<DatePresetId | null>(null);
@@ -134,39 +146,6 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
 
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [open]);
-
-  const updatePopoverPosition = () => {
-    if (!triggerRef.current || !popoverRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const popoverRect = popoverRef.current.getBoundingClientRect();
-    const top = triggerRect.bottom + 8;
-    const left = triggerRect.right - popoverRect.width;
-
-    setPopoverStyle({
-      position: "fixed",
-      top,
-      left: Math.max(8, Math.min(left, window.innerWidth - popoverRect.width - 8)),
-      zIndex: 300,
-    });
-  };
-
-  useLayoutEffect(() => {
-    if (open) updatePopoverPosition();
-  }, [open, dateFrom, dateTo]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const handleReposition = () => updatePopoverPosition();
-    window.addEventListener("resize", handleReposition);
-    window.addEventListener("scroll", handleReposition, true);
-
-    return () => {
-      window.removeEventListener("resize", handleReposition);
-      window.removeEventListener("scroll", handleReposition, true);
-    };
   }, [open]);
 
   const applyRange = (from: string, to: string, preset: DatePresetId | null) => {

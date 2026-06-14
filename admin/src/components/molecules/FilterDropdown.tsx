@@ -1,6 +1,7 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
+import { FILTER_DROPDOWN_ESTIMATED_WIDTH, useFloatingPosition } from "../../hooks/useFloatingPosition";
 
 export interface FilterDropdownOption {
   value: string;
@@ -32,30 +33,15 @@ export function FilterDropdown({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
-  const selected = options.find((option) => option.value === value);
-
-  const updateMenuPosition = () => {
-    if (!triggerRef.current || !menuRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const menuRect = menuRef.current.getBoundingClientRect();
-    const top = triggerRect.bottom + 6;
-    const left =
-      align === "right" ? triggerRect.right - menuRect.width : triggerRect.left;
-
-    setMenuStyle({
-      position: "fixed",
-      top,
-      left: Math.max(8, Math.min(left, window.innerWidth - menuRect.width - 8)),
-      zIndex: 300,
-    });
-  };
-
-  useLayoutEffect(() => {
-    if (open) updateMenuPosition();
-  }, [open, value, align]);
+  const menuStyle = useFloatingPosition({
+    open,
+    triggerRef,
+    floatingRef: menuRef,
+    align,
+    estimatedWidth: FILTER_DROPDOWN_ESTIMATED_WIDTH,
+    deps: [value, align, options.length],
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -66,24 +52,17 @@ export function FilterDropdown({
         setOpen(false);
       }
     };
-    const handleReposition = () => updateMenuPosition();
 
     document.addEventListener("mousedown", handlePointerDown);
-    window.addEventListener("resize", handleReposition);
-    window.addEventListener("scroll", handleReposition, true);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      window.removeEventListener("resize", handleReposition);
-      window.removeEventListener("scroll", handleReposition, true);
-    };
-  }, [open, align, value]);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
 
   const selectValue = (nextValue: string) => {
     onChange(nextValue);
     setOpen(false);
   };
 
+  const selected = options.find((option) => option.value === value);
   const triggerLabel = selected?.label ?? emptyLabel;
 
   return (

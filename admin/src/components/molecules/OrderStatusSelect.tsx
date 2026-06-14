@@ -1,9 +1,10 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import type { OrderStatus } from "../../lib/api";
 import { ORDER_STATUSES, ORDER_STATUS_LABELS } from "../../lib/orderStatus";
 import { statusBadgeClass } from "../../lib/statusBadge";
+import { FILTER_DROPDOWN_ESTIMATED_WIDTH, useFloatingPosition } from "../../hooks/useFloatingPosition";
 
 interface OrderStatusSelectProps {
   value: OrderStatus;
@@ -17,25 +18,14 @@ export function OrderStatusSelect({ value, onChange, className = "" }: OrderStat
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
-  const updateMenuPosition = () => {
-    if (!triggerRef.current || !menuRef.current) return;
-
-    const triggerRect = triggerRef.current.getBoundingClientRect();
-    const menuRect = menuRef.current.getBoundingClientRect();
-
-    setMenuStyle({
-      position: "fixed",
-      top: triggerRect.bottom + 6,
-      left: Math.max(8, Math.min(triggerRect.left, window.innerWidth - menuRect.width - 8)),
-      zIndex: 300,
-    });
-  };
-
-  useLayoutEffect(() => {
-    if (open) updateMenuPosition();
-  }, [open, value]);
+  const menuStyle = useFloatingPosition({
+    open,
+    triggerRef,
+    floatingRef: menuRef,
+    estimatedWidth: FILTER_DROPDOWN_ESTIMATED_WIDTH,
+    deps: [value],
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -46,18 +36,10 @@ export function OrderStatusSelect({ value, onChange, className = "" }: OrderStat
         setOpen(false);
       }
     };
-    const handleReposition = () => updateMenuPosition();
 
     document.addEventListener("mousedown", handlePointerDown);
-    window.addEventListener("resize", handleReposition);
-    window.addEventListener("scroll", handleReposition, true);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      window.removeEventListener("resize", handleReposition);
-      window.removeEventListener("scroll", handleReposition, true);
-    };
-  }, [open, value]);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [open]);
 
   const selectStatus = (status: OrderStatus) => {
     onChange(status);

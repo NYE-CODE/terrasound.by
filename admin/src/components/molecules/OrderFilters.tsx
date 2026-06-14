@@ -59,3 +59,29 @@ export function PaymentMethodFilter({ value, onChange }: PaymentMethodFilterProp
     />
   );
 }
+
+interface ServiceFilterProps {
+  value: string;
+  onChange: (value: string) => void;
+  services: string[];
+}
+
+export function ServiceFilter({ value, onChange, services }: ServiceFilterProps) {
+  const options = [
+    { value: "", label: "Все услуги" },
+    ...services.map((service) => ({
+      value: service,
+      label: service,
+    })),
+  ];
+
+  return (
+    <FilterDropdown
+      value={value}
+      onChange={onChange}
+      options={options}
+      emptyLabel="Все услуги"
+      ariaLabel="Фильтр по услуге"
+    />
+  );
+}

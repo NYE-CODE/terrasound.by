@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { AdminListToolbar } from "../components/molecules/AdminListToolbar";
-import { FilterSelect } from "../components/atoms/FilterSelect";
+import { ServiceFilter } from "../components/molecules/OrderFilters";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
@@ -123,18 +123,7 @@ export function InstallationRequestsPage() {
         totalLabel="Найдено заявок"
         filterColumns={3}
       >
-        <FilterSelect
-          value={service}
-          onChange={setService}
-          ariaLabel="Услуга"
-        >
-          <option value="">Все услуги</option>
-          {services.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </FilterSelect>
+        <ServiceFilter value={service} onChange={setService} services={services} />
       </AdminListToolbar>
 
       <div className="bg-[var(--card)] border border-[var(--card-border)] rounded-lg overflow-hidden">

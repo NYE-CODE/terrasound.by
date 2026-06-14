@@ -58,7 +58,7 @@ export function AdminListToolbar({
         <button
           type="button"
           onClick={onReset}
-          className="h-9 px-3 rounded border border-[var(--border)] text-xs font-heading uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[#222] transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap shrink-0 justify-self-start xl:justify-self-auto"
+          className="h-11 px-3 rounded border border-[var(--border)] text-xs font-heading uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[#222] transition-colors inline-flex items-center justify-center gap-2 whitespace-nowrap shrink-0 justify-self-start xl:justify-self-auto"
         >
           <RotateCcw size={14} />
           Сбросить
