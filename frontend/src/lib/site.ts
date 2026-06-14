@@ -17,6 +17,10 @@ export const DEFAULT_SITE_CONTACT = {
   telegramUrl: "https://t.me/terrasound_by",
   address: "г. Гродно, Озерское шоссе, 14",
   phoneTel: "+375339177444",
-  addressMapsUrl: `https://yandex.by/maps/?text=${encodeURIComponent("г. Гродно, Озерское шоссе, 14, Беларусь")}`,
+  mapLat: 53.648422,
+  mapLon: 23.876194,
+  addressMapsUrl: "https://yandex.by/maps/?pt=23.876194,53.648422&z=17&l=map",
+  mapEmbedUrl:
+    "https://yandex.ru/map-widget/v1/?ll=23.876194,53.648422&z=17&pt=23.876194,53.648422&lang=ru_RU",
   workingHours: WORKING_HOURS,
 };

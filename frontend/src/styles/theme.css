@@ -195,7 +195,10 @@
   .announcement-marquee-track {
     display: flex;
     width: max-content;
-    animation: announcement-marquee 45s linear infinite;
+    animation-name: announcement-marquee;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: 45s;
   }
 
   @media (prefers-reduced-motion: reduce) {

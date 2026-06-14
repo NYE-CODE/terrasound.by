@@ -436,6 +436,9 @@ export interface SiteContact {
   address: string;
   phoneTel: string;
   addressMapsUrl: string;
+  mapEmbedUrl: string;
+  mapLat: number | null;
+  mapLon: number | null;
   workingHours: string;
 }
 
@@ -446,18 +449,21 @@ export interface SiteContactInput {
   tiktokUrl: string;
   telegramUrl: string;
   address: string;
-  addressMapsUrl: string;
+  mapLat: number | null;
+  mapLon: number | null;
   workingHours: string;
 }
 
 export interface SiteAnnouncement {
   text: string;
   enabled: boolean;
+  scrollDurationSeconds: number;
 }
 
 export interface SiteAnnouncementInput {
   text: string;
   enabled: boolean;
+  scrollDurationSeconds: number;
 }
 
 export interface ProductHighlights {

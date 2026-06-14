@@ -13,9 +13,17 @@ const defaultForm: SiteContactInput = {
   tiktokUrl: "https://www.tiktok.com/@terrasound.by",
   telegramUrl: "https://t.me/terrasound_by",
   address: "г. Гродно, Озерское шоссе, 14",
-  addressMapsUrl: `https://yandex.by/maps/?text=${encodeURIComponent("г. Гродно, Озерское шоссе, 14, Беларусь")}`,
+  mapLat: 53.648422,
+  mapLon: 23.876194,
   workingHours: "Пн–Пт, 10:00–18:00, обед 14:00–15:00",
 };
+
+function parseCoord(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const num = Number(trimmed.replace(",", "."));
+  return Number.isFinite(num) ? num : null;
+}
 
 function toForm(contact: SiteContact): SiteContactInput {
   return {
@@ -25,7 +33,8 @@ function toForm(contact: SiteContact): SiteContactInput {
     tiktokUrl: contact.tiktokUrl,
     telegramUrl: contact.telegramUrl,
     address: contact.address,
-    addressMapsUrl: contact.addressMapsUrl,
+    mapLat: contact.mapLat,
+    mapLon: contact.mapLon,
     workingHours: contact.workingHours,
   };
 }
@@ -167,20 +176,32 @@ export function SiteContactPage() {
         </FormField>
 
         <FormField
-          label="Ссылка на карту"
-          htmlFor="contact-maps-url"
+          label="Координаты на карте"
+          htmlFor="contact-map-lat"
           optional
-          hint="Яндекс.Карты, Google Maps и т.п. Если пусто — строится автоматически по адресу."
+          hint="Широта и долгота для Яндекс.Карт. В yandex.by: правый клик по точке → «Что здесь?» → скопируйте координаты. Оба поля заполняйте вместе или оставьте пустыми."
         >
-          <input
-            id="contact-maps-url"
-            type="url"
-            maxLength={1024}
-            value={form.addressMapsUrl}
-            onChange={(e) => setForm({ ...form, addressMapsUrl: e.target.value })}
-            className={inputClass}
-            placeholder="https://yandex.by/maps/..."
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              id="contact-map-lat"
+              type="text"
+              inputMode="decimal"
+              value={form.mapLat ?? ""}
+              onChange={(e) => setForm({ ...form, mapLat: parseCoord(e.target.value) })}
+              className={inputClass}
+              placeholder="Широта, напр. 53.648422"
+            />
+            <input
+              id="contact-map-lon"
+              type="text"
+              inputMode="decimal"
+              value={form.mapLon ?? ""}
+              onChange={(e) => setForm({ ...form, mapLon: parseCoord(e.target.value) })}
+              className={inputClass}
+              placeholder="Долгота, напр. 23.876194"
+              aria-label="Долгота"
+            />
+          </div>
         </FormField>
 
         <FormField

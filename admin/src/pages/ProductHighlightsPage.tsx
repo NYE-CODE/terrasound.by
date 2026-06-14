@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { FormField } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
-import { formCardClass, inputClass } from "../lib/formStyles";
+import { formCardClass, textareaClass } from "../lib/formStyles";
 import { reportFormError, reportLoadError } from "../lib/formError";
 import { api, type ProductHighlights, type ProductHighlightsInput } from "../lib/api";
 
@@ -78,10 +78,10 @@ export function ProductHighlightsPage() {
         >
           <textarea
             id="product-highlights"
-            rows={6}
+            rows={5}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className={inputClass}
+            className={textareaClass}
             placeholder={DEFAULT_LINES.join("\n")}
           />
         </FormField>

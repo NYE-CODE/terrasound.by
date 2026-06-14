@@ -10,7 +10,7 @@ from app.models.site_contact import SiteContact
 from app.models.site_announcement import SiteAnnouncement
 from app.models.product_highlights import ProductHighlights
 from app.models.site_stats import SiteStats
-from app.contact_utils import address_to_maps_url
+from app.contact_utils import DEFAULT_MAP_LAT, DEFAULT_MAP_LON, address_to_maps_url
 from app.services.site_contact import (
     DEFAULT_ADDRESS,
     DEFAULT_EMAIL,
@@ -685,7 +685,14 @@ def _seed_admin_account(db: Session) -> None:
 def _seed_site_announcement(db: Session) -> None:
     if db.query(SiteAnnouncement).filter(SiteAnnouncement.id == 1).first():
         return
-    db.add(SiteAnnouncement(id=1, text="", enabled=False))
+    db.add(
+        SiteAnnouncement(
+            id=1,
+            text="",
+            enabled=False,
+            scroll_duration_seconds=45,
+        )
+    )
     db.commit()
 
 
@@ -720,6 +727,8 @@ def _seed_site_contact(db: Session) -> None:
             telegram_url=DEFAULT_TELEGRAM,
             address=DEFAULT_ADDRESS,
             maps_url=address_to_maps_url(DEFAULT_ADDRESS),
+            map_lat=DEFAULT_MAP_LAT,
+            map_lon=DEFAULT_MAP_LON,
             working_hours=DEFAULT_WORKING_HOURS,
         )
     )

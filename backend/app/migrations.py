@@ -79,8 +79,29 @@ def run_migrations(engine: Engine) -> None:
     _migrate_admin_token_version(engine)
     _migrate_site_contact_telegram(engine)
     _migrate_site_contact_maps_url(engine)
+    _migrate_site_contact_map_coordinates(engine)
     _migrate_site_contact_working_hours(engine)
     _migrate_site_announcement(engine)
+    _migrate_site_announcement_scroll_duration(engine)
+
+
+def _migrate_site_announcement_scroll_duration(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_announcement" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_announcement")}
+    if "scroll_duration_seconds" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE site_announcement ADD COLUMN scroll_duration_seconds "
+                    "INTEGER NOT NULL DEFAULT 45"
+                )
+            )
     _migrate_product_highlights(engine)
 
 
@@ -129,12 +150,13 @@ def _migrate_site_announcement(engine: Engine) -> None:
                 CREATE TABLE site_announcement (
                     id INTEGER NOT NULL PRIMARY KEY,
                     text VARCHAR(512) NOT NULL DEFAULT '',
-                    enabled BOOLEAN NOT NULL DEFAULT 0
+                    enabled BOOLEAN NOT NULL DEFAULT 0,
+                    scroll_duration_seconds INTEGER NOT NULL DEFAULT 45
                 )
                 """
             )
         )
-        conn.execute(text("INSERT INTO site_announcement (id, text, enabled) VALUES (1, '', 0)"))
+        conn.execute(text("INSERT INTO site_announcement (id, text, enabled, scroll_duration_seconds) VALUES (1, '', 0, 45)"))
 
 
 def _migrate_site_contact_working_hours(engine: Engine) -> None:
@@ -181,6 +203,31 @@ def _migrate_site_contact_maps_url(engine: Engine) -> None:
                     text("UPDATE site_contact SET maps_url = :url WHERE id = 1 AND maps_url = ''"),
                     {"url": address_to_maps_url(row[0])},
                 )
+
+
+def _migrate_site_contact_map_coordinates(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    from app.contact_utils import DEFAULT_MAP_LAT, DEFAULT_MAP_LON
+
+    inspector = inspect(engine)
+    if "site_contact" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_contact")}
+    with engine.begin() as conn:
+        if "map_lat" not in columns:
+            conn.execute(text("ALTER TABLE site_contact ADD COLUMN map_lat REAL"))
+        if "map_lon" not in columns:
+            conn.execute(text("ALTER TABLE site_contact ADD COLUMN map_lon REAL"))
+        conn.execute(
+            text(
+                "UPDATE site_contact SET map_lat = :lat, map_lon = :lon "
+                "WHERE id = 1 AND map_lat IS NULL AND map_lon IS NULL"
+            ),
+            {"lat": DEFAULT_MAP_LAT, "lon": DEFAULT_MAP_LON},
+        )
 
 
 def _migrate_site_contact_telegram(engine: Engine) -> None:

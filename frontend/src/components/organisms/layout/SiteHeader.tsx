@@ -20,7 +20,12 @@ export function SiteHeader() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[70] bg-background">
-      {showBar ? <AnnouncementBar text={announcement.text.trim()} /> : null}
+      {showBar ? (
+        <AnnouncementBar
+          text={announcement.text.trim()}
+          scrollDurationSeconds={announcement.scrollDurationSeconds}
+        />
+      ) : null}
       <Navbar />
     </header>
   );

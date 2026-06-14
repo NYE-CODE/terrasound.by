@@ -5,6 +5,7 @@ import { reportLoadError } from "../lib/loadError";
 const DEFAULT_SITE_ANNOUNCEMENT: SiteAnnouncement = {
   text: "",
   enabled: false,
+  scrollDurationSeconds: 45,
 };
 
 const SiteAnnouncementContext = createContext<SiteAnnouncement>(DEFAULT_SITE_ANNOUNCEMENT);

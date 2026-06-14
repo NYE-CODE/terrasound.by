@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from app.cache import SITE_ANNOUNCEMENT, site_announcement_cache
 from app.db_commit import commit_or_raise
-from app.models.site_announcement import SiteAnnouncement
+from app.models.site_announcement import DEFAULT_ANNOUNCEMENT_SCROLL_DURATION_SECONDS, SiteAnnouncement
 from app.schemas.site_announcement import SiteAnnouncementOut, SiteAnnouncementUpdate
 
 
@@ -11,7 +11,12 @@ def get_or_create_site_announcement(db: Session) -> SiteAnnouncement:
     if announcement:
         return announcement
 
-    announcement = SiteAnnouncement(id=1, text="", enabled=False)
+    announcement = SiteAnnouncement(
+        id=1,
+        text="",
+        enabled=False,
+        scroll_duration_seconds=DEFAULT_ANNOUNCEMENT_SCROLL_DURATION_SECONDS,
+    )
     db.add(announcement)
     commit_or_raise(db)
     db.refresh(announcement)
@@ -22,6 +27,7 @@ def site_announcement_to_out(announcement: SiteAnnouncement) -> SiteAnnouncement
     return SiteAnnouncementOut(
         text=announcement.text,
         enabled=announcement.enabled,
+        scroll_duration_seconds=announcement.scroll_duration_seconds,
     )
 
 
@@ -37,6 +43,7 @@ def update_site_announcement(db: Session, payload: SiteAnnouncementUpdate) -> Si
     announcement = get_or_create_site_announcement(db)
     announcement.text = payload.text.strip()
     announcement.enabled = payload.enabled
+    announcement.scroll_duration_seconds = payload.scroll_duration_seconds
     commit_or_raise(db)
     db.refresh(announcement)
     site_announcement_cache.invalidate(SITE_ANNOUNCEMENT)

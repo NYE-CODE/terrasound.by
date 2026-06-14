@@ -1,8 +1,9 @@
 interface AnnouncementBarProps {
   text: string;
+  scrollDurationSeconds: number;
 }
 
-export function AnnouncementBar({ text }: AnnouncementBarProps) {
+export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBarProps) {
   const segment = (
     <>
       <span className="px-8 shrink-0">{text}</span>
@@ -18,7 +19,10 @@ export function AnnouncementBar({ text }: AnnouncementBarProps) {
       role="region"
       aria-label="Объявление"
     >
-      <div className="flex h-full items-center announcement-marquee-track">
+      <div
+        className="flex h-full items-center announcement-marquee-track"
+        style={{ animationDuration: `${scrollDurationSeconds}s` }}
+      >
         {segment}
         {segment}
         {segment}

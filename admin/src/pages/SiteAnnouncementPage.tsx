@@ -2,19 +2,30 @@ import { FormEvent, useEffect, useState } from "react";
 import { FormField } from "../components/FormField";
 import { PageHeader } from "../components/PageHeader";
 import { useAuth } from "../context/AuthContext";
-import { formCardClass, inputClass } from "../lib/formStyles";
+import { formCardClass, inputClass, textareaClass } from "../lib/formStyles";
 import { reportFormError, reportLoadError } from "../lib/formError";
 import { api, type SiteAnnouncement, type SiteAnnouncementInput } from "../lib/api";
+
+const MIN_SCROLL_DURATION = 5;
+const MAX_SCROLL_DURATION = 180;
+const DEFAULT_SCROLL_DURATION = 45;
 
 const defaultForm: SiteAnnouncementInput = {
   text: "",
   enabled: false,
+  scrollDurationSeconds: DEFAULT_SCROLL_DURATION,
 };
+
+function clampScrollDuration(value: number): number {
+  if (!Number.isFinite(value)) return DEFAULT_SCROLL_DURATION;
+  return Math.min(MAX_SCROLL_DURATION, Math.max(MIN_SCROLL_DURATION, Math.round(value)));
+}
 
 function toForm(announcement: SiteAnnouncement): SiteAnnouncementInput {
   return {
     text: announcement.text,
     enabled: announcement.enabled,
+    scrollDurationSeconds: clampScrollDuration(announcement.scrollDurationSeconds),
   };
 }
 
@@ -39,8 +50,12 @@ export function SiteAnnouncementPage() {
     if (!token) return;
     setSubmitting(true);
     setSaved(false);
+    const payload: SiteAnnouncementInput = {
+      ...form,
+      scrollDurationSeconds: clampScrollDuration(form.scrollDurationSeconds),
+    };
     try {
-      const announcement = await api.updateSiteAnnouncement(token, form);
+      const announcement = await api.updateSiteAnnouncement(token, payload);
       setForm(toForm(announcement));
       setSaved(true);
     } catch (error) {
@@ -74,11 +89,34 @@ export function SiteAnnouncementPage() {
           <textarea
             id="announcement-text"
             maxLength={512}
-            rows={3}
+            rows={5}
             value={form.text}
             onChange={(e) => setForm({ ...form, text: e.target.value })}
-            className={inputClass}
+            className={textareaClass}
             placeholder="Бесплатная консультация по подбору автозвука — звоните!"
+          />
+        </FormField>
+
+        <FormField
+          label="Скорость прокрутки"
+          htmlFor="announcement-scroll-duration"
+          optional
+          hint={`Время одного полного цикла в секундах. Меньше — быстрее. Допустимо ${MIN_SCROLL_DURATION}–${MAX_SCROLL_DURATION} сек.`}
+        >
+          <input
+            id="announcement-scroll-duration"
+            type="number"
+            min={MIN_SCROLL_DURATION}
+            max={MAX_SCROLL_DURATION}
+            step={1}
+            value={form.scrollDurationSeconds}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                scrollDurationSeconds: clampScrollDuration(Number(e.target.value)),
+              })
+            }
+            className={inputClass}
           />
         </FormField>
 

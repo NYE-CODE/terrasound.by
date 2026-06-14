@@ -117,7 +117,8 @@ export function ContactPage() {
           </div>
 
           <MapEmbed
-            mapsUrl={contact.addressMapsUrl}
+            embedUrl={contact.mapEmbedUrl}
+            openUrl={contact.addressMapsUrl}
             address={contact.address}
             title={`Расположение TerraSound: ${contact.address}`}
           />

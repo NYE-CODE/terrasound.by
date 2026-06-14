@@ -214,6 +214,7 @@ export interface SiteStats {
 export interface SiteAnnouncement {
   text: string;
   enabled: boolean;
+  scrollDurationSeconds: number;
 }
 
 export interface ProductHighlights {
@@ -228,7 +229,10 @@ export interface SiteContact {
   telegramUrl: string;
   address: string;
   phoneTel: string;
+  mapLat: number | null;
+  mapLon: number | null;
   addressMapsUrl: string;
+  mapEmbedUrl: string;
   workingHours: string;
 }
 

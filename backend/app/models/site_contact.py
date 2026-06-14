@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String
+from sqlalchemy import Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -15,4 +15,6 @@ class SiteContact(Base):
     telegram_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     address: Mapped[str] = mapped_column(String(512), nullable=False)
     maps_url: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    map_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    map_lon: Mapped[float | None] = mapped_column(Float, nullable=True)
     working_hours: Mapped[str] = mapped_column(String(256), nullable=False, default="")

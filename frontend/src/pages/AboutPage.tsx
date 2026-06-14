@@ -52,7 +52,8 @@ export function AboutPage() {
               </div>
             </div>
             <MapEmbed
-              mapsUrl={contact.addressMapsUrl}
+              embedUrl={contact.mapEmbedUrl}
+              openUrl={contact.addressMapsUrl}
               address={contact.address}
               title={`Расположение студии TerraSound: ${contact.address}`}
             />
