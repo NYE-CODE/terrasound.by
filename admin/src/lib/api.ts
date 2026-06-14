@@ -1,12 +1,12 @@
 /**
- * HTTP-клиент админского API v1.
+ * HTTP-клиент админского API v2.
  * При 401 с токеном вызывается обработчик из setUnauthorizedHandler (logout).
  */
 import { resolveApiUrl } from "./apiUrl";
 import { parseUploadError } from "./uploadHelpers";
 
 const API_URL = resolveApiUrl();
-const API_V1_ADMIN = "/api/v1/admin";
+const API_V2_ADMIN = "/api/v2/admin";
 
 export interface PaginationMeta {
   total: number;
@@ -14,7 +14,7 @@ export interface PaginationMeta {
   offset: number;
 }
 
-/** Стандартный ответ списка API v1. */
+/** Стандартный ответ списка API. */
 export interface Paginated<T> {
   data: T[];
   meta: PaginationMeta;
@@ -70,21 +70,22 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return response.json();
 }
 
-async function uploadRequest<T>(
+interface UploadUrlPayload {
+  data: { url: string };
+}
+
+async function uploadRequest(
   path: string,
   file: File,
   token: string,
-  params?: Record<string, string>,
-): Promise<T> {
-  const search = new URLSearchParams(params);
-  const query = search.toString();
+): Promise<string> {
   const headers = new Headers();
   headers.set("Authorization", `Bearer ${token}`);
 
   const body = new FormData();
   body.append("file", file);
 
-  const response = await fetch(`${API_URL}${path}${query ? `?${query}` : ""}`, {
+  const response = await fetch(`${API_URL}${path}`, {
     method: "POST",
     headers,
     body,
@@ -98,36 +99,55 @@ async function uploadRequest<T>(
     throw new ApiError(parseUploadError(response, payload), response.status);
   }
 
-  return response.json();
+  const payload = (await response.json()) as UploadUrlPayload;
+  return payload.data.url;
 }
 
 export const api = {
   login: (username: string, password: string) =>
-    request<{ accessToken: string }>(`${API_V1_ADMIN}/sessions`, {
+    request<{ accessToken: string }>(`${API_V2_ADMIN}/sessions`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
     }),
 
   changePassword: (token: string, data: ChangePasswordInput) =>
-    request<{ message: string }>(`${API_V1_ADMIN}/me/password`, {
+    request<void>(`${API_V2_ADMIN}/me/password`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
-  dashboard: (token: string) => request<DashboardStats>(`${API_V1_ADMIN}/dashboard`, {}, token),
+  dashboard: (token: string) => request<DashboardStats>(`${API_V2_ADMIN}/dashboard`, {}, token),
 
-  siteStats: (token: string) => request<SiteStats>(`${API_V1_ADMIN}/site-stats`, {}, token),
+  siteStats: (token: string) => request<SiteStats>(`${API_V2_ADMIN}/site/settings/stats`, {}, token),
 
   updateSiteStats: (token: string, data: SiteStatsInput) =>
-    request<SiteStats>(`${API_V1_ADMIN}/site-stats`, {
+    request<SiteStats>(`${API_V2_ADMIN}/site/settings/stats`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
-  siteContact: (token: string) => request<SiteContact>(`${API_V1_ADMIN}/site-contact`, {}, token),
+  siteContact: (token: string) => request<SiteContact>(`${API_V2_ADMIN}/site/settings/contact`, {}, token),
 
   updateSiteContact: (token: string, data: SiteContactInput) =>
-    request<SiteContact>(`${API_V1_ADMIN}/site-contact`, {
+    request<SiteContact>(`${API_V2_ADMIN}/site/settings/contact`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, token),
+
+  siteAnnouncement: (token: string) =>
+    request<SiteAnnouncement>(`${API_V2_ADMIN}/site/settings/announcement`, {}, token),
+
+  updateSiteAnnouncement: (token: string, data: SiteAnnouncementInput) =>
+    request<SiteAnnouncement>(`${API_V2_ADMIN}/site/settings/announcement`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }, token),
+
+  productHighlights: (token: string) =>
+    request<ProductHighlights>(`${API_V2_ADMIN}/site/settings/product-highlights`, {}, token),
+
+  updateProductHighlights: (token: string, data: ProductHighlightsInput) =>
+    request<ProductHighlights>(`${API_V2_ADMIN}/site/settings/product-highlights`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
@@ -137,20 +157,20 @@ export const api = {
     if (params?.limit != null) search.set("limit", String(params.limit));
     if (params?.offset != null) search.set("offset", String(params.offset));
     const query = search.toString();
-    return request<Paginated<Order>>(`${API_V1_ADMIN}/orders${query ? `?${query}` : ""}`, {}, token);
+    return request<Paginated<Order>>(`${API_V2_ADMIN}/orders${query ? `?${query}` : ""}`, {}, token);
   },
 
   getOrder: (token: string, orderId: string) =>
-    request<Order>(`${API_V1_ADMIN}/orders/${orderId}`, {}, token),
+    request<Order>(`${API_V2_ADMIN}/orders/${orderId}`, {}, token),
 
   updateOrderStatus: (token: string, orderId: string, status: OrderStatus) =>
-    request<Order>(`${API_V1_ADMIN}/orders/${orderId}`, {
+    request<Order>(`${API_V2_ADMIN}/orders/${orderId}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }, token),
 
   deleteOrder: (token: string, orderId: string) =>
-    request<void>(`${API_V1_ADMIN}/orders/${orderId}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/orders/${orderId}`, { method: "DELETE" }, token),
 
   productReviews: (token: string, params?: { limit?: number; offset?: number }) => {
     const search = new URLSearchParams();
@@ -158,14 +178,14 @@ export const api = {
     if (params?.offset != null) search.set("offset", String(params.offset));
     const query = search.toString();
     return request<Paginated<ProductReview>>(
-      `${API_V1_ADMIN}/product-reviews${query ? `?${query}` : ""}`,
+      `${API_V2_ADMIN}/product-reviews${query ? `?${query}` : ""}`,
       {},
       token,
     );
   },
 
   updateProductReview: (token: string, reviewId: string, published: boolean) =>
-    request<ProductReview>(`${API_V1_ADMIN}/product-reviews/${reviewId}`, {
+    request<ProductReview>(`${API_V2_ADMIN}/product-reviews/${reviewId}`, {
       method: "PATCH",
       body: JSON.stringify({ published }),
     }, token),
@@ -176,26 +196,26 @@ export const api = {
     if (params?.offset != null) search.set("offset", String(params.offset));
     const query = search.toString();
     return request<Paginated<ServiceReview>>(
-      `${API_V1_ADMIN}/service-reviews${query ? `?${query}` : ""}`,
+      `${API_V2_ADMIN}/service-reviews${query ? `?${query}` : ""}`,
       {},
       token,
     );
   },
 
   createServiceReview: (token: string, data: ServiceReviewInput) =>
-    request<ServiceReview>(`${API_V1_ADMIN}/service-reviews`, {
+    request<ServiceReview>(`${API_V2_ADMIN}/service-reviews`, {
       method: "POST",
       body: JSON.stringify(data),
     }, token),
 
   updateServiceReview: (token: string, reviewId: string, data: Partial<ServiceReviewInput>) =>
-    request<ServiceReview>(`${API_V1_ADMIN}/service-reviews/${reviewId}`, {
+    request<ServiceReview>(`${API_V2_ADMIN}/service-reviews/${reviewId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
   deleteServiceReview: (token: string, reviewId: string) =>
-    request<void>(`${API_V1_ADMIN}/service-reviews/${reviewId}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/service-reviews/${reviewId}`, { method: "DELETE" }, token),
 
   installationRequests: (token: string, params?: { limit?: number; offset?: number }) => {
     const search = new URLSearchParams();
@@ -203,105 +223,117 @@ export const api = {
     if (params?.offset != null) search.set("offset", String(params.offset));
     const query = search.toString();
     return request<Paginated<InstallationRequest>>(
-      `${API_V1_ADMIN}/installation-requests${query ? `?${query}` : ""}`,
+      `${API_V2_ADMIN}/installation-requests${query ? `?${query}` : ""}`,
       {},
       token,
     );
   },
 
   deleteInstallationRequest: (token: string, requestId: string) =>
-    request<void>(`${API_V1_ADMIN}/installation-requests/${requestId}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/installation-requests/${requestId}`, { method: "DELETE" }, token),
 
   products: (token: string, params?: { limit?: number; offset?: number }) => {
     const search = new URLSearchParams();
     if (params?.limit != null) search.set("limit", String(params.limit));
     if (params?.offset != null) search.set("offset", String(params.offset));
     const query = search.toString();
-    return request<Paginated<AdminProduct>>(`${API_V1_ADMIN}/products${query ? `?${query}` : ""}`, {}, token);
+    return request<Paginated<AdminProduct>>(`${API_V2_ADMIN}/products${query ? `?${query}` : ""}`, {}, token);
   },
 
   product: (token: string, productId: string) =>
-    request<AdminProduct>(`${API_V1_ADMIN}/products/${productId}`, {}, token),
+    request<AdminProduct>(`${API_V2_ADMIN}/products/${productId}`, {}, token),
 
   createProduct: (token: string, data: ProductInput) =>
-    request<AdminProduct>(`${API_V1_ADMIN}/products`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<AdminProduct>(`${API_V2_ADMIN}/products`, { method: "POST", body: JSON.stringify(data) }, token),
 
   updateProduct: (token: string, productId: string, data: Partial<ProductInput>) =>
-    request<AdminProduct>(`${API_V1_ADMIN}/products/${productId}`, {
+    request<AdminProduct>(`${API_V2_ADMIN}/products/${productId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
   deleteProduct: (token: string, productId: string) =>
-    request<void>(`${API_V1_ADMIN}/products/${productId}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/products/${productId}`, { method: "DELETE" }, token),
 
-  /** Копия товара через POST /products с телом { sourceId }. */
   duplicateProduct: (token: string, productId: string) =>
-    request<AdminProduct>(`${API_V1_ADMIN}/products`, {
+    request<AdminProduct>(`${API_V2_ADMIN}/products/${productId}/duplicate`, {
       method: "POST",
-      body: JSON.stringify({ sourceId: productId }),
     }, token),
 
-  services: (token: string) => request<InstallationService[]>(`${API_V1_ADMIN}/services`, {}, token),
+  services: (token: string) =>
+    request<Paginated<InstallationService>>(`${API_V2_ADMIN}/installation-services?limit=500`, {}, token).then(
+      (res) => res.data,
+    ),
 
   createService: (token: string, data: InstallationServiceInput) =>
-    request<InstallationService>(`${API_V1_ADMIN}/services`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<InstallationService>(`${API_V2_ADMIN}/installation-services`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
 
   updateService: (token: string, id: string, data: Partial<InstallationServiceInput>) =>
-    request<InstallationService>(`${API_V1_ADMIN}/services/${id}`, {
+    request<InstallationService>(`${API_V2_ADMIN}/installation-services/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
   deleteService: (token: string, id: string) =>
-    request<void>(`${API_V1_ADMIN}/services/${id}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/installation-services/${id}`, { method: "DELETE" }, token),
 
-  brands: (token: string) => request<Brand[]>(`${API_V1_ADMIN}/brands`, {}, token),
+  brands: (token: string) =>
+    request<Paginated<Brand>>(`${API_V2_ADMIN}/brands?limit=500`, {}, token).then((res) => res.data),
 
   createBrand: (token: string, data: BrandInput) =>
-    request<Brand>(`${API_V1_ADMIN}/brands`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<Brand>(`${API_V2_ADMIN}/brands`, { method: "POST", body: JSON.stringify(data) }, token),
 
   updateBrand: (token: string, id: string, data: Partial<BrandInput>) =>
-    request<Brand>(`${API_V1_ADMIN}/brands/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+    request<Brand>(`${API_V2_ADMIN}/brands/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
 
   deleteBrand: (token: string, id: string) =>
-    request<void>(`${API_V1_ADMIN}/brands/${id}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/brands/${id}`, { method: "DELETE" }, token),
 
-  blogPosts: (token: string) => request<BlogPost[]>(`${API_V1_ADMIN}/blog-posts`, {}, token),
+  blogPosts: (token: string) =>
+    request<Paginated<BlogPost>>(`${API_V2_ADMIN}/blog-posts?limit=500`, {}, token).then((res) => res.data),
 
   createBlogPost: (token: string, data: BlogPostInput) =>
-    request<BlogPost>(`${API_V1_ADMIN}/blog-posts`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<BlogPost>(`${API_V2_ADMIN}/blog-posts`, { method: "POST", body: JSON.stringify(data) }, token),
 
   updateBlogPost: (token: string, id: string, data: Partial<BlogPostInput>) =>
-    request<BlogPost>(`${API_V1_ADMIN}/blog-posts/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+    request<BlogPost>(`${API_V2_ADMIN}/blog-posts/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
 
   deleteBlogPost: (token: string, id: string) =>
-    request<void>(`${API_V1_ADMIN}/blog-posts/${id}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/blog-posts/${id}`, { method: "DELETE" }, token),
 
-  portfolioWorks: (token: string) => request<PortfolioWork[]>(`${API_V1_ADMIN}/portfolio-works`, {}, token),
+  portfolioWorks: (token: string) =>
+    request<Paginated<PortfolioWork>>(`${API_V2_ADMIN}/portfolio-works?limit=500`, {}, token).then(
+      (res) => res.data,
+    ),
 
   createPortfolioWork: (token: string, data: PortfolioWorkInput) =>
-    request<PortfolioWork>(`${API_V1_ADMIN}/portfolio-works`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<PortfolioWork>(`${API_V2_ADMIN}/portfolio-works`, { method: "POST", body: JSON.stringify(data) }, token),
 
   updatePortfolioWork: (token: string, id: string, data: Partial<PortfolioWorkInput>) =>
-    request<PortfolioWork>(`${API_V1_ADMIN}/portfolio-works/${id}`, {
+    request<PortfolioWork>(`${API_V2_ADMIN}/portfolio-works/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
   deletePortfolioWork: (token: string, id: string) =>
-    request<void>(`${API_V1_ADMIN}/portfolio-works/${id}`, { method: "DELETE" }, token),
+    request<void>(`${API_V2_ADMIN}/portfolio-works/${id}`, { method: "DELETE" }, token),
 
-  categories: (token: string) => request<CategoryAdmin[]>(`${API_V1_ADMIN}/categories`, {}, token),
+  categories: (token: string) =>
+    request<Paginated<CategoryAdmin>>(`${API_V2_ADMIN}/categories?limit=500`, {}, token).then(
+      (res) => res.data,
+    ),
 
   category: (token: string, id: string) =>
-    request<CategoryAdmin>(`${API_V1_ADMIN}/categories/${id}`, {}, token),
+    request<CategoryAdmin>(`${API_V2_ADMIN}/categories/${id}`, {}, token),
 
   createCategory: (token: string, data: CategoryInput) =>
-    request<CategoryAdmin>(`${API_V1_ADMIN}/categories`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<CategoryAdmin>(`${API_V2_ADMIN}/categories`, { method: "POST", body: JSON.stringify(data) }, token),
 
   updateCategory: (token: string, id: string, data: Partial<CategoryUpdateInput>) =>
-    request<CategoryAdmin>(`${API_V1_ADMIN}/categories/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
+    request<CategoryAdmin>(`${API_V2_ADMIN}/categories/${id}`, { method: "PATCH", body: JSON.stringify(data) }, token),
 
   deleteCategory: (
     token: string,
@@ -312,68 +344,65 @@ export const api = {
     if (options?.strategy) params.set("strategy", options.strategy);
     if (options?.moveToCategoryId) params.set("moveTo", options.moveToCategoryId);
     const query = params.toString();
-    return request<void>(`${API_V1_ADMIN}/categories/${id}${query ? `?${query}` : ""}`, { method: "DELETE" }, token);
+    return request<void>(`${API_V2_ADMIN}/categories/${id}${query ? `?${query}` : ""}`, { method: "DELETE" }, token);
   },
 
   uploadCategoryImage: (token: string, categoryId: string, file: File) =>
-    uploadRequest<{ url: string }>(
-      `${API_V1_ADMIN}/uploads/categories`,
-      file,
-      token,
-      { categoryId },
-    ),
+    uploadRequest(`${API_V2_ADMIN}/categories/${categoryId}/images`, file, token),
 
   uploadProductImage: (token: string, file: File, productId?: string) =>
-    uploadRequest<{ url: string }>(
-      `${API_V1_ADMIN}/uploads/products`,
+    uploadRequest(
+      productId
+        ? `${API_V2_ADMIN}/products/${productId}/images`
+        : `${API_V2_ADMIN}/products/images`,
       file,
       token,
-      productId ? { productId } : undefined,
     ),
 
   uploadPortfolioImage: (token: string, file: File, portfolioId?: string) =>
-    uploadRequest<{ url: string }>(
-      `${API_V1_ADMIN}/uploads/portfolio`,
+    uploadRequest(
+      portfolioId
+        ? `${API_V2_ADMIN}/portfolio-works/${portfolioId}/images`
+        : `${API_V2_ADMIN}/portfolio-works/images`,
       file,
       token,
-      portfolioId ? { portfolioId } : undefined,
     ),
 
   attributes: (token: string) =>
-    request<Paginated<AttributeDef>>(`${API_V1_ADMIN}/attributes?limit=500`, {}, token).then(
+    request<Paginated<AttributeDef>>(`${API_V2_ADMIN}/attributes?limit=500`, {}, token).then(
       (res) => res.data,
     ),
 
   attribute: (token: string, id: string) =>
-    request<AttributeDef>(`${API_V1_ADMIN}/attributes/${id}`, {}, token),
+    request<AttributeDef>(`${API_V2_ADMIN}/attributes/${id}`, {}, token),
 
   createAttribute: (token: string, data: AttributeInput) =>
-    request<AttributeDef>(`${API_V1_ADMIN}/attributes`, { method: "POST", body: JSON.stringify(data) }, token),
+    request<AttributeDef>(`${API_V2_ADMIN}/attributes`, { method: "POST", body: JSON.stringify(data) }, token),
 
   updateAttribute: (token: string, id: string, data: Partial<AttributeInput>) =>
-    request<AttributeDef>(`${API_V1_ADMIN}/attributes/${id}`, {
+    request<AttributeDef>(`${API_V2_ADMIN}/attributes/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }, token),
 
   deleteAttribute: (token: string, id: string, options?: { cascade?: boolean }) => {
     const query = options?.cascade ? "?strategy=cascade" : "";
-    return request<void>(`${API_V1_ADMIN}/attributes/${id}${query}`, { method: "DELETE" }, token);
+    return request<void>(`${API_V2_ADMIN}/attributes/${id}${query}`, { method: "DELETE" }, token);
   },
 
   categoryAttributes: (token: string, categoryId: string) =>
-    request<CategoryAttributeLink[]>(`${API_V1_ADMIN}/categories/${categoryId}/attributes`, {}, token),
+    request<CategoryAttributeLink[]>(`${API_V2_ADMIN}/categories/${categoryId}/attributes`, {}, token),
 
   categoryAttributeSchema: (token: string, categoryId: string) =>
     request<CategoryAttributeSchema[]>(
-      `${API_V1_ADMIN}/categories/${categoryId}/attributes?view=form`,
+      `${API_V2_ADMIN}/categories/${categoryId}/attributes?view=form`,
       {},
       token,
     ),
 
   /** PUT — полная замена привязок; отсутствующие в items удаляются на сервере. */
   syncCategoryAttributes: (token: string, categoryId: string, items: CategoryAttributeSyncItem[]) =>
-    request<CategoryAttributeLink[]>(`${API_V1_ADMIN}/categories/${categoryId}/attributes`, {
+    request<CategoryAttributeLink[]>(`${API_V2_ADMIN}/categories/${categoryId}/attributes`, {
       method: "PUT",
       body: JSON.stringify({ items }),
     }, token),
@@ -403,9 +432,11 @@ export interface SiteContact {
   email: string;
   instagramUrl: string;
   tiktokUrl: string;
+  telegramUrl: string;
   address: string;
   phoneTel: string;
   addressMapsUrl: string;
+  workingHours: string;
 }
 
 export interface SiteContactInput {
@@ -413,7 +444,28 @@ export interface SiteContactInput {
   email: string;
   instagramUrl: string;
   tiktokUrl: string;
+  telegramUrl: string;
   address: string;
+  addressMapsUrl: string;
+  workingHours: string;
+}
+
+export interface SiteAnnouncement {
+  text: string;
+  enabled: boolean;
+}
+
+export interface SiteAnnouncementInput {
+  text: string;
+  enabled: boolean;
+}
+
+export interface ProductHighlights {
+  highlights: string[];
+}
+
+export interface ProductHighlightsInput {
+  highlights: string[];
 }
 
 export interface ChangePasswordInput {

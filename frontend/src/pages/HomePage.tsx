@@ -9,7 +9,7 @@ import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { TAGLINE } from "../lib/site";
-import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
+import { pageContentPy, pageSectionPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
 import heroSection from "../assets/hero-section.webp";
@@ -42,7 +42,7 @@ export function HomePage() {
   });
 
   return (
-    <div className="pt-[var(--site-header-height)]">
+    <div className={pageTopOffsetClass}>
       {/* Hero Section */}
       <section className="relative isolate min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none lg:hidden" aria-hidden>

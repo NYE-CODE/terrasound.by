@@ -12,7 +12,9 @@ import {
   Images,
   KeyRound,
   ListFilter,
+  Megaphone,
   Star,
+  BadgeCheck,
   Tag,
   Wrench,
 } from "lucide-react";
@@ -32,6 +34,8 @@ const navItems = [
   { to: "/reviews/service", label: "Отзывы о магазине", icon: Star },
   { to: "/installation", label: "Заявки на установку", icon: Wrench },
   { to: "/settings/contact", label: "Контакты сайта", icon: Contact },
+  { to: "/settings/announcement", label: "Бегущая строка", icon: Megaphone },
+  { to: "/settings/product-highlights", label: "Преимущества товара", icon: BadgeCheck },
   { to: "/settings/stats", label: "Наши достижения", icon: BarChart3 },
   { to: "/settings/password", label: "Смена пароля", icon: KeyRound },
 ];

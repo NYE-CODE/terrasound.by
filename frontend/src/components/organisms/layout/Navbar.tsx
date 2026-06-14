@@ -25,7 +25,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-[70] bg-background border-b border-border">
+      <nav className="bg-background border-b border-border">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-[var(--site-header-height)]">
             <Link

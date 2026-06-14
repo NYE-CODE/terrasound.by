@@ -152,8 +152,7 @@ export function CategoryFormPage() {
               if (!token) throw new Error("Нужна авторизация");
               const categoryId = isEdit ? id! : form.id;
               if (!categoryId) throw new Error("Сначала укажите slug категории");
-              const result = await api.uploadCategoryImage(token, categoryId, file);
-              return result.url;
+              return api.uploadCategoryImage(token, categoryId, file);
             }}
           />
 

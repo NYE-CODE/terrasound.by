@@ -15,20 +15,22 @@ _BUCKETS: dict[str, list[float]] = defaultdict(list)
 _LOCK = Lock()
 
 _RULES: list[tuple[str, str | re.Pattern[str], int, int]] = [
-    ("POST", "/api/v1/admin/sessions", 5, 900),
-    ("PATCH", "/api/v1/admin/me/password", 10, 900),
-    ("POST", "/api/v1/orders", 10, 60),
-    ("POST", "/api/v1/installation/requests", 10, 60),
-    ("POST", re.compile(r"^/api/v1/products/[^/]+/reviews$"), 5, 60),
-    ("GET", re.compile(r"^/api/v1/admin/"), 120, 60),
-    ("POST", re.compile(r"^/api/v1/admin/(?!sessions)"), 100, 60),
-    ("PATCH", re.compile(r"^/api/v1/admin/"), 100, 60),
-    ("DELETE", re.compile(r"^/api/v1/admin/"), 100, 60),
+    ("POST", re.compile(r"^/api/v[12]/admin/sessions$"), 5, 900),
+    ("PATCH", re.compile(r"^/api/v[12]/admin/me/password$"), 10, 900),
+    ("POST", re.compile(r"^/api/v[12]/orders$"), 10, 60),
+    ("POST", re.compile(r"^/api/v[12]/installation-requests$"), 10, 60),
+    ("POST", re.compile(r"^/api/v1/installation/requests$"), 10, 60),
+    ("POST", re.compile(r"^/api/v[12]/products/[^/]+/reviews$"), 5, 60),
+    ("GET", re.compile(r"^/api/v[12]/admin/"), 120, 60),
+    ("POST", re.compile(r"^/api/v[12]/admin/(?!sessions)"), 100, 60),
+    ("PATCH", re.compile(r"^/api/v[12]/admin/"), 100, 60),
+    ("DELETE", re.compile(r"^/api/v[12]/admin/"), 100, 60),
     (
         "GET",
         re.compile(
-            r"^/api/v1/(products|categories|brands|blog-posts|portfolio-works|"
-            r"site-stats|site-contact|vehicles|catalog|installation/services|service-reviews)"
+            r"^/api/v[12]/(products|categories|brands|blog-posts|portfolio-works|"
+            r"site/settings|installation-services|service-reviews|vehicles|"
+            r"site-stats|site-contact|site-announcement|product-highlights|catalog|installation/services)"
         ),
         180,
         60,

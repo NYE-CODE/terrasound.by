@@ -23,7 +23,13 @@ import {
 import { api, messageFromApiError, type InstallationService } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
 import { scrollToHash } from "../lib/scrollToHash";
-import { pageContentPy, pageSectionPy } from "../lib/pageLayout";
+import {
+  minHScreenBelowHeaderClass,
+  pageContentPy,
+  pageSectionPy,
+  pageTopOffsetClass,
+  scrollMtBelowHeaderClass,
+} from "../lib/pageLayout";
 import installationHero from "../assets/installation-hero.webp";
 
 const timeline = [
@@ -102,9 +108,9 @@ export function InstallationPage() {
   };
 
   return (
-    <div className="pt-[var(--site-header-height)] min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       {/* Hero Header */}
-      <section className="relative isolate min-h-[calc(100dvh-var(--site-header-height))] flex items-center justify-center overflow-hidden">
+      <section className={`relative isolate ${minHScreenBelowHeaderClass} flex items-center justify-center overflow-hidden`}>
         <img
           src={installationHero}
           alt="Студия TerraSound"
@@ -128,7 +134,7 @@ export function InstallationPage() {
       </section>
 
       {/* Services */}
-      <section id="services" className={`${pageSectionPy} bg-background scroll-mt-[var(--site-header-height)]`}>
+      <section id="services" className={`${pageSectionPy} bg-background ${scrollMtBelowHeaderClass}`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Наши услуги</h2>
           <div className="space-y-6">

@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, field_serializer, field_validator
 
 from app.schemas.common import CamelModel
+from app.schemas.datetime_format import serialize_utc_datetime
 from app.validation import validate_person_name
 
 
@@ -16,7 +17,7 @@ class ProductReviewPublicOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)
 
 
 class ProductReviewCreatedOut(ProductReviewPublicOut):
@@ -35,7 +36,7 @@ class ProductReviewOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)
 
 
 class ProductReviewCreate(BaseModel):
@@ -61,7 +62,7 @@ class ServiceReviewOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)
 
 
 class ServiceReviewCreate(BaseModel):

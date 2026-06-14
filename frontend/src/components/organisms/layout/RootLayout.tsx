@@ -2,10 +2,12 @@ import { Suspense, useMemo } from "react";
 import { Outlet } from "react-router";
 import { ScrollToTop } from "../../ScrollToTop";
 import { JsonLd } from "../../seo/JsonLd";
-import { Navbar } from "./Navbar";
+import { SiteHeader } from "./SiteHeader";
 import { Footer } from "./Footer";
 import { CartProvider } from "../../../context/CartContext";
 import { CategoriesProvider } from "../../../context/CategoriesContext";
+import { SiteAnnouncementProvider } from "../../../context/SiteAnnouncementContext";
+import { ProductHighlightsProvider } from "../../../context/ProductHighlightsContext";
 import { SiteContactProvider, useSiteContact } from "../../../context/SiteContactContext";
 import { COMPANY_NAME, SITE_NAME, SITE_ORIGIN, TAGLINE } from "../../../lib/site";
 
@@ -38,7 +40,7 @@ function RootLayoutContent() {
       <JsonLd id="local-business" data={localBusiness} />
       <ScrollToTop />
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
+        <SiteHeader />
         <main className="flex-1">
           <Suspense fallback={null}>
             <Outlet />
@@ -54,9 +56,13 @@ export function RootLayout() {
   return (
     <CartProvider>
       <SiteContactProvider>
-        <CategoriesProvider>
-          <RootLayoutContent />
-        </CategoriesProvider>
+        <SiteAnnouncementProvider>
+          <ProductHighlightsProvider>
+            <CategoriesProvider>
+              <RootLayoutContent />
+            </CategoriesProvider>
+          </ProductHighlightsProvider>
+        </SiteAnnouncementProvider>
       </SiteContactProvider>
     </CartProvider>
   );

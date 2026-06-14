@@ -17,7 +17,7 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { api, type CategoryFilters, type ProductCard as ProductCardData } from "../lib/api";
 import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass, stickyBelowHeaderClass } from "../lib/pageLayout";
 
 const PAGE_SIZE = 9;
 
@@ -173,7 +173,7 @@ export function CataloguePage() {
   };
 
   return (
-    <div className="pt-[var(--site-header-height)] min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <div className="mb-6 lg:mb-8">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">
@@ -183,7 +183,7 @@ export function CataloguePage() {
         </div>
 
         {!filtersOpen && (
-          <div className="lg:hidden sticky top-[var(--site-header-height)] z-50 -mx-6 px-6 py-3 mb-3 bg-background border-b border-border">
+          <div className={`lg:hidden sticky ${stickyBelowHeaderClass} z-50 -mx-6 px-6 py-3 mb-3 bg-background border-b border-border`}>
             <div className="grid grid-cols-2 gap-3">
             <button
               type="button"

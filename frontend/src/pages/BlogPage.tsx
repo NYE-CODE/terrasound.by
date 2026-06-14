@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { api, type BlogPostCard } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { formatReviewDate } from "../utils/formatReviewDate";
 
 export function BlogPage() {
@@ -20,7 +20,7 @@ export function BlogPage() {
   }, []);
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <div className="mb-12">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">Блог</h1>

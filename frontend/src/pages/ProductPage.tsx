@@ -10,6 +10,7 @@ import { ProductImage } from "../components/atoms/ProductImage";
 import { ReviewCard } from "../components/organisms/ReviewCard";
 import { ProductReviewForm } from "../components/organisms/ProductReviewForm";
 import type { ProductReviewFormData } from "../components/organisms/ProductReviewForm";
+import { ProductHighlightsList } from "../components/molecules/ProductHighlightsList";
 import { ProductPageTemplate } from "../components/templates/ProductPageTemplate";
 import { Check } from "lucide-react";
 import { useCart } from "../context/CartContext";
@@ -17,6 +18,7 @@ import { toast } from "sonner";
 import { api, messageFromApiError, type ProductDetail } from "../lib/api";
 import { getEffectivePrice } from "../lib/price";
 import type { ProductReview } from "@terrasound/shared";
+import { pageTopOffsetClass } from "../lib/pageLayout";
 
 export function ProductPage() {
   const { id } = useParams();
@@ -110,7 +112,7 @@ export function ProductPage() {
 
   if (loadError) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center">
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center`}>
         <div className="text-center max-w-md px-6">
           <h1 className="font-heading text-4xl mb-4">Товар не найден</h1>
           <p className="text-muted-foreground mb-8">
@@ -126,7 +128,7 @@ export function ProductPage() {
 
   if (!product) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center text-muted-foreground">
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center text-muted-foreground`}>
         Загрузка...
       </div>
     );
@@ -229,11 +231,7 @@ export function ProductPage() {
             )}
           </div>
 
-          <div className="text-sm text-muted-foreground space-y-2">
-            <div>• Бесплатная консультация перед покупкой</div>
-            <div>• Гарантия 2 года на всё оборудование</div>
-            <div>• Доступна профессиональная установка</div>
-          </div>
+          <ProductHighlightsList />
         </>
       }
       details={

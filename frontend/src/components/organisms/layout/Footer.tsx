@@ -1,6 +1,8 @@
 import { Link } from "react-router";
 import { Phone, Mail, MapPin, Instagram } from "lucide-react";
+import { AddressLink } from "../../atoms/AddressLink";
 import { TikTokIcon } from "../../icons/TikTokIcon";
+import { TelegramIcon } from "../../icons/TelegramIcon";
 import { externalUrl, socialHandle } from "../../../lib/contactHelpers";
 import { COMPANY_NAME, SITE_NAME, TAGLINE } from "../../../lib/site";
 import { useCategories } from "../../../context/CategoriesContext";
@@ -58,15 +60,25 @@ export function Footer() {
                   <span>{socialHandle(contact.tiktokUrl)}</span>
                 </a>
               )}
-              <a
-                href={contact.addressMapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
-              >
+              {contact.telegramUrl.trim() && (
+                <a
+                  href={externalUrl(contact.telegramUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-muted-foreground hover:text-accent transition-colors duration-300"
+                >
+                  <TelegramIcon size={16} />
+                  <span>{socialHandle(contact.telegramUrl)}</span>
+                </a>
+              )}
+              <div className="flex items-center gap-3 text-muted-foreground">
                 <MapPin size={16} />
-                <span>{contact.address}</span>
-              </a>
+                <AddressLink
+                  address={contact.address}
+                  mapsUrl={contact.addressMapsUrl}
+                  className="hover:text-accent transition-colors duration-300"
+                />
+              </div>
             </div>
           </div>
 
@@ -127,7 +139,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            © 2026 {COMPANY_NAME}
+            © {new Date().getFullYear()} {COMPANY_NAME}
           </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link to="/privacy" className="hover:text-accent transition-colors duration-300">

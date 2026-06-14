@@ -11,6 +11,8 @@ PRODUCT_BRANDS = "products:brands"
 CATALOG_PRICE_BOUNDS = "catalog:price-bounds"
 SITE_STATS = "site-stats"
 SITE_CONTACT = "site-contact"
+SITE_ANNOUNCEMENT = "site-announcement"
+PRODUCT_HIGHLIGHTS = "product-highlights"
 
 
 def category_filters_cache_key(category_id: str) -> str:
@@ -44,6 +46,8 @@ class TTLCache:
 content_cache = TTLCache()
 site_stats_cache = TTLCache()
 site_contact_cache = TTLCache()
+site_announcement_cache = TTLCache()
+product_highlights_cache = TTLCache()
 
 
 def invalidate_content_cache() -> None:

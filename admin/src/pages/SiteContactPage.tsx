@@ -11,7 +11,10 @@ const defaultForm: SiteContactInput = {
   email: "info@terrasound.by",
   instagramUrl: "https://instagram.com/terrasound.by",
   tiktokUrl: "https://www.tiktok.com/@terrasound.by",
+  telegramUrl: "https://t.me/terrasound_by",
   address: "г. Гродно, Озерское шоссе, 14",
+  addressMapsUrl: `https://yandex.by/maps/?text=${encodeURIComponent("г. Гродно, Озерское шоссе, 14, Беларусь")}`,
+  workingHours: "Пн–Пт, 10:00–18:00, обед 14:00–15:00",
 };
 
 function toForm(contact: SiteContact): SiteContactInput {
@@ -20,7 +23,10 @@ function toForm(contact: SiteContact): SiteContactInput {
     email: contact.email,
     instagramUrl: contact.instagramUrl,
     tiktokUrl: contact.tiktokUrl,
+    telegramUrl: contact.telegramUrl,
     address: contact.address,
+    addressMapsUrl: contact.addressMapsUrl,
+    workingHours: contact.workingHours,
   };
 }
 
@@ -66,8 +72,8 @@ export function SiteContactPage() {
 
       <p className="text-sm text-[var(--muted-foreground)] mb-6 max-w-2xl">
         Телефон, email, соцсети и адрес отображаются в шапке, подвале, на странице контактов и в
-        других разделах сайта. Поля Instagram и TikTok можно оставить пустыми — ссылка не будет
-        показана.
+        других разделах сайта. Поля Instagram, TikTok и Telegram можно оставить пустыми — ссылка не
+        будет показана.
       </p>
 
       <form onSubmit={handleSubmit} className={`${formCardClass} max-w-xl space-y-4`}>
@@ -131,7 +137,24 @@ export function SiteContactPage() {
           />
         </FormField>
 
-        <FormField label="Адрес" htmlFor="contact-address" required>
+        <FormField
+          label="Telegram"
+          htmlFor="contact-telegram"
+          optional
+          hint="Полная ссылка, например: https://t.me/terrasound_by"
+        >
+          <input
+            id="contact-telegram"
+            type="url"
+            maxLength={512}
+            value={form.telegramUrl}
+            onChange={(e) => setForm({ ...form, telegramUrl: e.target.value })}
+            className={inputClass}
+            placeholder="https://t.me/..."
+          />
+        </FormField>
+
+        <FormField label="Адрес" htmlFor="contact-address" required hint="Текст адреса на сайте">
           <input
             id="contact-address"
             type="text"
@@ -140,6 +163,40 @@ export function SiteContactPage() {
             onChange={(e) => setForm({ ...form, address: e.target.value })}
             className={inputClass}
             required
+          />
+        </FormField>
+
+        <FormField
+          label="Ссылка на карту"
+          htmlFor="contact-maps-url"
+          optional
+          hint="Яндекс.Карты, Google Maps и т.п. Если пусто — строится автоматически по адресу."
+        >
+          <input
+            id="contact-maps-url"
+            type="url"
+            maxLength={1024}
+            value={form.addressMapsUrl}
+            onChange={(e) => setForm({ ...form, addressMapsUrl: e.target.value })}
+            className={inputClass}
+            placeholder="https://yandex.by/maps/..."
+          />
+        </FormField>
+
+        <FormField
+          label="Режим работы"
+          htmlFor="contact-working-hours"
+          optional
+          hint='Например: Пн–Пт, 10:00–18:00, обед 14:00–15:00'
+        >
+          <input
+            id="contact-working-hours"
+            type="text"
+            maxLength={256}
+            value={form.workingHours}
+            onChange={(e) => setForm({ ...form, workingHours: e.target.value })}
+            className={inputClass}
+            placeholder="Пн–Пт, 10:00–18:00, обед 14:00–15:00"
           />
         </FormField>
 

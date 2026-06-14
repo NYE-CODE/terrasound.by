@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import { Button } from "../components/atoms/Button";
+import { AddressLink } from "../components/atoms/AddressLink";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useSiteContact } from "../context/SiteContactContext";
-import { pageContentPy } from "../lib/pageLayout";
-import { WORKING_HOURS } from "../lib/site";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function DeliveryPage() {
   const contact = useSiteContact();
@@ -14,7 +14,7 @@ export function DeliveryPage() {
   });
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <h1 className="font-heading text-4xl sm:text-5xl mb-8">Доставка и оплата</h1>
 
@@ -24,8 +24,18 @@ export function DeliveryPage() {
             <p>
               Доставка по городу Гродно — <strong className="text-foreground">бесплатно</strong> при заказе от 100 BYN.
             </p>
-            <p className="mt-3">Самовывоз по адресу: {contact.address}.</p>
-            <p className="mt-3">Режим работы: {WORKING_HOURS}.</p>
+            <p className="mt-3">
+              Самовывоз по адресу:{" "}
+              <AddressLink
+                address={contact.address}
+                mapsUrl={contact.addressMapsUrl}
+                className="hover:text-accent transition-colors"
+              />
+              .
+            </p>
+            {contact.workingHours.trim() ? (
+              <p className="mt-3">Режим работы: {contact.workingHours}.</p>
+            ) : null}
           </section>
 
           <section>

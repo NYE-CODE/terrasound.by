@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator
 
 from app.schemas.common import CamelModel
+from app.schemas.datetime_format import serialize_utc_datetime
 from app.models.order import OrderStatus
 from app.validation import validate_car_model, validate_person_name, validate_phone_number
 
@@ -88,7 +89,18 @@ class OrderOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)
+
+
+class OrderCreatedOut(CamelModel):
+    id: str
+    status: OrderStatus
+    total: float
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def serialize_created_at(self, value: datetime) -> str:
+        return serialize_utc_datetime(value)
 
 
 class OrderStatusUpdate(BaseModel):

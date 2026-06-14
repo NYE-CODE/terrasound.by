@@ -1,7 +1,9 @@
+import { AddressLink } from "../components/atoms/AddressLink";
+import { MapEmbed } from "../components/molecules/MapEmbed";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { useSiteContact } from "../context/SiteContactContext";
-import { SITE_NAME, WORKING_HOURS } from "../lib/site";
+import { SITE_NAME } from "../lib/site";
 
 export function AboutPage() {
   const contact = useSiteContact();
@@ -12,7 +14,7 @@ export function AboutPage() {
   });
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <section>
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -25,24 +27,35 @@ export function AboutPage() {
                 <p>Мы работаем только по записи, чтобы каждая установка получала должное внимание.</p>
                 <div className="pt-6 space-y-2">
                   <div>
-                    <span className="text-foreground font-heading">Адрес:</span> {contact.address}
+                    <span className="text-foreground font-heading">Адрес:</span>{" "}
+                    <AddressLink
+                      address={contact.address}
+                      mapsUrl={contact.addressMapsUrl}
+                      className="text-muted-foreground hover:text-accent transition-colors"
+                    />
                   </div>
+                  {contact.workingHours.trim() ? (
+                    <div>
+                      <span className="text-foreground font-heading">Режим работы:</span> {contact.workingHours}
+                    </div>
+                  ) : null}
                   <div>
-                    <span className="text-foreground font-heading">Режим работы:</span> {WORKING_HOURS}
-                  </div>
-                  <div>
-                    <span className="text-foreground font-heading">Телефон:</span> {contact.phone}
+                    <span className="text-foreground font-heading">Телефон:</span>{" "}
+                    <a
+                      href={`tel:${contact.phoneTel || contact.phone.replace(/\D/g, "")}`}
+                      className="text-muted-foreground hover:text-accent transition-colors"
+                    >
+                      {contact.phone}
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="aspect-video bg-secondary/30 rounded overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80"
-                alt="Интерьер студии"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <MapEmbed
+              mapsUrl={contact.addressMapsUrl}
+              address={contact.address}
+              title={`Расположение студии TerraSound: ${contact.address}`}
+            />
           </div>
         </section>
       </div>

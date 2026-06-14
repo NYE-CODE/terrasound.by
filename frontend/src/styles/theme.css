@@ -31,6 +31,9 @@
   --ring: #E4AF00;
   --radius: 4px;
   --site-header-height: 5rem;
+  --site-announcement-bar-height: 2.25rem;
+  --site-announcement-height: 0px;
+  --site-header-stack-height: calc(var(--site-header-height) + var(--site-announcement-height));
 }
 
 
@@ -178,5 +181,28 @@
     width: max-content;
     max-width: max-content;
     white-space: nowrap;
+  }
+
+  @keyframes announcement-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .announcement-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: announcement-marquee 45s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .announcement-marquee-track {
+      width: 100%;
+      justify-content: center;
+      animation: none;
+    }
   }
 }

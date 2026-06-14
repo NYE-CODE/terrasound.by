@@ -14,7 +14,9 @@ export const DEFAULT_SITE_CONTACT = {
   email: "info@terrasound.by",
   instagramUrl: "https://instagram.com/terrasound.by",
   tiktokUrl: "https://www.tiktok.com/@terrasound.by",
+  telegramUrl: "https://t.me/terrasound_by",
   address: "г. Гродно, Озерское шоссе, 14",
   phoneTel: "+375339177444",
   addressMapsUrl: `https://yandex.by/maps/?text=${encodeURIComponent("г. Гродно, Озерское шоссе, 14, Беларусь")}`,
+  workingHours: WORKING_HOURS,
 };

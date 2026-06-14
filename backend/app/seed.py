@@ -7,13 +7,18 @@ from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, 
 from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.admin_account import AdminAccount
 from app.models.site_contact import SiteContact
+from app.models.site_announcement import SiteAnnouncement
+from app.models.product_highlights import ProductHighlights
 from app.models.site_stats import SiteStats
+from app.contact_utils import address_to_maps_url
 from app.services.site_contact import (
     DEFAULT_ADDRESS,
     DEFAULT_EMAIL,
     DEFAULT_INSTAGRAM,
     DEFAULT_PHONE,
+    DEFAULT_TELEGRAM,
     DEFAULT_TIKTOK,
+    DEFAULT_WORKING_HOURS,
 )
 from app.services.admin_account import hash_password
 from app.models.product import Product, ProductCompatibility, ProductImage, ProductSpec
@@ -677,6 +682,24 @@ def _seed_admin_account(db: Session) -> None:
     db.commit()
 
 
+def _seed_site_announcement(db: Session) -> None:
+    if db.query(SiteAnnouncement).filter(SiteAnnouncement.id == 1).first():
+        return
+    db.add(SiteAnnouncement(id=1, text="", enabled=False))
+    db.commit()
+
+
+def _seed_product_highlights(db: Session) -> None:
+    if db.query(ProductHighlights).filter(ProductHighlights.id == 1).first():
+        return
+    import json
+
+    from app.services.product_highlights import DEFAULT_HIGHLIGHTS
+
+    db.add(ProductHighlights(id=1, highlights_json=json.dumps(DEFAULT_HIGHLIGHTS, ensure_ascii=False)))
+    db.commit()
+
+
 def _seed_site_stats(db: Session) -> None:
     if db.query(SiteStats).filter(SiteStats.id == 1).first():
         return
@@ -694,7 +717,10 @@ def _seed_site_contact(db: Session) -> None:
             email=DEFAULT_EMAIL,
             instagram_url=DEFAULT_INSTAGRAM,
             tiktok_url=DEFAULT_TIKTOK,
+            telegram_url=DEFAULT_TELEGRAM,
             address=DEFAULT_ADDRESS,
+            maps_url=address_to_maps_url(DEFAULT_ADDRESS),
+            working_hours=DEFAULT_WORKING_HOURS,
         )
     )
     db.commit()
@@ -755,3 +781,5 @@ def seed_database(db: Session) -> None:
     _seed_admin_account(db)
     _seed_site_stats(db)
     _seed_site_contact(db)
+    _seed_site_announcement(db)
+    _seed_product_highlights(db)

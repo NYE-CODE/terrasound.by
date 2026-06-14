@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { api, type BlogPostDetail } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { formatReviewDate } from "../utils/formatReviewDate";
 
 export function BlogPostPage() {
@@ -28,7 +28,7 @@ export function BlogPostPage() {
 
   if (error) {
     return (
-      <div className="pt-20 min-h-screen flex flex-col items-center justify-center gap-4">
+      <div className={`${pageTopOffsetClass} min-h-screen flex flex-col items-center justify-center gap-4`}>
         <p className="text-muted-foreground">Статья не найдена</p>
         <Link to="/blog" className="text-accent hover:underline font-heading text-sm uppercase tracking-wider">
           ← К блогу
@@ -39,7 +39,7 @@ export function BlogPostPage() {
 
   if (!post) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center text-muted-foreground">
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center text-muted-foreground`}>
         Загрузка...
       </div>
     );
@@ -51,7 +51,7 @@ export function BlogPostPage() {
     .filter(Boolean);
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <article className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <Link
           to="/blog"

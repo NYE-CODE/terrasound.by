@@ -1,15 +1,15 @@
 /**
- * HTTP-клиент публичного API v1.
+ * HTTP-клиент публичного API v2.
  * Списки: `{ data, meta }`. Ошибки: `ApiError` и `messageFromApiError`.
  */
-import type { Order, ProductReview, ServiceReview } from "@terrasound/shared";
+import type { ProductReview, ServiceReview } from "@terrasound/shared";
 import { ApiError, parseApiErrorBody } from "./apiError";
 import { resolveApiUrl } from "./apiUrl";
 
 export { ApiError, messageFromApiError } from "./apiError";
 
 const API_URL = resolveApiUrl();
-const API_V1 = "/api/v1";
+const API_V2 = "/api/v2";
 
 export interface PaginationMeta {
   total: number;
@@ -17,7 +17,7 @@ export interface PaginationMeta {
   offset: number;
 }
 
-/** Стандартный ответ списка API v1. */
+/** Стандартный ответ списка API. */
 export interface Paginated<T> {
   data: T[];
   meta: PaginationMeta;
@@ -109,17 +109,24 @@ export interface InstallationRequestInput {
   service: string;
 }
 
+export interface OrderCreated {
+  id: string;
+  status: string;
+  total: number;
+  createdAt: string;
+}
+
 export const api = {
   /** Категории каталога (limit=500, только data). */
   getCategories: () =>
-    request<Paginated<Category>>(`${API_V1}/categories?limit=500`).then((res) => res.data),
+    request<Paginated<Category>>(`${API_V2}/categories?limit=500`).then((res) => res.data),
 
-  getProductBrands: () => request<string[]>(`${API_V1}/catalog/brands`),
+  getProductBrands: () => request<string[]>(`${API_V2}/products/facets/brands`),
 
-  getCatalogPriceBounds: () => request<PriceBounds>(`${API_V1}/catalog/price-bounds`),
+  getCatalogPriceBounds: () => request<PriceBounds>(`${API_V2}/products/facets/price-bounds`),
 
   getCategoryFilters: (categoryId: string) =>
-    request<CategoryFilters>(`${API_V1}/categories/${encodeURIComponent(categoryId)}/filters`),
+    request<CategoryFilters>(`${API_V2}/categories/${encodeURIComponent(categoryId)}/filters`),
 
   /** Фильтры категории; query attr.* формируется отдельно в attrQuery. */
   getProducts: (params?: {
@@ -149,51 +156,54 @@ export const api = {
     if (params?.offset != null) search.set("offset", String(params.offset));
     const base = search.toString();
     const attr = params?.attrQuery ? `${base ? `${base}&` : ""}${params.attrQuery}` : base;
-    return request<ProductList>(`${API_V1}/products${attr ? `?${attr}` : ""}`);
+    return request<ProductList>(`${API_V2}/products${attr ? `?${attr}` : ""}`);
   },
 
   getProduct: (id: string) =>
-    request<ProductDetail>(`${API_V1}/products/${encodeURIComponent(id)}`),
+    request<ProductDetail>(`${API_V2}/products/${encodeURIComponent(id)}`),
 
   getServiceReviews: () =>
-    request<Paginated<ServiceReview>>(`${API_V1}/service-reviews?limit=100`).then((res) => res.data),
+    request<Paginated<ServiceReview>>(`${API_V2}/service-reviews?limit=100`).then((res) => res.data),
 
   createProductReview: (productId: string, data: ProductReviewInput) =>
-    request<ProductReview>(`${API_V1}/products/${encodeURIComponent(productId)}/reviews`, {
+    request<ProductReview>(`${API_V2}/products/${encodeURIComponent(productId)}/reviews`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   createOrder: (data: OrderCreatePayload) =>
-    request<Order>(`${API_V1}/orders`, {
+    request<OrderCreated>(`${API_V2}/orders`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   createInstallationRequest: (data: InstallationRequestInput) =>
-    request(`${API_V1}/installation/requests`, {
+    request(`${API_V2}/installation-requests`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   getServices: () =>
-    request<Paginated<InstallationService>>(`${API_V1}/installation/services?limit=500`).then(
+    request<Paginated<InstallationService>>(`${API_V2}/installation-services?limit=500`).then(
       (res) => res.data,
     ),
 
-  getBrands: () => request<Paginated<Brand>>(`${API_V1}/brands?limit=500`).then((res) => res.data),
+  getBrands: () => request<Paginated<Brand>>(`${API_V2}/brands?limit=500`).then((res) => res.data),
 
   getBlogPosts: () =>
-    request<Paginated<BlogPostCard>>(`${API_V1}/blog-posts?limit=500`).then((res) => res.data),
+    request<Paginated<BlogPostCard>>(`${API_V2}/blog-posts?limit=500`).then((res) => res.data),
 
-  getBlogPost: (id: string) => request<BlogPostDetail>(`${API_V1}/blog-posts/${id}`),
+  getBlogPost: (id: string) => request<BlogPostDetail>(`${API_V2}/blog-posts/${id}`),
 
   getPortfolio: () =>
-    request<Paginated<PortfolioWork>>(`${API_V1}/portfolio-works?limit=500`).then((res) => res.data),
+    request<Paginated<PortfolioWork>>(`${API_V2}/portfolio-works?limit=500`).then((res) => res.data),
 
-  getSiteStats: () => request<SiteStats>(`${API_V1}/site-stats`),
+  getSiteStats: () => request<SiteStats>(`${API_V2}/site/settings/stats`),
+  getSiteAnnouncement: () => request<SiteAnnouncement>(`${API_V2}/site/settings/announcement`),
 
-  getSiteContact: () => request<SiteContact>(`${API_V1}/site-contact`),
+  getProductHighlights: () => request<ProductHighlights>(`${API_V2}/site/settings/product-highlights`),
+
+  getSiteContact: () => request<SiteContact>(`${API_V2}/site/settings/contact`),
 };
 
 export interface SiteStats {
@@ -201,14 +211,25 @@ export interface SiteStats {
   yearsExpertise: string;
 }
 
+export interface SiteAnnouncement {
+  text: string;
+  enabled: boolean;
+}
+
+export interface ProductHighlights {
+  highlights: string[];
+}
+
 export interface SiteContact {
   phone: string;
   email: string;
   instagramUrl: string;
   tiktokUrl: string;
+  telegramUrl: string;
   address: string;
   phoneTel: string;
   addressMapsUrl: string;
+  workingHours: string;
 }
 
 export interface Category {

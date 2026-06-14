@@ -1,9 +1,10 @@
 import { Link } from "react-router";
 import { Button } from "../components/atoms/Button";
+import { pageTopOffsetClass } from "../lib/pageLayout";
 
 export function NotFoundPage() {
   return (
-    <div className="pt-20 min-h-screen flex items-center justify-center">
+    <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center`}>
       <div className="text-center max-w-md px-6">
         <div className="font-heading text-[120px] text-accent leading-none mb-4">404</div>
         <h1 className="font-heading text-4xl mb-4">Страница не найдена</h1>

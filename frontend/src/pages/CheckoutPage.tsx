@@ -16,6 +16,7 @@ import {
   validatePhone,
 } from "@terrasound/shared";
 import { toast } from "sonner";
+import { pageTopOffsetClass } from "../lib/pageLayout";
 
 const paymentOptions = [
   {
@@ -221,7 +222,7 @@ export function CheckoutPage() {
 
   if (!syncing && items.length === 0) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center">
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center`}>
         <div className="text-center max-w-md px-6">
           <h1 className="font-heading text-4xl mb-4">Корзина пуста</h1>
           <p className="text-muted-foreground mb-8">
@@ -237,7 +238,7 @@ export function CheckoutPage() {
 
   if (syncing) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center text-muted-foreground">
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center text-muted-foreground`}>
         Проверяем актуальные цены и наличие...
       </div>
     );

@@ -77,6 +77,133 @@ def run_migrations(engine: Engine) -> None:
     _migrate_attributes_filter_type(engine)
     _migrate_site_stats_to_text(engine)
     _migrate_admin_token_version(engine)
+    _migrate_site_contact_telegram(engine)
+    _migrate_site_contact_maps_url(engine)
+    _migrate_site_contact_working_hours(engine)
+    _migrate_site_announcement(engine)
+    _migrate_product_highlights(engine)
+
+
+def _migrate_product_highlights(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "product_highlights" in inspector.get_table_names():
+        return
+
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE product_highlights (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    highlights_json TEXT NOT NULL DEFAULT '[]'
+                )
+                """
+            )
+        )
+        default_json = (
+            '["Бесплатная консультация перед покупкой", '
+            '"Гарантия 2 года на всё оборудование", '
+            '"Доступна профессиональная установка"]'
+        )
+        conn.execute(
+            text("INSERT INTO product_highlights (id, highlights_json) VALUES (1, :json)"),
+            {"json": default_json},
+        )
+
+
+def _migrate_site_announcement(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_announcement" in inspector.get_table_names():
+        return
+
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE site_announcement (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    text VARCHAR(512) NOT NULL DEFAULT '',
+                    enabled BOOLEAN NOT NULL DEFAULT 0
+                )
+                """
+            )
+        )
+        conn.execute(text("INSERT INTO site_announcement (id, text, enabled) VALUES (1, '', 0)"))
+
+
+def _migrate_site_contact_working_hours(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_contact" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_contact")}
+    if "working_hours" not in columns:
+        default_hours = "Пн–Пт, 10:00–18:00, обед 14:00–15:00"
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE site_contact ADD COLUMN working_hours VARCHAR(256) NOT NULL DEFAULT ''")
+            )
+            conn.execute(
+                text(
+                    "UPDATE site_contact SET working_hours = :hours "
+                    "WHERE id = 1 AND (working_hours IS NULL OR working_hours = '')"
+                ),
+                {"hours": default_hours},
+            )
+
+
+def _migrate_site_contact_maps_url(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    from app.contact_utils import address_to_maps_url
+
+    inspector = inspect(engine)
+    if "site_contact" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_contact")}
+    if "maps_url" not in columns:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE site_contact ADD COLUMN maps_url VARCHAR(1024) NOT NULL DEFAULT ''"))
+            row = conn.execute(text("SELECT address FROM site_contact WHERE id = 1")).fetchone()
+            if row and row[0]:
+                conn.execute(
+                    text("UPDATE site_contact SET maps_url = :url WHERE id = 1 AND maps_url = ''"),
+                    {"url": address_to_maps_url(row[0])},
+                )
+
+
+def _migrate_site_contact_telegram(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_contact" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_contact")}
+    if "telegram_url" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE site_contact ADD COLUMN telegram_url VARCHAR(512) NOT NULL DEFAULT ''")
+            )
+            conn.execute(
+                text(
+                    "UPDATE site_contact SET telegram_url = :url "
+                    "WHERE id = 1 AND (telegram_url IS NULL OR telegram_url = '')"
+                ),
+                {"url": "https://t.me/terrasound_by"},
+            )
 
 
 def _migrate_admin_token_version(engine: Engine) -> None:

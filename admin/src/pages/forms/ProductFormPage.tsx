@@ -312,8 +312,7 @@ export function ProductFormPage() {
           onChange={(imageUrl) => setForm({ ...form, imageUrl })}
           onUpload={async (file) => {
             if (!token) throw new Error("Нужна авторизация");
-            const result = await api.uploadProductImage(token, file, isEdit ? id : undefined);
-            return result.url;
+            return api.uploadProductImage(token, file, isEdit ? id : undefined);
           }}
         />
 
@@ -332,8 +331,7 @@ export function ProductFormPage() {
             onChange={setGalleryImages}
             onUpload={async (file) => {
               if (!token) throw new Error("Нужна авторизация");
-              const result = await api.uploadProductImage(token, file, isEdit ? id : undefined);
-              return result.url;
+              return api.uploadProductImage(token, file, isEdit ? id : undefined);
             }}
           />
         </div>

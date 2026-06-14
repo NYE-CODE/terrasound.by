@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, type Brand } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -11,7 +11,7 @@ export function BrandsPage() {
   }, []);
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <div className="mb-12">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">Наши бренды</h1>

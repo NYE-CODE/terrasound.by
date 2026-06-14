@@ -12,4 +12,7 @@ class SiteContact(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     instagram_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     tiktok_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    telegram_url: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     address: Mapped[str] = mapped_column(String(512), nullable=False)
+    maps_url: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    working_hours: Mapped[str] = mapped_column(String(256), nullable=False, default="")

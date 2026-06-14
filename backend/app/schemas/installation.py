@@ -3,6 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 from app.schemas.common import CamelModel
+from app.schemas.datetime_format import serialize_utc_datetime
 from app.validation import validate_car_model, validate_person_name, validate_phone_number
 
 
@@ -40,4 +41,4 @@ class InstallationRequestOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)

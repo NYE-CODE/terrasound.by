@@ -1,12 +1,12 @@
 import { useSiteContact } from "../context/SiteContactContext";
 import { COMPANY_NAME } from "../lib/site";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function PrivacyPage() {
   const contact = useSiteContact();
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <h1 className="font-heading text-5xl mb-8">Политика конфиденциальности</h1>
 

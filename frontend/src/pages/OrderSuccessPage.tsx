@@ -1,15 +1,16 @@
 import { Link, useParams } from "react-router";
 import { Button } from "../components/atoms/Button";
-import { Check, Mail, Phone } from "lucide-react";
+import { Check, Mail, MapPin, Phone } from "lucide-react";
+import { AddressLink } from "../components/atoms/AddressLink";
 import { useSiteContact } from "../context/SiteContactContext";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageTopOffsetClass } from "../lib/pageLayout";
 
 export function OrderSuccessPage() {
   const { orderId } = useParams();
   const contact = useSiteContact();
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-2xl mx-auto px-6 ${pageContentPy}`}>
         <div className="bg-card border border-card-border rounded p-8 text-center">
           <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -49,6 +50,14 @@ export function OrderSuccessPage() {
                 <a href={`mailto:${contact.email}`} className="hover:text-accent transition-colors duration-300">
                   {contact.email}
                 </a>
+              </div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                <MapPin size={16} />
+                <AddressLink
+                  address={contact.address}
+                  mapsUrl={contact.addressMapsUrl}
+                  className="hover:text-accent transition-colors duration-300"
+                />
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_valid
 from pydantic.alias_generators import to_camel
 
 from app.schemas.common import CamelModel
+from app.schemas.datetime_format import serialize_utc_datetime
 
 
 def normalize_money(value: Any) -> float:
@@ -93,7 +94,7 @@ class BlogPostOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        return value.isoformat() + "Z"
+        return serialize_utc_datetime(value)
 
 
 class BlogPostCardOut(CamelModel):
@@ -105,8 +106,6 @@ class BlogPostCardOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        from app.schemas.datetime_format import serialize_utc_datetime
-
         return serialize_utc_datetime(value)
 
 
@@ -120,8 +119,6 @@ class BlogPostDetailOut(CamelModel):
 
     @field_serializer("created_at")
     def serialize_created_at(self, value: datetime) -> str:
-        from app.schemas.datetime_format import serialize_utc_datetime
-
         return serialize_utc_datetime(value)
 
 

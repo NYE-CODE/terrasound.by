@@ -100,8 +100,7 @@ export function PortfolioFormPage() {
           onChange={(imageUrl) => setForm({ ...form, imageUrl })}
           onUpload={async (file) => {
             if (!token) throw new Error("Нужна авторизация");
-            const result = await api.uploadPortfolioImage(token, file, isEdit ? id : undefined);
-            return result.url;
+            return api.uploadPortfolioImage(token, file, isEdit ? id : undefined);
           }}
         />
 

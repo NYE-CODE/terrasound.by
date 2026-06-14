@@ -3,14 +3,14 @@ import { Button } from "../components/atoms/Button";
 import { OrderItem } from "../components/molecules/OrderItem";
 import { OrderSummary } from "../components/organisms/OrderSummary";
 import { useCart } from "../context/CartContext";
-import { pageContentPy } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
 
   if (items.length === 0) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center">
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center`}>
         <div className="text-center max-w-md px-6">
           <h1 className="font-heading text-4xl mb-4">Корзина пуста</h1>
           <p className="text-muted-foreground mb-8">
@@ -25,7 +25,7 @@ export function CartPage() {
   }
 
   return (
-    <div className="pt-20 min-h-screen">
+    <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <div className="flex items-center justify-between mb-12">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl">Корзина</h1>
