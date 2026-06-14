@@ -1,8 +1,7 @@
 import { Link } from "react-router";
-import { motion } from "motion/react";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../../context/CartContext";
-import { toast } from "sonner";
+import { toastAddedToCart } from "../../lib/cartToast";
 import { Badge } from "../atoms/Badge";
 import { Price } from "../atoms/Price";
 import { ProductImage } from "../atoms/ProductImage";
@@ -40,15 +39,12 @@ export function ProductCard({
     e.preventDefault();
     e.stopPropagation();
     addItem({ id, brand, name, price: getEffectivePrice(price, salePrice), image });
-    toast.success("Добавлено в корзину");
+    toastAddedToCart();
   };
 
   return (
     <Link to={`/product/${id}`} className="group block h-full">
-      <motion.div
-        whileHover={{ borderColor: "var(--accent)" }}
-        className="bg-card border border-transparent rounded p-4 transition-all duration-300 ease-out h-full flex flex-col relative"
-      >
+      <div className="surface-card-interactive p-4 h-full flex flex-col relative">
         <div className="aspect-square bg-secondary/30 rounded mb-4 overflow-hidden relative">
           <ProductImage src={image} alt={name} />
           {!inStock && (
@@ -82,7 +78,7 @@ export function ProductCard({
           <div className="text-xs text-muted-foreground mb-3">{specs}</div>
           <Price amount={price} saleAmount={salePrice} className="mt-auto" />
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 }

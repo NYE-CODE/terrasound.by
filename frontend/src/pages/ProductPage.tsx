@@ -16,6 +16,7 @@ import { Check } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { toast } from "sonner";
 import { api, messageFromApiError, type ProductDetail } from "../lib/api";
+import { toastAddedToCart } from "../lib/cartToast";
 import { getEffectivePrice } from "../lib/price";
 import type { ProductReview } from "@terrasound/shared";
 import { pageTopOffsetClass } from "../lib/pageLayout";
@@ -23,7 +24,7 @@ import { pageTopOffsetClass } from "../lib/pageLayout";
 export function ProductPage() {
   const { id } = useParams();
   const productId = id ?? "1";
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [pendingReviews, setPendingReviews] = useState<ProductReview[]>([]);
@@ -79,6 +80,9 @@ export function ProductPage() {
 
   const reviews = [...(product?.reviews ?? []), ...pendingReviews];
 
+  const cartQuantity = items.find((item) => item.id === productId)?.quantity ?? 0;
+  const inCart = cartQuantity > 0;
+
   const handleAddToCart = () => {
     if (!product) return;
     for (let i = 0; i < quantity; i++) {
@@ -90,7 +94,7 @@ export function ProductPage() {
         image: product.images[0],
       });
     }
-    toast.success("Добавлено в корзину");
+    toastAddedToCart();
   };
 
   const handleReviewSubmit = async (data: ProductReviewFormData) => {
@@ -214,6 +218,15 @@ export function ProductPage() {
             <Button variant="primary" className="w-full" onClick={handleAddToCart}>
               В корзину
             </Button>
+
+            {inCart ? (
+              <Link to="/cart" className="block">
+                <Button variant="ghost" className="w-full">
+                  Перейти в корзину
+                  {cartQuantity > 1 ? ` (${cartQuantity} шт.)` : ""}
+                </Button>
+              </Link>
+            ) : null}
           </div>
 
           <ProductHighlightsList />

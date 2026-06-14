@@ -24,7 +24,7 @@ export function BrandsPage() {
           {brands.map((brand) => (
             <div
               key={brand.id}
-              className="bg-card border border-card-border rounded p-8 hover:border-accent transition-all duration-300"
+              className="surface-card-interactive p-8"
             >
               <div className="flex items-start justify-between mb-4">
                 <h2 className="font-heading text-3xl">{brand.name}</h2>

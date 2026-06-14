@@ -33,7 +33,7 @@ export function BlogPage() {
           {posts.map((post) => (
             <article
               key={post.id}
-              className="bg-card border border-card-border rounded p-8 hover:border-accent transition-all duration-300"
+              className="surface-card-interactive p-8"
             >
               <div className="flex items-center gap-4 mb-4">
                 <span className="text-xs text-accent font-heading uppercase tracking-wider">

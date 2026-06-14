@@ -42,7 +42,7 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-card-border: transparent;
+  --color-card-border: var(--card-border);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
@@ -163,6 +163,14 @@
 }
 
 @layer components {
+  .surface-card {
+    @apply bg-card rounded border border-card-border;
+  }
+
+  .surface-card-interactive {
+    @apply bg-card rounded border border-card-border transition-colors duration-300 hover:border-accent;
+  }
+
   .site-logo-wordmark {
     align-items: flex-start;
   }

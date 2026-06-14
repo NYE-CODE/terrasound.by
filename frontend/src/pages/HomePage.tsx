@@ -103,7 +103,7 @@ export function HomePage() {
               <Link
                 key={category.id}
                 to={`/catalogue?category=${category.id}`}
-                className={`relative overflow-hidden rounded border border-card-border hover:border-accent transition-all duration-300 flex items-end p-4 md:p-6 min-h-[160px] row-span-1 col-span-1 md:min-h-[180px] ${
+                className={`surface-card-interactive relative overflow-hidden flex items-end p-4 md:p-6 min-h-[160px] row-span-1 col-span-1 md:min-h-[180px] ${
                   category.gridCols === 2 ? "md:col-span-2" : ""
                 } ${category.gridTall ? "md:row-span-2 md:min-h-[400px]" : ""}`}
               >
