@@ -1,15 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { AdminListToolbar } from "../components/AdminListToolbar";
+import { Trash2 } from "lucide-react";
+import { AdminListToolbar, selectClass } from "../components/AdminListToolbar";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { PAGE_SIZE } from "../hooks/usePagination";
-import { inputClass } from "../lib/formStyles";
 import { reportActionError, reportLoadError } from "../lib/formError";
+import { iconButtonClass } from "../lib/iconButton";
 import { api, type InstallationRequest } from "../lib/api";
-
-const selectClass = `${inputClass} w-auto min-w-[12rem]`;
 
 const emptyFilters = {
   search: "",
@@ -112,8 +111,10 @@ export function InstallationRequestsPage() {
         searchPlaceholder="Имя, телефон, авто, услуга…"
         dateFrom={dateFrom}
         dateTo={dateTo}
-        onDateFromChange={setDateFrom}
-        onDateToChange={setDateTo}
+        onDateRangeChange={(from, to) => {
+          setDateFrom(from);
+          setDateTo(to);
+        }}
         onReset={resetFilters}
         onExport={exportCsv}
         exporting={exporting}
@@ -161,9 +162,11 @@ export function InstallationRequestsPage() {
                   <button
                     type="button"
                     onClick={() => remove(item.id)}
-                    className="text-[var(--destructive)] hover:underline"
+                    title="Удалить"
+                    aria-label="Удалить заявку"
+                    className={`${iconButtonClass} hover:text-[var(--destructive)]`}
                   >
-                    Удалить
+                    <Trash2 size={16} />
                   </button>
                 </td>
               </tr>

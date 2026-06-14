@@ -1,5 +1,5 @@
 import { Download, RotateCcw, Search } from "lucide-react";
-import { DATE_PRESETS, type DatePresetId, getDatePresetRange } from "../lib/listQuery";
+import { DateRangePicker } from "./DateRangePicker";
 import { inputClass } from "../lib/formStyles";
 
 interface AdminListToolbarProps {
@@ -8,8 +8,7 @@ interface AdminListToolbarProps {
   searchPlaceholder?: string;
   dateFrom: string;
   dateTo: string;
-  onDateFromChange: (value: string) => void;
-  onDateToChange: (value: string) => void;
+  onDateRangeChange: (dateFrom: string, dateTo: string) => void;
   onReset: () => void;
   onExport: () => void;
   exporting?: boolean;
@@ -18,7 +17,7 @@ interface AdminListToolbarProps {
   children?: React.ReactNode;
 }
 
-const selectClass = `${inputClass} w-auto min-w-[10rem]`;
+const selectClass = `${inputClass} shrink-0 min-w-[9.5rem]`;
 
 export function AdminListToolbar({
   search,
@@ -26,8 +25,7 @@ export function AdminListToolbar({
   searchPlaceholder = "Поиск…",
   dateFrom,
   dateTo,
-  onDateFromChange,
-  onDateToChange,
+  onDateRangeChange,
   onReset,
   onExport,
   exporting = false,
@@ -35,15 +33,9 @@ export function AdminListToolbar({
   totalLabel,
   children,
 }: AdminListToolbarProps) {
-  const applyPreset = (id: DatePresetId) => {
-    const range = getDatePresetRange(id);
-    onDateFromChange(range.dateFrom);
-    onDateToChange(range.dateTo);
-  };
-
   return (
-    <div className="mb-6 space-y-4">
-      <div className="flex flex-col xl:flex-row xl:items-center gap-3">
+    <div className="mb-6 space-y-3">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <div className="relative flex-1 min-w-[12rem]">
           <Search
             size={16}
@@ -54,53 +46,29 @@ export function AdminListToolbar({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className={`${inputClass} pl-9`}
+            className={`${inputClass} pl-9 w-full`}
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {children}
+        {children}
 
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => onDateFromChange(e.target.value)}
-            className={selectClass}
-            aria-label="Дата с"
-          />
-          <span className="text-sm text-[var(--muted-foreground)]">—</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => onDateToChange(e.target.value)}
-            className={selectClass}
-            aria-label="Дата по"
-          />
-        </div>
+        <DateRangePicker
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onChange={onDateRangeChange}
+          className="min-w-[12rem]"
+        />
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {DATE_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => applyPreset(preset.id)}
-              className="h-9 px-3 rounded border border-[var(--border)] text-xs font-heading uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[#222] transition-colors"
-            >
-              {preset.label}
-            </button>
-          ))}
-
-          <button
-            type="button"
-            onClick={onReset}
-            className="h-9 px-3 rounded border border-[var(--border)] text-xs font-heading uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[#222] transition-colors inline-flex items-center gap-2"
-          >
-            <RotateCcw size={14} />
-            Сбросить
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onReset}
+          className="h-9 px-3 rounded border border-[var(--border)] text-xs font-heading uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[#222] transition-colors inline-flex items-center gap-2 self-start"
+        >
+          <RotateCcw size={14} />
+          Сбросить
+        </button>
 
         <div className="flex items-center gap-3">
           <span className="text-sm text-[var(--muted-foreground)]">
@@ -120,3 +88,5 @@ export function AdminListToolbar({
     </div>
   );
 }
+
+export { selectClass };

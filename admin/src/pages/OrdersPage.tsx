@@ -1,13 +1,14 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { AdminListToolbar } from "../components/AdminListToolbar";
+import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { AdminListToolbar, selectClass } from "../components/AdminListToolbar";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
 import { StatusBadge } from "../components/StatusBadge";
 import { useAuth } from "../context/AuthContext";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { PAGE_SIZE } from "../hooks/usePagination";
-import { inputClass } from "../lib/formStyles";
 import { reportActionError, reportLoadError } from "../lib/formError";
+import { iconButtonClass } from "../lib/iconButton";
 import {
   ORDER_STATUSES,
   ORDER_STATUS_LABELS,
@@ -16,8 +17,6 @@ import {
   type PaymentMethod,
 } from "../lib/orderStatus";
 import { api, type Order, type OrderStatus } from "../lib/api";
-
-const selectClass = `${inputClass} w-auto min-w-[10rem]`;
 
 const emptyFilters = {
   search: "",
@@ -132,8 +131,10 @@ export function OrdersPage() {
         searchPlaceholder="Имя, телефон, email, город, ID…"
         dateFrom={dateFrom}
         dateTo={dateTo}
-        onDateFromChange={setDateFrom}
-        onDateToChange={setDateTo}
+        onDateRangeChange={(from, to) => {
+          setDateFrom(from);
+          setDateTo(to);
+        }}
         onReset={resetFilters}
         onExport={exportCsv}
         exporting={exporting}
@@ -198,35 +199,36 @@ export function OrdersPage() {
                     {new Date(order.createdAt).toLocaleString("ru-RU")}
                   </td>
                   <td className="p-4">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
-                        className="text-[var(--accent)] hover:underline"
+                        title={expandedId === order.id ? "Скрыть" : "Подробнее"}
+                        aria-label={expandedId === order.id ? "Скрыть детали заказа" : "Подробнее о заказе"}
+                        className={`${iconButtonClass} hover:text-[var(--accent)]`}
                       >
-                        {expandedId === order.id ? "Скрыть" : "Подробнее"}
+                        {expandedId === order.id ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
-                      <label className="inline-flex items-center gap-2">
-                        <span className="text-[var(--muted-foreground)]">Статус:</span>
-                        <select
-                          value={order.status}
-                          onChange={(e) => updateStatus(order.id, e.target.value as OrderStatus)}
-                          className="bg-[var(--input)] border border-[var(--border)] rounded px-2 py-1"
-                          aria-label="Сменить статус заказа"
-                        >
-                          {ORDER_STATUSES.map((item) => (
-                            <option key={item} value={item}>
-                              {ORDER_STATUS_LABELS[item]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                      <select
+                        value={order.status}
+                        onChange={(e) => updateStatus(order.id, e.target.value as OrderStatus)}
+                        className="bg-[var(--input)] border border-[var(--border)] rounded px-2 py-1 ml-1"
+                        aria-label="Сменить статус заказа"
+                      >
+                        {ORDER_STATUSES.map((item) => (
+                          <option key={item} value={item}>
+                            {ORDER_STATUS_LABELS[item]}
+                          </option>
+                        ))}
+                      </select>
                       <button
                         type="button"
                         onClick={() => remove(order.id)}
-                        className="text-[var(--destructive)] hover:underline"
+                        title="Удалить"
+                        aria-label="Удалить заказ"
+                        className={`${iconButtonClass} hover:text-[var(--destructive)]`}
                       >
-                        Удалить
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
