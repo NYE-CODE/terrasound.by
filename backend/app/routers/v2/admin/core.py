@@ -1,7 +1,9 @@
 import uuid
+from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
@@ -30,6 +32,19 @@ from app.schemas.review import (
     ServiceReviewCreate,
     ServiceReviewOut,
     ServiceReviewUpdate,
+)
+from app.services.admin_installation_requests import (
+    InstallationRequestListFilters,
+    count_installation_requests,
+    export_installation_requests_csv,
+    list_installation_request_services as get_installation_request_services,
+    list_installation_requests as fetch_installation_requests,
+)
+from app.services.admin_orders import (
+    OrderListFilters,
+    count_orders,
+    export_orders_csv,
+    list_orders as fetch_orders,
 )
 from app.services.attributes import (
     attribute_to_out,
@@ -71,6 +86,16 @@ installation_requests_router = APIRouter(
 
 DEFAULT_LIST_LIMIT = 200
 MAX_LIST_LIMIT = 500
+PaymentMethodFilter = Literal["cash", "card", "bank"]
+
+
+def _parse_order_status(value: str | None) -> OrderStatus | None:
+    if not value:
+        return None
+    try:
+        return OrderStatus(value)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Некорректный статус заказа") from exc
 
 
 @dashboard_router.get("", response_model=DashboardStatsOut)
@@ -102,21 +127,51 @@ def get_dashboard_stats_v2(db: Annotated[Session, Depends(get_db)]) -> Dashboard
     )
 
 
+@orders_router.get("/export")
+def export_orders_v2(
+    db: Annotated[Session, Depends(get_db)],
+    q: str | None = Query(default=None, max_length=200),
+    status: str | None = Query(default=None),
+    payment_method: PaymentMethodFilter | None = Query(default=None, alias="paymentMethod"),
+    date_from: str | None = Query(default=None, alias="dateFrom"),
+    date_to: str | None = Query(default=None, alias="dateTo"),
+) -> Response:
+    filters = OrderListFilters(
+        q=q,
+        status=_parse_order_status(status),
+        payment_method=payment_method,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    content, _count = export_orders_csv(db, filters)
+    filename = f"orders-{date.today().isoformat()}.csv"
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @orders_router.get("", response_model=PaginatedOut[OrderOut])
 def list_orders_v2(
     db: Annotated[Session, Depends(get_db)],
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    q: str | None = Query(default=None, max_length=200),
+    status: str | None = Query(default=None),
+    payment_method: PaymentMethodFilter | None = Query(default=None, alias="paymentMethod"),
+    date_from: str | None = Query(default=None, alias="dateFrom"),
+    date_to: str | None = Query(default=None, alias="dateTo"),
 ) -> PaginatedOut[OrderOut]:
-    total = db.query(func.count(Order.id)).scalar() or 0
-    orders = (
-        db.query(Order)
-        .options(joinedload(Order.items))
-        .order_by(Order.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
+    filters = OrderListFilters(
+        q=q,
+        status=_parse_order_status(status),
+        payment_method=payment_method,
+        date_from=date_from,
+        date_to=date_to,
     )
+    total = count_orders(db, filters)
+    orders = fetch_orders(db, filters, limit=limit, offset=offset)
     return paginated([OrderOut.model_validate(o) for o in orders], total=total, limit=limit, offset=offset)
 
 
@@ -328,20 +383,54 @@ def sync_category_attributes_admin_v2(
     return sync_category_attributes(db, category_id, payload.items)
 
 
+@installation_requests_router.get("/services", response_model=list[str])
+def list_installation_request_services_v2(
+    db: Annotated[Session, Depends(get_db)],
+) -> list[str]:
+    return get_installation_request_services(db)
+
+
+@installation_requests_router.get("/export")
+def export_installation_requests_v2(
+    db: Annotated[Session, Depends(get_db)],
+    q: str | None = Query(default=None, max_length=200),
+    service: str | None = Query(default=None, max_length=200),
+    date_from: str | None = Query(default=None, alias="dateFrom"),
+    date_to: str | None = Query(default=None, alias="dateTo"),
+) -> Response:
+    filters = InstallationRequestListFilters(
+        q=q,
+        service=service,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    content, _count = export_installation_requests_csv(db, filters)
+    filename = f"installation-requests-{date.today().isoformat()}.csv"
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @installation_requests_router.get("", response_model=PaginatedOut[InstallationRequestOut])
 def list_installation_requests_v2(
     db: Annotated[Session, Depends(get_db)],
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    q: str | None = Query(default=None, max_length=200),
+    service: str | None = Query(default=None, max_length=200),
+    date_from: str | None = Query(default=None, alias="dateFrom"),
+    date_to: str | None = Query(default=None, alias="dateTo"),
 ) -> PaginatedOut[InstallationRequestOut]:
-    total = db.query(func.count(InstallationRequest.id)).scalar() or 0
-    requests = (
-        db.query(InstallationRequest)
-        .order_by(InstallationRequest.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
+    filters = InstallationRequestListFilters(
+        q=q,
+        service=service,
+        date_from=date_from,
+        date_to=date_to,
     )
+    total = count_installation_requests(db, filters)
+    requests = fetch_installation_requests(db, filters, limit=limit, offset=offset)
     return paginated(
         [InstallationRequestOut.model_validate(item) for item in requests],
         total=total,

@@ -1,11 +1,5 @@
 import type { OrderStatus } from "../lib/api";
-
-const labels: Record<OrderStatus, string> = {
-  new: "Новый",
-  confirmed: "Подтверждён",
-  completed: "Выполнен",
-  cancelled: "Отменён",
-};
+import { ORDER_STATUS_LABELS } from "../lib/orderStatus";
 
 const styles: Record<OrderStatus, string> = {
   new: "bg-[#E4AF0033] text-[#ffb07a]",
@@ -17,7 +11,7 @@ const styles: Record<OrderStatus, string> = {
 export function StatusBadge({ status }: { status: OrderStatus }) {
   return (
     <span className={`inline-flex px-2.5 py-1 rounded text-xs font-medium ${styles[status]}`}>
-      {labels[status]}
+      {ORDER_STATUS_LABELS[status]}
     </span>
   );
 }

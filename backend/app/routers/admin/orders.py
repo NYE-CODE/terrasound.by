@@ -1,7 +1,8 @@
-from typing import Annotated
+from datetime import date
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func
+from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
 
 from app.api_constants import ADMIN_V1_PREFIX
@@ -11,6 +12,12 @@ from app.models.order import Order, OrderStatus
 from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.order import OrderOut, OrderStatusUpdate
 from app.schemas.pagination import PaginatedOut, paginated
+from app.services.admin_orders import (
+    OrderListFilters,
+    count_orders,
+    export_orders_csv,
+    list_orders as fetch_orders,
+)
 
 router = APIRouter(
     prefix=f"{ADMIN_V1_PREFIX}/orders",
@@ -18,22 +25,63 @@ router = APIRouter(
     dependencies=ADMIN_ROUTER_DEPENDENCIES,
 )
 
+PaymentMethodFilter = Literal["cash", "card", "bank"]
+
+
+def _parse_order_status(value: str | None) -> OrderStatus | None:
+    if not value:
+        return None
+    try:
+        return OrderStatus(value)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Некорректный статус заказа") from exc
+
+
+@router.get("/export")
+def export_orders(
+    db: Annotated[Session, Depends(get_db)],
+    q: str | None = Query(default=None, max_length=200),
+    status: str | None = Query(default=None),
+    payment_method: PaymentMethodFilter | None = Query(default=None, alias="paymentMethod"),
+    date_from: str | None = Query(default=None, alias="dateFrom"),
+    date_to: str | None = Query(default=None, alias="dateTo"),
+) -> Response:
+    filters = OrderListFilters(
+        q=q,
+        status=_parse_order_status(status),
+        payment_method=payment_method,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    content, _count = export_orders_csv(db, filters)
+    filename = f"orders-{date.today().isoformat()}.csv"
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
 
 @router.get("", response_model=PaginatedOut[OrderOut])
 def list_orders(
     db: Annotated[Session, Depends(get_db)],
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
+    q: str | None = Query(default=None, max_length=200),
+    status: str | None = Query(default=None),
+    payment_method: PaymentMethodFilter | None = Query(default=None, alias="paymentMethod"),
+    date_from: str | None = Query(default=None, alias="dateFrom"),
+    date_to: str | None = Query(default=None, alias="dateTo"),
 ) -> PaginatedOut[OrderOut]:
-    total = db.query(func.count(Order.id)).scalar() or 0
-    orders = (
-        db.query(Order)
-        .options(joinedload(Order.items))
-        .order_by(Order.created_at.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
+    filters = OrderListFilters(
+        q=q,
+        status=_parse_order_status(status),
+        payment_method=payment_method,
+        date_from=date_from,
+        date_to=date_to,
     )
+    total = count_orders(db, filters)
+    orders = fetch_orders(db, filters, limit=limit, offset=offset)
     data = [OrderOut.model_validate(order) for order in orders]
     return paginated(data, total=total, limit=limit, offset=offset)
 

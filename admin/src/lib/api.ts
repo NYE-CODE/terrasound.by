@@ -3,6 +3,8 @@
  * При 401 с токеном вызывается обработчик из setUnauthorizedHandler (logout).
  */
 import { resolveApiUrl } from "./apiUrl";
+import { downloadBlob, filenameFromContentDisposition } from "./downloadBlob";
+import { appendListQueryParams } from "./listQuery";
 import { parseUploadError } from "./uploadHelpers";
 
 const API_URL = resolveApiUrl();
@@ -103,6 +105,36 @@ async function uploadRequest(
   return payload.data.url;
 }
 
+async function downloadRequest(path: string, token: string, fallbackFilename: string) {
+  const headers = new Headers();
+  headers.set("Authorization", `Bearer ${token}`);
+
+  const response = await fetch(`${API_URL}${path}`, { headers });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
+    const body = await response.json().catch(() => ({}));
+    const detail = parseApiDetail(body) ?? "Ошибка запроса";
+    throw new ApiError(detail, response.status);
+  }
+
+  const blob = await response.blob();
+  const filename = filenameFromContentDisposition(
+    response.headers.get("Content-Disposition"),
+    fallbackFilename,
+  );
+  downloadBlob(blob, filename);
+}
+
+function buildListQuery(params?: Record<string, string | number | undefined | null>) {
+  const search = new URLSearchParams();
+  appendListQueryParams(search, params ?? {});
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
 export const api = {
   login: (username: string, password: string) =>
     request<{ accessToken: string }>(`${API_V2_ADMIN}/sessions`, {
@@ -152,13 +184,33 @@ export const api = {
       body: JSON.stringify(data),
     }, token),
 
-  orders: (token: string, params?: { limit?: number; offset?: number }) => {
-    const search = new URLSearchParams();
-    if (params?.limit != null) search.set("limit", String(params.limit));
-    if (params?.offset != null) search.set("offset", String(params.offset));
-    const query = search.toString();
-    return request<Paginated<Order>>(`${API_V2_ADMIN}/orders${query ? `?${query}` : ""}`, {}, token);
-  },
+  orders: (token: string, params?: OrderListParams) =>
+    request<Paginated<Order>>(
+      `${API_V2_ADMIN}/orders${buildListQuery({
+        limit: params?.limit,
+        offset: params?.offset,
+        q: params?.q,
+        status: params?.status,
+        paymentMethod: params?.paymentMethod,
+        dateFrom: params?.dateFrom,
+        dateTo: params?.dateTo,
+      })}`,
+      {},
+      token,
+    ),
+
+  exportOrders: (token: string, params?: OrderExportParams) =>
+    downloadRequest(
+      `${API_V2_ADMIN}/orders/export${buildListQuery({
+        q: params?.q,
+        status: params?.status,
+        paymentMethod: params?.paymentMethod,
+        dateFrom: params?.dateFrom,
+        dateTo: params?.dateTo,
+      })}`,
+      token,
+      "orders.csv",
+    ),
 
   getOrder: (token: string, orderId: string) =>
     request<Order>(`${API_V2_ADMIN}/orders/${orderId}`, {}, token),
@@ -217,17 +269,34 @@ export const api = {
   deleteServiceReview: (token: string, reviewId: string) =>
     request<void>(`${API_V2_ADMIN}/service-reviews/${reviewId}`, { method: "DELETE" }, token),
 
-  installationRequests: (token: string, params?: { limit?: number; offset?: number }) => {
-    const search = new URLSearchParams();
-    if (params?.limit != null) search.set("limit", String(params.limit));
-    if (params?.offset != null) search.set("offset", String(params.offset));
-    const query = search.toString();
-    return request<Paginated<InstallationRequest>>(
-      `${API_V2_ADMIN}/installation-requests${query ? `?${query}` : ""}`,
+  installationRequests: (token: string, params?: InstallationRequestListParams) =>
+    request<Paginated<InstallationRequest>>(
+      `${API_V2_ADMIN}/installation-requests${buildListQuery({
+        limit: params?.limit,
+        offset: params?.offset,
+        q: params?.q,
+        service: params?.service,
+        dateFrom: params?.dateFrom,
+        dateTo: params?.dateTo,
+      })}`,
       {},
       token,
-    );
-  },
+    ),
+
+  installationRequestServices: (token: string) =>
+    request<string[]>(`${API_V2_ADMIN}/installation-requests/services`, {}, token),
+
+  exportInstallationRequests: (token: string, params?: InstallationRequestExportParams) =>
+    downloadRequest(
+      `${API_V2_ADMIN}/installation-requests/export${buildListQuery({
+        q: params?.q,
+        service: params?.service,
+        dateFrom: params?.dateFrom,
+        dateTo: params?.dateTo,
+      })}`,
+      token,
+      "installation-requests.csv",
+    ),
 
   deleteInstallationRequest: (token: string, requestId: string) =>
     request<void>(`${API_V2_ADMIN}/installation-requests/${requestId}`, { method: "DELETE" }, token),
@@ -409,6 +478,31 @@ export const api = {
 };
 
 export type OrderStatus = "new" | "confirmed" | "completed" | "cancelled";
+
+export interface OrderListParams {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  status?: OrderStatus;
+  paymentMethod?: PaymentMethod;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export type OrderExportParams = Omit<OrderListParams, "limit" | "offset">;
+
+export interface InstallationRequestListParams {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  service?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export type InstallationRequestExportParams = Omit<InstallationRequestListParams, "limit" | "offset">;
+
+export type PaymentMethod = "cash" | "card" | "bank";
 
 export interface DashboardStats {
   ordersNew: number;
