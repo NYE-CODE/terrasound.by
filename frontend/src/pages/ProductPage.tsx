@@ -216,14 +216,13 @@ export function ProductPage() {
             </div>
 
             <Button variant="primary" className="w-full" onClick={handleAddToCart}>
-              В корзину
+              Добавить в корзину
             </Button>
 
             {inCart ? (
               <Link to="/cart" className="block">
                 <Button variant="ghost" className="w-full">
                   Перейти в корзину
-                  {cartQuantity > 1 ? ` (${cartQuantity} шт.)` : ""}
                 </Button>
               </Link>
             ) : null}

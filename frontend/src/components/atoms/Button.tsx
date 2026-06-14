@@ -11,7 +11,7 @@ export function Button({ variant = "primary", children, className = "", ...props
 
   const variantStyles = {
     primary: "bg-accent text-accent-foreground hover:bg-accent/90 disabled:hover:bg-accent",
-    ghost: "bg-transparent border border-accent text-accent hover:bg-accent hover:text-accent-foreground disabled:hover:bg-transparent",
+    ghost: "bg-transparent border border-accent text-accent hover:bg-accent/15 disabled:hover:bg-transparent",
   };
 
   return (
