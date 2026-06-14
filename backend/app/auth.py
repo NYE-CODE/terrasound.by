@@ -35,7 +35,20 @@ def set_session_cookie(response: Response, token: str) -> None:
 
 
 def clear_session_cookie(response: Response) -> None:
-    response.delete_cookie(ADMIN_SESSION_COOKIE, path="/")
+    response.delete_cookie(
+        ADMIN_SESSION_COOKIE,
+        path="/",
+        secure=settings.is_production,
+        samesite="lax",
+        httponly=True,
+    )
+
+
+def empty_response(response: Response | None = None) -> Response:
+    if response is None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    response.status_code = status.HTTP_204_NO_CONTENT
+    return response
 
 
 def get_current_admin(

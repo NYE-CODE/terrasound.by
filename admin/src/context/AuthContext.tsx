@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status,
       async login(username: string, password: string) {
         await api.login(username, password);
+        await api.dashboard();
         setStatus("authenticated");
       },
       logout,
