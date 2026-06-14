@@ -1,6 +1,6 @@
-import { inputClass } from "../../lib/formStyles";
+import { compactControlClass } from "../../lib/formStyles";
 
-export const filterControlClass = `${inputClass} w-full min-w-0`;
+export const filterControlClass = compactControlClass;
 
 interface FilterSelectProps {
   value: string;

@@ -16,7 +16,7 @@ import {
   type DatePresetId,
   WEEKDAY_LABELS,
 } from "../../lib/dateRange";
-import { inputClass } from "../../lib/formStyles";
+import { compactControlClass } from "../../lib/formStyles";
 
 interface DateRangePickerProps {
   dateFrom: string;
@@ -24,6 +24,8 @@ interface DateRangePickerProps {
   onChange: (dateFrom: string, dateTo: string) => void;
   className?: string;
 }
+
+const CALENDAR_WIDTH = "w-[15.5rem]";
 
 function normalizeRange(from: string, to: string): { dateFrom: string; dateTo: string } {
   if (!from || !to) return { dateFrom: from, dateTo: to };
@@ -45,19 +47,26 @@ function MonthCalendar({
   const weeks = buildCalendarWeeks(month);
 
   return (
-    <div>
+    <div className={`${CALENDAR_WIDTH} shrink-0`}>
       <div className="text-center font-heading text-sm mb-3">{formatMonthTitle(month)}</div>
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className={`grid grid-cols-7 gap-1 mb-1 ${CALENDAR_WIDTH}`}>
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="text-center text-xs text-[var(--muted-foreground)] py-1">
+          <div
+            key={label}
+            className="h-8 flex items-center justify-center text-xs text-[var(--muted-foreground)]"
+          >
             {label}
           </div>
         ))}
       </div>
       <div className="space-y-1">
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 gap-1">
+          <div key={weekIndex} className={`grid grid-cols-7 gap-1 ${CALENDAR_WIDTH}`}>
             {week.map(({ date, inMonth }) => {
+              if (!inMonth) {
+                return <div key={formatDateInput(date)} className="h-9 w-9 mx-auto" aria-hidden />;
+              }
+
               const inRange =
                 rangeFrom && rangeTo ? isBetweenDays(date, rangeFrom, rangeTo) : false;
               const isStart = rangeFrom ? isSameDay(date, rangeFrom) : false;
@@ -68,16 +77,13 @@ function MonthCalendar({
                 <button
                   key={formatDateInput(date)}
                   type="button"
-                  disabled={!inMonth}
                   onClick={() => onSelect(date)}
-                  className={`h-8 w-8 mx-auto rounded text-sm transition-colors ${
-                    !inMonth
-                      ? "text-transparent pointer-events-none"
-                      : isEndpoint
-                        ? "bg-[var(--accent)] text-[#0e0e0f] font-medium"
-                        : inRange
-                          ? "bg-[#2a2a2a] text-[var(--foreground)]"
-                          : "text-[var(--foreground)] hover:bg-[#222]"
+                  className={`h-9 w-9 mx-auto rounded text-sm transition-colors flex items-center justify-center ${
+                    isEndpoint
+                      ? "bg-[var(--accent)] text-[#0e0e0f] font-medium"
+                      : inRange
+                        ? "bg-[#2a2a2a] text-[var(--foreground)]"
+                        : "text-[var(--foreground)] hover:bg-[#222]"
                   }`}
                 >
                   {date.getDate()}
@@ -177,11 +183,11 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`${inputClass} w-full min-w-0 inline-flex items-center gap-2 text-left`}
+        className={`${compactControlClass} inline-flex items-center gap-2 text-left`}
         aria-expanded={open}
         aria-haspopup="dialog"
       >
-        <Calendar size={16} className="text-[var(--muted-foreground)] shrink-0" />
+        <Calendar size={15} className="text-[var(--muted-foreground)] shrink-0" />
         <span
           className={`truncate ${
             dateFrom || dateTo ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"
@@ -195,7 +201,7 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
         <div
           role="dialog"
           aria-labelledby={listboxId}
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-50 flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl overflow-hidden"
+          className="absolute left-0 top-[calc(100%+0.5rem)] z-50 flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
         >
           <div className="w-44 shrink-0 border-r border-[var(--border)] p-2 space-y-1">
             <div id={listboxId} className="sr-only">
@@ -218,39 +224,39 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
           </div>
 
           <div className="p-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 mb-3">
               <button
                 type="button"
                 onClick={() => setViewMonth((month) => addMonths(month, -1))}
-                className="p-2 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0"
+                className="h-8 w-8 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0 flex items-center justify-center"
                 aria-label="Предыдущий месяц"
               >
                 <ChevronLeft size={16} />
               </button>
-
-              <div className="flex gap-6">
-                <MonthCalendar
-                  month={viewMonth}
-                  rangeFrom={rangeFrom}
-                  rangeTo={rangeTo}
-                  onSelect={handleDaySelect}
-                />
-                <MonthCalendar
-                  month={addMonths(viewMonth, 1)}
-                  rangeFrom={rangeFrom}
-                  rangeTo={rangeTo}
-                  onSelect={handleDaySelect}
-                />
-              </div>
-
+              <div className="flex-1" />
               <button
                 type="button"
                 onClick={() => setViewMonth((month) => addMonths(month, 1))}
-                className="p-2 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0"
+                className="h-8 w-8 rounded hover:bg-[#222] text-[var(--muted-foreground)] shrink-0 flex items-center justify-center"
                 aria-label="Следующий месяц"
               >
                 <ChevronRight size={16} />
               </button>
+            </div>
+
+            <div className="flex gap-6">
+              <MonthCalendar
+                month={viewMonth}
+                rangeFrom={rangeFrom}
+                rangeTo={rangeTo}
+                onSelect={handleDaySelect}
+              />
+              <MonthCalendar
+                month={addMonths(viewMonth, 1)}
+                rangeFrom={rangeFrom}
+                rangeTo={rangeTo}
+                onSelect={handleDaySelect}
+              />
             </div>
           </div>
         </div>

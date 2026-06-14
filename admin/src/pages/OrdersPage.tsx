@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { AdminListToolbar } from "../components/molecules/AdminListToolbar";
+import { OrderStatusSelect } from "../components/molecules/OrderStatusSelect";
 import { FilterSelect } from "../components/atoms/FilterSelect";
 import { PageHeader } from "../components/PageHeader";
 import { Pagination } from "../components/Pagination";
@@ -209,18 +210,10 @@ export function OrdersPage() {
                       >
                         {expandedId === order.id ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
-                      <select
+                      <OrderStatusSelect
                         value={order.status}
-                        onChange={(e) => updateStatus(order.id, e.target.value as OrderStatus)}
-                        className="bg-[var(--input)] border border-[var(--border)] rounded px-2 py-1 ml-1"
-                        aria-label="Сменить статус заказа"
-                      >
-                        {ORDER_STATUSES.map((item) => (
-                          <option key={item} value={item}>
-                            {ORDER_STATUS_LABELS[item]}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(nextStatus) => updateStatus(order.id, nextStatus)}
+                      />
                       <button
                         type="button"
                         onClick={() => remove(order.id)}
