@@ -72,7 +72,7 @@ export function OrderStatusSelect({ value, onChange, className = "" }: OrderStat
               role="listbox"
               aria-label="Статус заказа"
               style={menuStyle}
-              className="min-w-[11.5rem] rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 shadow-2xl"
+              className="w-max min-w-[11.5rem] rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 shadow-2xl"
             >
               {ORDER_STATUSES.map((status) => {
                 const selected = status === value;

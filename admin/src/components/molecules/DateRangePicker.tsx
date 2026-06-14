@@ -222,7 +222,7 @@ export function DateRangePicker({ dateFrom, dateTo, onChange, className = "" }: 
               role="dialog"
               aria-labelledby={listboxId}
               style={popoverStyle}
-              className="flex rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
+              className="flex w-max rounded-lg border border-[var(--border)] bg-[var(--card)] shadow-2xl"
             >
               <div className="w-44 shrink-0 border-r border-[var(--border)] p-2 space-y-1">
                 <div id={listboxId} className="sr-only">

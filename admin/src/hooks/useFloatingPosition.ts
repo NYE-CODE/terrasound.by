@@ -20,6 +20,26 @@ function clampLeft(left: number, width: number): number {
   return Math.max(8, Math.min(left, window.innerWidth - width - 8));
 }
 
+function buildStyle(
+  triggerRect: DOMRect,
+  width: number,
+  align: FloatingAlign,
+  gap: number,
+  zIndex: number,
+  visible: boolean,
+): CSSProperties {
+  const top = triggerRect.bottom + gap;
+  const rawLeft = align === "right" ? triggerRect.right - width : triggerRect.left;
+
+  return {
+    position: "fixed",
+    top,
+    left: clampLeft(rawLeft, width),
+    zIndex,
+    visibility: visible ? "visible" : "hidden",
+  };
+}
+
 export function useFloatingPosition({
   open,
   triggerRef,
@@ -32,27 +52,30 @@ export function useFloatingPosition({
 }: UseFloatingPositionOptions): CSSProperties {
   const [style, setStyle] = useState<CSSProperties>({});
 
-  const updatePosition = useCallback(
-    (showWhenMeasured = false) => {
+  const positionMenu = useCallback(
+    (visible: boolean) => {
       const trigger = triggerRef.current;
-      if (!trigger) return false;
+      const floating = floatingRef.current;
+      if (!trigger || !floating) return false;
 
       const triggerRect = trigger.getBoundingClientRect();
-      const floatingRect = floatingRef.current?.getBoundingClientRect();
-      const measured = floatingRect && floatingRect.width > 0;
-      const width = measured ? floatingRect.width : (estimatedWidth ?? triggerRect.width);
-      const top = triggerRect.bottom + gap;
-      const rawLeft = align === "right" ? triggerRect.right - width : triggerRect.left;
+      const fallbackWidth = estimatedWidth ?? triggerRect.width;
+      const draftStyle = buildStyle(triggerRect, fallbackWidth, align, gap, zIndex, false);
 
-      setStyle({
+      Object.assign(floating.style, {
         position: "fixed",
-        top,
-        left: clampLeft(rawLeft, width),
-        zIndex,
-        visibility: showWhenMeasured && measured ? "visible" : "hidden",
+        top: `${draftStyle.top}px`,
+        left: `${draftStyle.left}px`,
+        zIndex: String(zIndex),
+        visibility: "hidden",
       });
 
-      return Boolean(measured);
+      const measuredWidth = floating.getBoundingClientRect().width;
+      const width = measuredWidth > 0 ? measuredWidth : fallbackWidth;
+      const nextStyle = buildStyle(triggerRect, width, align, gap, zIndex, visible);
+
+      setStyle(nextStyle);
+      return true;
     },
     [triggerRef, floatingRef, align, gap, zIndex, estimatedWidth],
   );
@@ -63,26 +86,22 @@ export function useFloatingPosition({
       return;
     }
 
-    updatePosition(false);
-
-    if (updatePosition(true)) return;
+    if (positionMenu(true)) return;
 
     let rafId = 0;
     const retry = () => {
-      if (updatePosition(true)) return;
+      if (positionMenu(true)) return;
       rafId = requestAnimationFrame(retry);
     };
     rafId = requestAnimationFrame(retry);
 
     return () => cancelAnimationFrame(rafId);
-  }, [open, updatePosition, ...deps]);
+  }, [open, positionMenu, ...deps]);
 
   useEffect(() => {
     if (!open) return;
 
-    const reposition = () => {
-      updatePosition(true);
-    };
+    const reposition = () => positionMenu(true);
 
     window.addEventListener("resize", reposition);
     window.addEventListener("scroll", reposition, true);
@@ -91,7 +110,7 @@ export function useFloatingPosition({
       window.removeEventListener("resize", reposition);
       window.removeEventListener("scroll", reposition, true);
     };
-  }, [open, updatePosition]);
+  }, [open, positionMenu]);
 
   return style;
 }

@@ -97,7 +97,7 @@ export function FilterDropdown({
               role="listbox"
               aria-label={ariaLabel}
               style={menuStyle}
-              className="min-w-[11.5rem] rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 shadow-2xl"
+              className="w-max min-w-[11.5rem] rounded-lg border border-[var(--border)] bg-[var(--card)] p-1 shadow-2xl"
             >
               {options.map((option) => {
                 const isSelected = option.value === value;
