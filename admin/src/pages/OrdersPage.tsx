@@ -138,7 +138,6 @@ export function OrdersPage() {
         exporting={exporting}
         totalItems={totalItems}
         totalLabel="Найдено заказов"
-        filterColumns={4}
       >
         <OrderStatusFilter value={status} onChange={setStatus} />
         <PaymentMethodFilter value={paymentMethod} onChange={setPaymentMethod} />

@@ -301,13 +301,19 @@ export const api = {
   deleteInstallationRequest: (token: string, requestId: string) =>
     request<void>(`${API_V2_ADMIN}/installation-requests/${requestId}`, { method: "DELETE" }, token),
 
-  products: (token: string, params?: { limit?: number; offset?: number }) => {
-    const search = new URLSearchParams();
-    if (params?.limit != null) search.set("limit", String(params.limit));
-    if (params?.offset != null) search.set("offset", String(params.offset));
-    const query = search.toString();
-    return request<Paginated<AdminProduct>>(`${API_V2_ADMIN}/products${query ? `?${query}` : ""}`, {}, token);
-  },
+  products: (token: string, params?: ProductListParams) =>
+    request<Paginated<AdminProduct>>(
+      `${API_V2_ADMIN}/products${buildListQuery({
+        limit: params?.limit,
+        offset: params?.offset,
+        q: params?.q,
+        category: params?.category,
+        brand: params?.brand,
+        inStock: params?.inStock,
+      })}`,
+      {},
+      token,
+    ),
 
   product: (token: string, productId: string) =>
     request<AdminProduct>(`${API_V2_ADMIN}/products/${productId}`, {}, token),
@@ -501,6 +507,15 @@ export interface InstallationRequestListParams {
 }
 
 export type InstallationRequestExportParams = Omit<InstallationRequestListParams, "limit" | "offset">;
+
+export interface ProductListParams {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  category?: string;
+  brand?: string;
+  inStock?: boolean;
+}
 
 export type PaymentMethod = "cash" | "card" | "bank";
 

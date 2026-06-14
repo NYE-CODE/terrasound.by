@@ -121,7 +121,6 @@ export function InstallationRequestsPage() {
         exporting={exporting}
         totalItems={totalItems}
         totalLabel="Найдено заявок"
-        filterColumns={3}
       >
         <ServiceFilter value={service} onChange={setService} services={services} />
       </AdminListToolbar>

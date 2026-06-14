@@ -1,49 +1,90 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AdminListToolbar } from "../components/molecules/AdminListToolbar";
+import { BrandFilter, CategoryFilter, StockFilter, type StockFilterValue } from "../components/molecules/ProductFilters";
 import { PageHeader } from "../components/PageHeader";
 import { RowActions } from "../components/RowActions";
 import { Pagination } from "../components/Pagination";
 import { useAuth } from "../context/AuthContext";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { PAGE_SIZE } from "../hooks/usePagination";
-import { reportActionError, reportLoadError} from "../lib/formError";
-import { api, type AdminProduct, type CategoryAdmin } from "../lib/api";
+import { reportActionError, reportLoadError } from "../lib/formError";
+import { api, type AdminProduct, type Brand, type CategoryAdmin } from "../lib/api";
+
+const emptyFilters = {
+  search: "",
+  category: "",
+  brand: "",
+  inStock: "" as StockFilterValue,
+};
 
 export function ProductsPage() {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [categories, setCategories] = useState<CategoryAdmin[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(1);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
-  const [categoryNames, setCategoryNames] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState(emptyFilters.search);
+  const [category, setCategory] = useState(emptyFilters.category);
+  const [brand, setBrand] = useState(emptyFilters.brand);
+  const [inStock, setInStock] = useState<StockFilterValue>(emptyFilters.inStock);
+  const debouncedSearch = useDebouncedValue(search);
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const filterSignature = [debouncedSearch, category, brand, inStock].join("\0");
+  const prevFilterSignature = useRef(filterSignature);
 
-  const load = () => {
+  const listParams = {
+    q: debouncedSearch || undefined,
+    category: category || undefined,
+    brand: brand || undefined,
+    inStock: inStock === "" ? undefined : inStock === "true",
+  };
+
+  useEffect(() => {
     if (!token) return;
+    Promise.all([api.categories(token), api.brands(token)])
+      .then(([categoryItems, brandItems]) => {
+        setCategories(categoryItems);
+        setBrands(brandItems);
+      })
+      .catch(reportLoadError);
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    if (prevFilterSignature.current !== filterSignature) {
+      prevFilterSignature.current = filterSignature;
+      if (page !== 1) {
+        setPage(1);
+        return;
+      }
+    }
+
     const offset = (page - 1) * PAGE_SIZE;
     api
-      .products(token, { limit: PAGE_SIZE, offset })
+      .products(token, { limit: PAGE_SIZE, offset, ...listParams })
       .then((result) => {
         setProducts(result.data);
         setTotalItems(result.meta.total);
       })
       .catch(reportLoadError);
-  };
-
-  useEffect(load, [token, page]);
-
-  useEffect(() => {
-    if (!token) return;
-    api.categories(token).then((items) => {
-      setCategoryNames(Object.fromEntries(items.map((c: CategoryAdmin) => [c.id, c.name])));
-    }).catch(reportLoadError);
-  }, [token]);
+  }, [token, page, filterSignature]);
 
   const remove = async (productId: string) => {
     if (!token || !confirm("Удалить товар?")) return;
     try {
       await api.deleteProduct(token, productId);
-      load();
+      const offset = (page - 1) * PAGE_SIZE;
+      const result = await api.products(token, { limit: PAGE_SIZE, offset, ...listParams });
+      setProducts(result.data);
+      setTotalItems(result.meta.total);
+      if (result.data.length === 0 && page > 1) {
+        setPage(page - 1);
+      }
     } catch (error) {
       reportActionError(error);
     }
@@ -62,9 +103,33 @@ export function ProductsPage() {
     }
   };
 
+  const resetFilters = () => {
+    setSearch(emptyFilters.search);
+    setCategory(emptyFilters.category);
+    setBrand(emptyFilters.brand);
+    setInStock(emptyFilters.inStock);
+  };
+
+  const categoryNames = Object.fromEntries(categories.map((item) => [item.id, item.name]));
+
   return (
     <div>
       <PageHeader title="Товары" createTo="/products/new" createLabel="Добавить товар" />
+
+      <AdminListToolbar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Название, бренд, ID, характеристики…"
+        onReset={resetFilters}
+        totalItems={totalItems}
+        totalLabel="Найдено товаров"
+        showDateRange={false}
+        showExport={false}
+      >
+        <CategoryFilter value={category} onChange={setCategory} categories={categories} />
+        <BrandFilter value={brand} onChange={setBrand} brands={brands} />
+        <StockFilter value={inStock} onChange={setInStock} />
+      </AdminListToolbar>
 
       <div className="space-y-3">
         {products.map((product) => (
@@ -106,7 +171,7 @@ export function ProductsPage() {
           </div>
         ))}
         {products.length === 0 && (
-          <p className="text-[var(--muted-foreground)]">Товаров пока нет</p>
+          <p className="text-[var(--muted-foreground)]">Товары не найдены</p>
         )}
       </div>
 

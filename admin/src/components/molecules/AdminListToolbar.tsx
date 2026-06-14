@@ -1,3 +1,4 @@
+import { Children, type CSSProperties } from "react";
 import { Download, RotateCcw } from "lucide-react";
 import { SearchInput } from "../atoms/SearchInput";
 import { DateRangePicker } from "./DateRangePicker";
@@ -6,41 +7,49 @@ interface AdminListToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
-  dateFrom: string;
-  dateTo: string;
-  onDateRangeChange: (dateFrom: string, dateTo: string) => void;
+  dateFrom?: string;
+  dateTo?: string;
+  onDateRangeChange?: (dateFrom: string, dateTo: string) => void;
   onReset: () => void;
-  onExport: () => void;
+  onExport?: () => void;
   exporting?: boolean;
   totalItems: number;
   totalLabel: string;
-  filterColumns?: 3 | 4;
+  showDateRange?: boolean;
+  showExport?: boolean;
   children?: React.ReactNode;
 }
 
-const filterGridClass: Record<3 | 4, string> = {
-  3: "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-center min-w-0",
-  4: "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-2 items-center min-w-0",
-};
+function buildToolbarColumns(middleSlotCount: number): string {
+  const slots = Array.from({ length: middleSlotCount }, () => "minmax(0,1fr)").join("_");
+  return `minmax(0,2fr)${slots ? `_${slots}` : ""}_auto`;
+}
 
 export function AdminListToolbar({
   search,
   onSearchChange,
   searchPlaceholder = "Поиск…",
-  dateFrom,
-  dateTo,
+  dateFrom = "",
+  dateTo = "",
   onDateRangeChange,
   onReset,
   onExport,
   exporting = false,
   totalItems,
   totalLabel,
-  filterColumns = 4,
+  showDateRange = true,
+  showExport = true,
   children,
 }: AdminListToolbarProps) {
+  const filterSlotCount = Children.count(children) + (showDateRange ? 1 : 0);
+  const toolbarColumns = buildToolbarColumns(filterSlotCount);
+
   return (
     <div className="mb-6 space-y-3 min-w-0">
-      <div className={filterGridClass[filterColumns]}>
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center min-w-0 xl:[grid-template-columns:var(--toolbar-cols)]"
+        style={{ "--toolbar-cols": toolbarColumns } as CSSProperties}
+      >
         <SearchInput
           value={search}
           onChange={onSearchChange}
@@ -49,11 +58,13 @@ export function AdminListToolbar({
 
         <div className="contents">{children}</div>
 
-        <DateRangePicker
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onChange={onDateRangeChange}
-        />
+        {showDateRange && onDateRangeChange ? (
+          <DateRangePicker
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onChange={onDateRangeChange}
+          />
+        ) : null}
 
         <button
           type="button"
@@ -69,15 +80,17 @@ export function AdminListToolbar({
         <span className="text-sm text-[var(--muted-foreground)]">
           {totalLabel}: {totalItems}
         </span>
-        <button
-          type="button"
-          onClick={onExport}
-          disabled={exporting}
-          className="h-9 px-4 rounded bg-[var(--accent)] text-[#0e0e0f] text-xs font-heading uppercase tracking-wider hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center gap-2 self-start sm:self-auto"
-        >
-          <Download size={14} />
-          {exporting ? "Экспорт…" : "Экспорт CSV"}
-        </button>
+        {showExport && onExport ? (
+          <button
+            type="button"
+            onClick={onExport}
+            disabled={exporting}
+            className="h-9 px-4 rounded bg-[var(--accent)] text-[#0e0e0f] text-xs font-heading uppercase tracking-wider hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center gap-2 self-start sm:self-auto"
+          >
+            <Download size={14} />
+            {exporting ? "Экспорт…" : "Экспорт CSV"}
+          </button>
+        ) : null}
       </div>
     </div>
   );

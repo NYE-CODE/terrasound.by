@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 
 from app.api_constants import ADMIN_V2_PREFIX
@@ -10,6 +9,7 @@ from app.models.product import Product
 from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.content import ProductAdminOut, ProductCreate, ProductUpdate
 from app.schemas.pagination import PaginatedOut, paginated
+from app.services.admin_products_list import ProductListFilters, count_products, list_products
 from app.services.product_admin import (
     create_product,
     delete_product,
@@ -30,21 +30,19 @@ def list_products_admin_v2(
     db: Annotated[Session, Depends(get_db)],
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
+    q: str | None = Query(default=None, max_length=200),
+    category: str | None = Query(default=None, max_length=50),
+    brand: str | None = Query(default=None, max_length=100),
+    in_stock: bool | None = Query(default=None, alias="inStock"),
 ) -> PaginatedOut[ProductAdminOut]:
-    total = db.query(func.count(Product.id)).scalar() or 0
-    products = (
-        db.query(Product)
-        .options(
-            joinedload(Product.images),
-            joinedload(Product.specs),
-            joinedload(Product.compatibility),
-            joinedload(Product.attribute_values),
-        )
-        .order_by(Product.name)
-        .offset(offset)
-        .limit(limit)
-        .all()
+    filters = ProductListFilters(
+        q=q,
+        category=category,
+        brand=brand,
+        in_stock=in_stock,
     )
+    total = count_products(db, filters)
+    products = list_products(db, filters, limit=limit, offset=offset)
     data = [product_to_admin_out(db, product) for product in products]
     return paginated(data, total=total, limit=limit, offset=offset)
 
