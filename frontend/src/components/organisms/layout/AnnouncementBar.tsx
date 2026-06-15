@@ -5,8 +5,9 @@ interface AnnouncementBarProps {
   scrollDurationSeconds: number;
 }
 
-/** Сегментов в одном блоке: цикл анимации = сдвиг на ширину блока (как translateX(-50%) при 8 копиях). */
+/** Сегментов в одном блоке: цикл анимации = сдвиг на ширину блока. */
 const SEGMENTS_PER_BLOCK = 4;
+const SHIFT_EPSILON_PX = 1;
 
 function AnnouncementSegment({ text }: { text: string }) {
   return (
@@ -38,58 +39,100 @@ function restartMarqueeAnimation(track: HTMLElement) {
 export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBarProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
+  const lastShiftRef = useRef<number | null>(null);
+  const lastViewportWidthRef = useRef(
+    typeof window !== "undefined" ? window.innerWidth : 0,
+  );
+  const syncFrameRef = useRef<number | null>(null);
   const [ready, setReady] = useState(false);
   const [trackStyle, setTrackStyle] = useState<CSSProperties>({});
 
-  const syncMarquee = useCallback(() => {
-    const block = blockRef.current;
-    const track = trackRef.current;
-    if (!block || !track) return;
+  const applyMarqueeMetrics = useCallback(
+    (forceRestart = false) => {
+      const block = blockRef.current;
+      const track = trackRef.current;
+      if (!block || !track) return;
 
-    const shiftPx = block.getBoundingClientRect().width;
-    if (shiftPx <= 0) return;
+      const shiftPx = block.getBoundingClientRect().width;
+      if (shiftPx <= 0) return;
 
-    setTrackStyle({
-      ["--marquee-shift" as string]: `${shiftPx}px`,
-      animationDuration: `${scrollDurationSeconds}s`,
-    });
-    setReady(true);
-    restartMarqueeAnimation(track);
-  }, [scrollDurationSeconds]);
+      const previousShift = lastShiftRef.current;
+      const shiftChanged =
+        previousShift === null || Math.abs(shiftPx - previousShift) > SHIFT_EPSILON_PX;
+
+      if (!shiftChanged && !forceRestart) return;
+
+      lastShiftRef.current = shiftPx;
+
+      setTrackStyle({
+        ["--marquee-shift" as string]: `${shiftPx}px`,
+        animationDuration: `${scrollDurationSeconds}s`,
+      });
+      setReady(true);
+
+      if (shiftChanged || forceRestart) {
+        restartMarqueeAnimation(track);
+      }
+    },
+    [scrollDurationSeconds],
+  );
+
+  const scheduleMarqueeSync = useCallback(
+    (forceRestart = false) => {
+      if (syncFrameRef.current !== null) {
+        cancelAnimationFrame(syncFrameRef.current);
+      }
+      syncFrameRef.current = requestAnimationFrame(() => {
+        syncFrameRef.current = null;
+        applyMarqueeMetrics(forceRestart);
+      });
+    },
+    [applyMarqueeMetrics],
+  );
 
   useLayoutEffect(() => {
+    lastShiftRef.current = null;
     setReady(false);
   }, [text, scrollDurationSeconds]);
 
   useLayoutEffect(() => {
-    syncMarquee();
+    scheduleMarqueeSync(true);
 
     const block = blockRef.current;
     if (!block) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      syncMarquee();
+      scheduleMarqueeSync(false);
     });
     resizeObserver.observe(block);
 
-    const onViewportChange = () => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(syncMarquee);
-      });
+    const onWindowResize = () => {
+      const nextWidth = window.innerWidth;
+      if (Math.abs(nextWidth - lastViewportWidthRef.current) <= SHIFT_EPSILON_PX) {
+        return;
+      }
+      lastViewportWidthRef.current = nextWidth;
+      scheduleMarqueeSync(false);
     };
 
-    window.addEventListener("resize", onViewportChange);
-    window.addEventListener("orientationchange", onViewportChange);
-    window.visualViewport?.addEventListener("resize", onViewportChange);
-    document.fonts?.ready.then(syncMarquee).catch(() => undefined);
+    const onOrientationChange = () => {
+      lastViewportWidthRef.current = window.innerWidth;
+      scheduleMarqueeSync(true);
+    };
+
+    window.addEventListener("resize", onWindowResize);
+    window.addEventListener("orientationchange", onOrientationChange);
+    document.fonts?.ready.then(() => scheduleMarqueeSync(false)).catch(() => undefined);
 
     return () => {
+      if (syncFrameRef.current !== null) {
+        cancelAnimationFrame(syncFrameRef.current);
+      }
       resizeObserver.disconnect();
-      window.removeEventListener("resize", onViewportChange);
-      window.removeEventListener("orientationchange", onViewportChange);
-      window.visualViewport?.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("resize", onWindowResize);
+      window.removeEventListener("orientationchange", onOrientationChange);
     };
-  }, [syncMarquee]);
+  }, [scheduleMarqueeSync, text, scrollDurationSeconds]);
 
   return (
     <div
