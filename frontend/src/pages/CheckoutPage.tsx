@@ -16,6 +16,7 @@ import {
   validatePhone,
 } from "@terrasound/shared";
 import { toast } from "sonner";
+import { hasPreorderItems } from "../lib/preorder";
 import { pageTopOffsetClass } from "../lib/pageLayout";
 
 const paymentOptions = [
@@ -93,6 +94,7 @@ export function CheckoutPage() {
           product.brand !== cartItem.brand ||
           product.name !== cartItem.name ||
           primaryImage !== cartItem.image ||
+          product.inStock !== cartItem.inStock ||
           quantity !== cartItem.quantity
         ) {
           changed = true;
@@ -105,6 +107,7 @@ export function CheckoutPage() {
           image: primaryImage,
           price: serverPrice,
           quantity,
+          inStock: product.inStock,
         });
       }
 
@@ -207,7 +210,9 @@ export function CheckoutPage() {
       });
 
       clearCart();
-      navigate(`/order-success/${order.id}`);
+      navigate(`/order-success/${order.id}`, {
+        state: { hasPreorderItems: hasPreorderItems(items) },
+      });
     } catch (error) {
       toast.error(
         messageFromApiError(error, "Не удалось оформить заказ. Попробуйте ещё раз."),

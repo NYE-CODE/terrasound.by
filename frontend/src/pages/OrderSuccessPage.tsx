@@ -1,13 +1,22 @@
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useParams } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { Check, Mail, MapPin, Phone } from "lucide-react";
 import { AddressLink } from "../components/atoms/AddressLink";
 import { useSiteContact } from "../context/SiteContactContext";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
+import { PREORDER_NOTICE } from "../lib/preorder";
+
+type OrderSuccessLocationState = {
+  hasPreorderItems?: boolean;
+};
 
 export function OrderSuccessPage() {
   const { orderId } = useParams();
+  const location = useLocation();
   const contact = useSiteContact();
+  const hasPreorderItems = Boolean(
+    (location.state as OrderSuccessLocationState | null)?.hasPreorderItems,
+  );
 
   return (
     <div className={`${pageTopOffsetClass} min-h-screen`}>
@@ -37,6 +46,14 @@ export function OrderSuccessPage() {
                 </span>
                 <span>Если выбрана оплата картой или безналичный расчет — счет будет выслан на указанный email</span>
               </li>
+              {hasPreorderItems ? (
+                <li className="flex gap-3">
+                  <span className="text-accent mt-0.5 shrink-0" aria-hidden="true">
+                    •
+                  </span>
+                  <span>{PREORDER_NOTICE}</span>
+                </li>
+              ) : null}
             </ul>
           </div>
 

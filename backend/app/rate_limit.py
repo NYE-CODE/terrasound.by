@@ -1,4 +1,4 @@
-"""In-memory rate limiting per IP (достаточно для одного процесса uvicorn на VPS)."""
+"""In-memory rate limiting per IP (один процесс uvicorn; при нескольких воркерах — Redis или workers=1)."""
 
 import re
 import time
@@ -22,16 +22,19 @@ _RULES: list[tuple[str, str | re.Pattern[str], int, int]] = [
     ("POST", re.compile(r"^/api/v[12]/installation-requests$"), 10, 60),
     ("POST", re.compile(r"^/api/v1/installation/requests$"), 10, 60),
     ("POST", re.compile(r"^/api/v[12]/products/[^/]+/reviews$"), 5, 60),
+    ("GET", re.compile(r"^/sitemap\.xml$"), 30, 60),
     ("GET", re.compile(r"^/api/v[12]/admin/"), 120, 60),
     ("POST", re.compile(r"^/api/v[12]/admin/(?!sessions)"), 100, 60),
     ("PATCH", re.compile(r"^/api/v[12]/admin/"), 100, 60),
     ("DELETE", re.compile(r"^/api/v[12]/admin/"), 100, 60),
+    ("GET", re.compile(r"^/api/v[12]/site/"), 180, 60),
+    ("GET", re.compile(r"^/api/v1/installation/"), 180, 60),
     (
         "GET",
         re.compile(
             r"^/api/v[12]/(products|categories|brands|blog-posts|portfolio-works|"
-            r"site/settings|installation-services|service-reviews|vehicles|"
-            r"site-stats|site-contact|site-announcement|product-highlights|catalog|installation/services)"
+            r"installation-services|service-reviews|vehicles|"
+            r"site-stats|site-contact|site-announcement|product-highlights|catalog)"
         ),
         180,
         60,

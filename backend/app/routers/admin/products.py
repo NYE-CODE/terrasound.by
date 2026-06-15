@@ -1,7 +1,7 @@
 from datetime import date
-from typing import Annotated, Any
+from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy.orm import Session, joinedload
 
@@ -95,14 +95,19 @@ def get_product_admin(
 
 @router.post("", response_model=ProductAdminOut, status_code=201)
 def create_product_admin(
+    payload: ProductCreate,
     db: Annotated[Session, Depends(get_db)],
-    body: dict[str, Any] = Body(),
 ) -> ProductAdminOut:
-    source_id = body.get("sourceId") or body.get("source_id")
-    if source_id:
-        product = duplicate_product(db, str(source_id))
-    else:
-        product = create_product(db, ProductCreate.model_validate(body))
+    product = create_product(db, payload)
+    return product_to_admin_out(db, product)
+
+
+@router.post("/{product_id}/duplicate", response_model=ProductAdminOut, status_code=201)
+def duplicate_product_admin(
+    product_id: str,
+    db: Annotated[Session, Depends(get_db)],
+) -> ProductAdminOut:
+    product = duplicate_product(db, product_id)
     return product_to_admin_out(db, product)
 
 

@@ -92,6 +92,7 @@ export function ProductPage() {
         name: product.name,
         price: getEffectivePrice(product.price, product.salePrice),
         image: product.images[0],
+        inStock: product.inStock,
       });
     }
     toastAddedToCart();

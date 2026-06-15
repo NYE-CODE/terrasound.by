@@ -35,6 +35,7 @@ def build_order(db: Session, payload: OrderCreate) -> Order:
                 product_name=product.name,
                 unit_price=unit_price,
                 quantity=line.quantity,
+                in_stock=product.in_stock,
             )
         )
 

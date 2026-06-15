@@ -83,6 +83,23 @@ def run_migrations(engine: Engine) -> None:
     _migrate_site_contact_working_hours(engine)
     _migrate_site_announcement(engine)
     _migrate_site_announcement_scroll_duration(engine)
+    _migrate_order_items_in_stock(engine)
+
+
+def _migrate_order_items_in_stock(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "order_items" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("order_items")}
+    if "in_stock" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE order_items ADD COLUMN in_stock BOOLEAN NOT NULL DEFAULT 1")
+            )
 
 
 def _migrate_site_announcement_scroll_duration(engine: Engine) -> None:

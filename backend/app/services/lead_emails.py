@@ -21,6 +21,13 @@ PAYMENT_METHOD_LABELS: dict[str, str] = {
 }
 
 SITE_NAME = "TerraSound"
+PREORDER_LABEL = "Под заказ"
+PREORDER_USER_NOTE = (
+    "В заказе есть товары под заказ. Сроки поставки мы согласуем с вами отдельно."
+)
+PREORDER_ADMIN_NOTE = (
+    "В заказе есть позиции под заказ — потребуется заказ у поставщика."
+)
 
 
 def _admin_recipient(db: Session) -> str:
@@ -34,12 +41,21 @@ def _format_car(order: Order) -> str:
     return " ".join(parts) if parts else "—"
 
 
+def _item_availability_label(item) -> str:
+    return "В наличии" if getattr(item, "in_stock", True) else PREORDER_LABEL
+
+
+def _order_has_preorder_items(order: Order) -> bool:
+    return any(not getattr(item, "in_stock", True) for item in order.items)
+
+
 def _format_order_items_text(order: Order) -> str:
     lines = []
     for item in order.items:
+        availability = _item_availability_label(item)
         lines.append(
             f"- {item.product_brand} {item.product_name} × {item.quantity} "
-            f"({item.unit_price:.2f} BYN)"
+            f"({item.unit_price:.2f} BYN) — {availability}"
         )
     return "\n".join(lines)
 
@@ -52,12 +68,48 @@ def _format_order_items_html(order: Order) -> str:
             f"<td>{escape(item.product_brand)} {escape(item.product_name)}</td>"
             f"<td>{item.quantity}</td>"
             f"<td>{item.unit_price:.2f} BYN</td>"
+            f"<td>{escape(_item_availability_label(item))}</td>"
             "</tr>"
         )
     return (
         "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse'>"
-        "<thead><tr><th>Товар</th><th>Кол-во</th><th>Цена</th></tr></thead>"
+        "<thead><tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Наличие</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def _preorder_user_text_block() -> str:
+    return f"\n{PREORDER_USER_NOTE}\n"
+
+
+def _preorder_user_html_block() -> str:
+    return f"<p><strong>{escape(PREORDER_USER_NOTE)}</strong></p>"
+
+
+def _preorder_admin_text_block(order: Order) -> str:
+    lines = [PREORDER_ADMIN_NOTE, "Позиции под заказ:"]
+    for item in order.items:
+        if getattr(item, "in_stock", True):
+            continue
+        lines.append(f"- {item.product_brand} {item.product_name} × {item.quantity}")
+    return "\n".join(lines) + "\n\n"
+
+
+def _preorder_admin_html_block(order: Order) -> str:
+    rows = []
+    for item in order.items:
+        if getattr(item, "in_stock", True):
+            continue
+        rows.append(
+            "<li>"
+            f"{escape(item.product_brand)} {escape(item.product_name)} × {item.quantity}"
+            "</li>"
+        )
+    if not rows:
+        return ""
+    return (
+        f"<p><strong>{escape(PREORDER_ADMIN_NOTE)}</strong></p>"
+        f"<ul>{''.join(rows)}</ul>"
     )
 
 
@@ -80,6 +132,7 @@ def send_order_emails(db: Session, order: Order) -> None:
     items_text = _format_order_items_text(order)
     items_html = _format_order_items_html(order)
     order_ref = order.id[:8].upper()
+    has_preorder = _order_has_preorder_items(order)
 
     user_subject = f"Заявка на заказ №{order_ref} принята — {SITE_NAME}"
     user_text = (
@@ -88,8 +141,12 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"Менеджер свяжется с вами в ближайшее время.\n\n"
         f"Сумма: {order.total:.2f} BYN\n"
         f"Способ оплаты: {payment}\n\n"
-        f"Состав заказа:\n{items_text}\n\n"
-        f"Контакты для связи:\n"
+        f"Состав заказа:\n{items_text}\n"
+    )
+    if has_preorder:
+        user_text += _preorder_user_text_block()
+    user_text += (
+        f"\nКонтакты для связи:\n"
         f"Телефон: {order.phone}\n"
         f"Email: {order.email}\n"
         f"Адрес: {order.city}, {order.address}\n"
@@ -106,7 +163,8 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"<p><strong>Сумма:</strong> {order.total:.2f} BYN<br>"
         f"<strong>Способ оплаты:</strong> {escape(payment)}</p>"
         f"<h3>Состав заказа</h3>{items_html}"
-        f"<p><strong>Телефон:</strong> {escape(order.phone)}<br>"
+        + (_preorder_user_html_block() if has_preorder else "")
+        + f"<p><strong>Телефон:</strong> {escape(order.phone)}<br>"
         f"<strong>Email:</strong> {escape(order.email)}<br>"
         f"<strong>Адрес:</strong> {escape(order.city)}, {escape(order.address)}<br>"
         f"<strong>Автомобиль:</strong> {escape(car)}</p>"
@@ -135,6 +193,8 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"Сумма: {order.total:.2f} BYN\n\n"
         f"Товары:\n{items_text}\n"
     )
+    if has_preorder:
+        admin_text += _preorder_admin_text_block(order)
 
     admin_html = _wrap_html(
         f"<h2>Новая заявка на заказ №{order_ref}</h2>"
@@ -152,6 +212,7 @@ def send_order_emails(db: Session, order: Order) -> None:
         + f"<p><strong>Оплата:</strong> {escape(payment)}<br>"
         f"<strong>Сумма:</strong> {order.total:.2f} BYN</p>"
         f"<h3>Товары</h3>{items_html}"
+        + (_preorder_admin_html_block(order) if has_preorder else "")
     )
 
     admin_to = _admin_recipient(db)

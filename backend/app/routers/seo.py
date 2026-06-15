@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Response
@@ -11,6 +12,7 @@ from app.models.product import Product
 router = APIRouter(tags=["seo"])
 
 SITE_ORIGIN = settings.site_origin
+SITEMAP_CACHE_TTL_SECONDS = 300
 
 STATIC_PATHS = [
     "/",
@@ -25,9 +27,10 @@ STATIC_PATHS = [
     "/terms",
 ]
 
+_sitemap_cache: tuple[float, str] | None = None
 
-@router.get("/sitemap.xml")
-def sitemap(db: Session = Depends(get_db)) -> Response:
+
+def _build_sitemap_body(db: Session) -> str:
     urls: list[tuple[str, str]] = [(path, "weekly") for path in STATIC_PATHS]
 
     categories = db.query(Category).filter(Category.published.is_(True)).all()
@@ -53,5 +56,17 @@ def sitemap(db: Session = Depends(get_db)) -> Response:
         body += f"    <changefreq>{changefreq}</changefreq>\n"
         body += "  </url>\n"
     body += "</urlset>"
+    return body
+
+
+@router.get("/sitemap.xml")
+def sitemap(db: Session = Depends(get_db)) -> Response:
+    global _sitemap_cache
+    now = time.monotonic()
+    if _sitemap_cache is not None and now - _sitemap_cache[0] < SITEMAP_CACHE_TTL_SECONDS:
+        body = _sitemap_cache[1]
+    else:
+        body = _build_sitemap_body(db)
+        _sitemap_cache = (now, body)
 
     return Response(content=body, media_type="application/xml")

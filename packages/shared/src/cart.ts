@@ -13,6 +13,7 @@ export interface CartContextItem {
   price: number;
   image: string;
   quantity: number;
+  inStock: boolean;
 }
 
 export function toCartItem(line: CartContextItem): CartItem {
@@ -24,7 +25,7 @@ export function toCartItem(line: CartContextItem): CartItem {
       price: line.price,
       category: "",
       imageUrl: line.image,
-      inStock: true,
+      inStock: line.inStock,
     },
     quantity: line.quantity,
   };

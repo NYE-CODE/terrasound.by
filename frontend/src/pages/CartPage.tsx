@@ -50,6 +50,7 @@ export function CartPage() {
                   image={item.image}
                   quantity={item.quantity}
                   unitPrice={item.price}
+                  inStock={item.inStock}
                   variant="cart"
                   onDecrease={() => updateQuantity(item.id, item.quantity - 1)}
                   onIncrease={() => updateQuantity(item.id, item.quantity + 1)}

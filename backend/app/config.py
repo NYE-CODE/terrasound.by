@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     trust_proxy_headers: bool = False
     uploads_dir: str = "uploads"
+    enable_leads_admin_api: bool = False
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""

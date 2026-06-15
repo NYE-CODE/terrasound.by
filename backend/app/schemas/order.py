@@ -68,6 +68,7 @@ class OrderItemOut(CamelModel):
     product_name: str
     unit_price: float
     quantity: int
+    in_stock: bool = True
 
 
 class OrderOut(CamelModel):

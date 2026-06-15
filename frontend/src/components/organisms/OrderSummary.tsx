@@ -3,6 +3,7 @@ import { Info } from "lucide-react";
 import { Button } from "../atoms/Button";
 import { Price } from "../atoms/Price";
 import { OrderItem } from "../molecules/OrderItem";
+import { hasPreorderItems, PREORDER_NOTICE } from "../../lib/preorder";
 
 export interface OrderSummaryItem {
   id: string;
@@ -11,6 +12,7 @@ export interface OrderSummaryItem {
   image: string;
   quantity: number;
   price: number;
+  inStock: boolean;
 }
 
 export interface OrderSummaryProps {
@@ -34,6 +36,8 @@ export function OrderSummary({
   actions,
   footer,
 }: OrderSummaryProps) {
+  const showPreorderNotice = hasPreorderItems(items);
+
   return (
     <div className="bg-card border border-card-border rounded p-6 sticky top-32">
       <h2 className="font-heading text-xl mb-6">{title}</h2>
@@ -48,6 +52,7 @@ export function OrderSummary({
               image={item.image}
               quantity={item.quantity}
               unitPrice={item.price}
+              inStock={item.inStock}
               variant="summary"
             />
           ))}
@@ -92,6 +97,17 @@ export function OrderSummary({
         <Button type="submit" variant="primary" className="w-full">
           {submitLabel}
         </Button>
+      )}
+
+      {showPreorderNotice && (
+        <div
+          className={`${
+            variant === "checkout" ? "mt-6" : "mb-4"
+          } flex items-start gap-2 rounded border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-100/90`}
+        >
+          <Info size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
+          <span>{PREORDER_NOTICE}</span>
+        </div>
       )}
 
       {variant === "cart" && actions}

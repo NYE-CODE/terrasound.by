@@ -8,9 +8,12 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.config import settings
 from app.db_errors import integrity_error_detail, integrity_error_status
 
 logger = logging.getLogger(__name__)
+
+_GENERIC_FIELD_ERROR = "Некорректное значение"
 
 
 def _validation_errors(exc: RequestValidationError) -> list[dict[str, str]]:
@@ -18,8 +21,11 @@ def _validation_errors(exc: RequestValidationError) -> list[dict[str, str]]:
     for err in exc.errors():
         loc = err.get("loc", ())
         field = ".".join(str(part) for part in loc if part != "body")
-        message = err.get("msg", "Некорректное значение")
-        errors.append({"field": field or "body", "message": str(message)})
+        if settings.is_production:
+            message = _GENERIC_FIELD_ERROR
+        else:
+            message = str(err.get("msg", _GENERIC_FIELD_ERROR))
+        errors.append({"field": field or "body", "message": message})
     return errors
 
 
@@ -57,6 +63,8 @@ async def integrity_exception_handler(_: Request, exc: IntegrityError) -> JSONRe
 async def unhandled_exception_handler(_: Request, exc: Exception) -> JSONResponse:
     if isinstance(exc, StarletteHTTPException):
         detail = exc.detail if isinstance(exc.detail, str) else "Ошибка запроса"
+        if settings.is_production and exc.status_code >= 500:
+            detail = "Внутренняя ошибка сервера"
         return JSONResponse(
             status_code=exc.status_code,
             content={

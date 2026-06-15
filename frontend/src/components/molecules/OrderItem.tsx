@@ -1,6 +1,7 @@
 import { Trash2, Plus, Minus } from "lucide-react";
 import { ProductImage } from "../atoms/ProductImage";
 import { Price } from "../atoms/Price";
+import { Badge } from "../atoms/Badge";
 
 export interface OrderItemProps {
   brand: string;
@@ -8,6 +9,7 @@ export interface OrderItemProps {
   image: string;
   quantity: number;
   unitPrice: number;
+  inStock?: boolean;
   variant?: "summary" | "cart";
   onDecrease?: () => void;
   onIncrease?: () => void;
@@ -20,11 +22,16 @@ export function OrderItem({
   image,
   quantity,
   unitPrice,
+  inStock = true,
   variant = "summary",
   onDecrease,
   onIncrease,
   onRemove,
 }: OrderItemProps) {
+  const availabilityBadge = !inStock ? (
+    <Badge text="Под заказ" variant="preorder" className="mt-2" />
+  ) : null;
+
   if (variant === "cart") {
     return (
       <>
@@ -36,9 +43,10 @@ export function OrderItem({
           <div className="text-xs text-accent font-heading uppercase tracking-wider mb-1">
             {brand}
           </div>
-          <h3 className="font-heading text-lg mb-4">{name}</h3>
+          <h3 className="font-heading text-lg mb-2">{name}</h3>
+          {availabilityBadge}
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mt-4">
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -83,7 +91,8 @@ export function OrderItem({
           {brand}
         </div>
         <div className="text-sm truncate mb-1">{name}</div>
-        <div className="text-sm">
+        {availabilityBadge}
+        <div className="text-sm mt-1">
           <span className="text-muted-foreground">{quantity} ×</span>{" "}
           <Price amount={unitPrice} variant="summary" />
         </div>

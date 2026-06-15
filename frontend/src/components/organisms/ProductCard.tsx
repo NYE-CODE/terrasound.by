@@ -38,7 +38,7 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ id, brand, name, price: getEffectivePrice(price, salePrice), image });
+    addItem({ id, brand, name, price: getEffectivePrice(price, salePrice), image, inStock });
     toastAddedToCart();
   };
 

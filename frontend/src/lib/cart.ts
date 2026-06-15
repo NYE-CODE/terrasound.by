@@ -18,6 +18,7 @@ export function sanitizeCartItem(raw: unknown): CartContextItem | null {
   const image = typeof item.image === "string" ? item.image.trim() : "";
   const price = typeof item.price === "number" ? item.price : Number(item.price);
   const quantity = typeof item.quantity === "number" ? item.quantity : Number(item.quantity);
+  const inStock = item.inStock === false ? false : true;
 
   if (!id || !brand || !name || !image) return null;
   if (!Number.isFinite(price) || price <= 0 || price > 1_000_000) return null;
@@ -30,6 +31,7 @@ export function sanitizeCartItem(raw: unknown): CartContextItem | null {
     image: image.slice(0, 2048),
     price,
     quantity: clampQuantity(quantity),
+    inStock,
   };
 }
 

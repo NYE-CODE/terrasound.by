@@ -32,6 +32,14 @@ uvicorn app.main:app --reload --port 8000
 | `CORS_ORIGINS` | Comma-separated frontend origins |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | JWT lifetime in minutes |
 | `ENVIRONMENT` | `development` — Swagger включён; `production` — `/docs` отключены |
+| `TRUST_PROXY_HEADERS` | `true` за nginx на production (корректный rate limit по IP клиента) |
+| `ENABLE_LEADS_ADMIN_API` | `true` — включить admin API заказов и заявок (по умолчанию `false`) |
+| `UPLOADS_DIR` | Каталог загруженных изображений |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | SMTP для заявок на заказ/установку |
+| `SMTP_FROM` | Адрес отправителя (по умолчанию `SMTP_USER`) |
+| `NOTIFICATION_EMAIL` | Email админа для уведомлений (по умолчанию — из контактов сайта) |
+
+В `development` без SMTP письма логируются в консоль. В `production` SMTP обязателен.
 
 ## Структура
 
@@ -61,15 +69,8 @@ uvicorn app.main:app --reload --port 8000
 ### Admin (JWT Bearer)
 
 - `POST /api/admin/auth/login`
-- CRUD: `/api/admin/products`, `/orders`, `/reviews`, `/categories`, `/brands`, `/blog`, `/services`, `/team`
+- CRUD: `/api/admin/products`, `/reviews`, `/categories`, `/brands`, `/blog`, `/services` (заказы/заявки — при `ENABLE_LEADS_ADMIN_API=true`)
 - `PATCH /api/admin/site-stats`
-
-| `UPLOADS_DIR` | Каталог загруженных изображений |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | SMTP для заявок на заказ/установку |
-| `SMTP_FROM` | Адрес отправителя (по умолчанию `SMTP_USER`) |
-| `NOTIFICATION_EMAIL` | Email админа для уведомлений (по умолчанию — из контактов сайта) |
-
-В `development` без SMTP письма логируются в консоль. В `production` SMTP обязателен.
 
 ## Миграции и индексы
 
@@ -92,7 +93,8 @@ TTL 5 минут для:
 
 ## Безопасность
 
-- Rate limiting: login, orders, reviews, installation requests
+- Rate limiting: login, orders, reviews, installation requests, sitemap, публичные GET
 - Укороченные сообщения об ошибках 422/500 в production-режиме
 - Публичный `GET /api/orders/{id}` отсутствует (защита от IDOR)
-- `get_current_admin` проверяет JWT без запроса в БД на каждый вызов
+- Admin API заказов/заявок отключён по умолчанию (`ENABLE_LEADS_ADMIN_API=false`)
+- За nginx: `TRUST_PROXY_HEADERS=true`; при нескольких воркерах uvicorn — `workers=1` или Redis для rate limit
