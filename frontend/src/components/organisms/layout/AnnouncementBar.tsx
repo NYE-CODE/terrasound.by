@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 
 interface AnnouncementBarProps {
   text: string;
@@ -30,22 +30,49 @@ function AnnouncementBlock({ text }: { text: string }) {
   );
 }
 
-function restartMarqueeAnimation(track: HTMLElement) {
-  track.classList.remove("announcement-marquee-animate");
-  void track.getBoundingClientRect();
-  track.classList.add("announcement-marquee-animate");
+function prefersReducedMotion(): boolean {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function startMarqueeAnimation(
+  track: HTMLElement,
+  shiftPx: number,
+  durationSeconds: number,
+): Animation | null {
+  track.style.transform = "";
+
+  if (prefersReducedMotion()) {
+    return null;
+  }
+
+  return track.animate(
+    [
+      { transform: "translate3d(0, 0, 0)" },
+      { transform: `translate3d(-${shiftPx}px, 0, 0)` },
+    ],
+    {
+      duration: durationSeconds * 1000,
+      iterations: Infinity,
+      easing: "linear",
+    },
+  );
 }
 
 export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBarProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const blockRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<Animation | null>(null);
   const lastShiftRef = useRef<number | null>(null);
+  const lastDurationRef = useRef(scrollDurationSeconds);
   const lastViewportWidthRef = useRef(
     typeof window !== "undefined" ? window.innerWidth : 0,
   );
   const syncFrameRef = useRef<number | null>(null);
-  const [ready, setReady] = useState(false);
-  const [trackStyle, setTrackStyle] = useState<CSSProperties>({});
+
+  const stopMarqueeAnimation = useCallback(() => {
+    animationRef.current?.cancel();
+    animationRef.current = null;
+  }, []);
 
   const applyMarqueeMetrics = useCallback(
     (forceRestart = false) => {
@@ -59,22 +86,17 @@ export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBar
       const previousShift = lastShiftRef.current;
       const shiftChanged =
         previousShift === null || Math.abs(shiftPx - previousShift) > SHIFT_EPSILON_PX;
+      const durationChanged = lastDurationRef.current !== scrollDurationSeconds;
 
-      if (!shiftChanged && !forceRestart) return;
+      if (!shiftChanged && !durationChanged && !forceRestart) return;
 
       lastShiftRef.current = shiftPx;
+      lastDurationRef.current = scrollDurationSeconds;
 
-      setTrackStyle({
-        ["--marquee-shift" as string]: `${shiftPx}px`,
-        animationDuration: `${scrollDurationSeconds}s`,
-      });
-      setReady(true);
-
-      if (shiftChanged || forceRestart) {
-        restartMarqueeAnimation(track);
-      }
+      stopMarqueeAnimation();
+      animationRef.current = startMarqueeAnimation(track, shiftPx, scrollDurationSeconds);
     },
-    [scrollDurationSeconds],
+    [scrollDurationSeconds, stopMarqueeAnimation],
   );
 
   const scheduleMarqueeSync = useCallback(
@@ -92,8 +114,8 @@ export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBar
 
   useLayoutEffect(() => {
     lastShiftRef.current = null;
-    setReady(false);
-  }, [text, scrollDurationSeconds]);
+    stopMarqueeAnimation();
+  }, [text, scrollDurationSeconds, stopMarqueeAnimation]);
 
   useLayoutEffect(() => {
     scheduleMarqueeSync(true);
@@ -131,8 +153,9 @@ export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBar
       resizeObserver.disconnect();
       window.removeEventListener("resize", onWindowResize);
       window.removeEventListener("orientationchange", onOrientationChange);
+      stopMarqueeAnimation();
     };
-  }, [scheduleMarqueeSync, text, scrollDurationSeconds]);
+  }, [scheduleMarqueeSync, stopMarqueeAnimation, text, scrollDurationSeconds]);
 
   return (
     <div
@@ -140,11 +163,7 @@ export function AnnouncementBar({ text, scrollDurationSeconds }: AnnouncementBar
       role="region"
       aria-label="Объявление"
     >
-      <div
-        ref={trackRef}
-        className={`announcement-marquee-track flex h-full items-center${ready ? " announcement-marquee-animate" : ""}`}
-        style={trackStyle}
-      >
+      <div ref={trackRef} className="announcement-marquee-track flex h-full items-center">
         <div ref={blockRef} className="flex shrink-0 items-center">
           <AnnouncementBlock text={text} />
         </div>
