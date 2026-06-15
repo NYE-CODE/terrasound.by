@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_serializer, field_validator
 
 from app.schemas.common import CamelModel
 from app.schemas.datetime_format import serialize_utc_datetime
@@ -12,6 +12,7 @@ class InstallationRequestCreate(BaseModel):
 
     name: str = Field(max_length=100)
     phone: str = Field(max_length=30)
+    email: EmailStr
     car_model: str = Field(max_length=100, alias="carModel")
     service: str = Field(min_length=1, max_length=200)
 
@@ -35,6 +36,7 @@ class InstallationRequestOut(CamelModel):
     id: str
     name: str
     phone: str
+    email: str
     car_model: str
     service: str
     created_at: datetime

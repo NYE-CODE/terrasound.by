@@ -61,6 +61,7 @@ export function InstallationPage() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
+    email: "",
     carModel: "",
     service: "",
   });
@@ -86,6 +87,11 @@ export function InstallationPage() {
     if (!nameResult.ok) nextErrors.name = nameResult.error;
     if (!phoneResult.ok) nextErrors.phone = phoneResult.error;
     if (!carModelResult.ok) nextErrors.carModel = carModelResult.error;
+    if (!formData.email.trim()) nextErrors.email = "Укажите email";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      nextErrors.email = "Неверный формат email";
+    }
     if (!formData.service.trim()) nextErrors.service = "Выберите услугу";
 
     setErrors(nextErrors);
@@ -96,11 +102,12 @@ export function InstallationPage() {
       await api.createInstallationRequest({
         name: nameResult.value,
         phone: phoneResult.value,
+        email: formData.email.trim(),
         carModel: carModelResult.value,
         service: formData.service,
       });
-      toast.success("Заявка отправлена! Мы свяжемся с вами в течение 24 часов.");
-      setFormData({ name: "", phone: "", carModel: "", service: "" });
+      toast.success("Заявка отправлена! Подтверждение придёт на email.");
+      setFormData({ name: "", phone: "", email: "", carModel: "", service: "" });
       setErrors({});
     } catch (error) {
       toast.error(messageFromApiError(error, "Не удалось отправить заявку"));
@@ -199,6 +206,15 @@ export function InstallationPage() {
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               error={errors.phone}
               placeholder={PHONE_INPUT_PLACEHOLDER}
+            />
+            <FormField
+              label="Email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              error={errors.email}
+              placeholder="example@mail.com"
             />
             <FormField
               label="Модель автомобиля"

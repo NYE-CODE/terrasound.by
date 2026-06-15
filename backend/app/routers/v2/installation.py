@@ -1,4 +1,3 @@
-import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -7,12 +6,11 @@ from sqlalchemy.orm import Session
 from app.api_constants import API_V2_PREFIX
 from app.cache import CONTENT_SERVICES, content_cache
 from app.database import get_db
-from app.db_commit import commit_or_raise
 from app.models.content import InstallationService
-from app.models.installation import InstallationRequest
 from app.schemas.content import InstallationServiceOut
 from app.schemas.installation import InstallationRequestCreate, InstallationRequestOut
 from app.schemas.pagination import PaginatedOut, paginated
+from app.services.installation_submit import submit_installation_request_by_email
 
 router = APIRouter(prefix=API_V2_PREFIX, tags=["installation"])
 
@@ -49,14 +47,4 @@ def create_installation_request_v2(
     payload: InstallationRequestCreate,
     db: Annotated[Session, Depends(get_db)],
 ) -> InstallationRequestOut:
-    request = InstallationRequest(
-        id=str(uuid.uuid4()),
-        name=payload.name,
-        phone=payload.phone,
-        car_model=payload.car_model,
-        service=payload.service,
-    )
-    db.add(request)
-    commit_or_raise(db)
-    db.refresh(request)
-    return InstallationRequestOut.model_validate(request)
+    return submit_installation_request_by_email(db, payload)

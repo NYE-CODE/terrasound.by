@@ -6,11 +6,9 @@ import {
   BarChart3,
   BookOpen,
   ChevronDown,
-  ClipboardList,
   Contact,
   Grid3x3,
   Images,
-  Inbox,
   KeyRound,
   LayoutDashboard,
   ListFilter,
@@ -22,7 +20,6 @@ import {
   Tag,
   Wrench,
 } from "lucide-react";
-import { useAdminStats } from "../context/AdminStatsContext";
 import { useAuth } from "../context/AuthContext";
 
 type NavItem = {
@@ -53,14 +50,12 @@ const standaloneItems: NavItem[] = [
 const navGroups: NavGroup[] = [
   {
     id: "catalog",
-    label: "Каталог и заказы",
+    label: "Каталог",
     items: [
       { to: "/categories", label: "Категории", icon: Grid3x3 },
       { to: "/attributes", label: "Атрибуты", icon: ListFilter },
       { to: "/products", label: "Товары", icon: Package },
       { to: "/brands", label: "Бренды", icon: Tag },
-      { to: "/orders", label: "Заказы", icon: ClipboardList },
-      { to: "/installation", label: "Заявки на установку", icon: Inbox },
       { to: "/reviews/product", label: "Отзывы о товарах", icon: MessageSquare },
     ],
   },
@@ -103,40 +98,21 @@ function navLinkClass(isActive: boolean) {
   }`;
 }
 
-function formatBadgeCount(count: number): string {
-  return count > 99 ? "99+" : String(count);
-}
-
 function SidebarNavLink({
   item,
   nested = false,
-  badgeCount,
 }: {
   item: NavItem;
   nested?: boolean;
-  badgeCount?: number;
 }) {
   const { to, label, icon: Icon, end } = item;
-  const showBadge = badgeCount != null && badgeCount > 0;
 
   return (
     <NavLink to={to} end={end} className={({ isActive }) => `${navLinkClass(isActive)} ${nested ? "pl-9" : ""}`}>
-      {({ isActive }) => (
-        <>
-          <Icon size={18} className="shrink-0" />
-          <span className="flex-1 min-w-0 truncate">{label}</span>
-          {showBadge ? (
-            <span
-              className={`shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full text-xs font-medium inline-flex items-center justify-center ${
-                isActive ? "bg-[#0e0e0f] text-[var(--accent)]" : "bg-[var(--accent)] text-[#0e0e0f]"
-              }`}
-              aria-label={`Новых заказов: ${badgeCount}`}
-            >
-              {formatBadgeCount(badgeCount!)}
-            </span>
-          ) : null}
-        </>
-      )}
+      <>
+        <Icon size={18} className="shrink-0" />
+        <span className="flex-1 min-w-0 truncate">{label}</span>
+      </>
     </NavLink>
   );
 }
@@ -145,12 +121,10 @@ function SidebarNavGroup({
   group,
   open,
   onToggle,
-  ordersNew,
 }: {
   group: NavGroup;
   open: boolean;
   onToggle: () => void;
-  ordersNew: number;
 }) {
   const { pathname } = useLocation();
   const groupActive = isGroupActive(pathname, group.items);
@@ -177,12 +151,7 @@ function SidebarNavGroup({
       {open ? (
         <div className="mt-1 space-y-1">
           {group.items.map((item) => (
-            <SidebarNavLink
-              key={item.to}
-              item={item}
-              nested
-              badgeCount={item.to === "/orders" ? ordersNew : undefined}
-            />
+            <SidebarNavLink key={item.to} item={item} nested />
           ))}
         </div>
       ) : null}
@@ -192,7 +161,6 @@ function SidebarNavGroup({
 
 export function AdminLayout() {
   const { logout } = useAuth();
-  const { ordersNew } = useAdminStats();
   const { pathname } = useLocation();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navGroups.map((group) => [group.id, isGroupActive(pathname, group.items)])),
@@ -237,7 +205,6 @@ export function AdminLayout() {
               group={group}
               open={openGroups[group.id] ?? false}
               onToggle={() => toggleGroup(group.id)}
-              ordersNew={ordersNew}
             />
           ))}
         </nav>

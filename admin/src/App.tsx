@@ -1,15 +1,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AdminStatsProvider } from "./context/AdminStatsContext";
 import { AdminLayout } from "./components/AdminLayout";
 import { BlogPage } from "./pages/BlogPage";
 import { BrandsPage } from "./pages/BrandsPage";
 import { AttributesPage } from "./pages/AttributesPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { DashboardPage } from "./pages/DashboardPage";
-import { InstallationRequestsPage } from "./pages/InstallationRequestsPage";
 import { LoginPage } from "./pages/LoginPage";
-import { OrdersPage } from "./pages/OrdersPage";
 import { ProductReviewsPage } from "./pages/ProductReviewsPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { ServiceReviewsPage } from "./pages/ServiceReviewsPage";
@@ -56,9 +53,7 @@ export default function App() {
           <Route
             element={
               <ProtectedRoute>
-                <AdminStatsProvider>
                   <AdminLayout />
-                </AdminStatsProvider>
               </ProtectedRoute>
             }
           >
@@ -84,11 +79,9 @@ export default function App() {
             <Route path="portfolio" element={<PortfolioPage />} />
             <Route path="portfolio/new" element={<PortfolioFormPage />} />
             <Route path="portfolio/:id/edit" element={<PortfolioFormPage />} />
-            <Route path="orders" element={<OrdersPage />} />
             <Route path="reviews/product" element={<ProductReviewsPage />} />
             <Route path="reviews/service" element={<ServiceReviewsPage />} />
             <Route path="reviews/service/new" element={<ServiceReviewFormPage />} />
-            <Route path="installation" element={<InstallationRequestsPage />} />
             <Route path="settings/contact" element={<SiteContactPage />} />
             <Route path="settings/announcement" element={<SiteAnnouncementPage />} />
             <Route path="settings/product-highlights" element={<ProductHighlightsPage />} />

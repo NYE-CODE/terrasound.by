@@ -105,6 +105,7 @@ export interface OrderCreatePayload {
 export interface InstallationRequestInput {
   name: string;
   phone: string;
+  email: string;
   carModel: string;
   service: string;
 }

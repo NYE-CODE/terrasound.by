@@ -1,16 +1,17 @@
 import uuid
+from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.db_commit import commit_or_raise
 from app.models.order import Order, OrderItem, OrderStatus
 from app.models.product import Product
 from app.schemas.order import OrderCreate
+from app.services.lead_emails import send_order_emails
 from app.services.products import effective_price
 
 
-def create_order(db: Session, payload: OrderCreate) -> Order:
+def build_order(db: Session, payload: OrderCreate) -> Order:
     product_ids = [item.product_id for item in payload.items]
     products = db.query(Product).filter(Product.id.in_(product_ids)).all()
     products_by_id = {product.id: product for product in products}
@@ -37,8 +38,9 @@ def create_order(db: Session, payload: OrderCreate) -> Order:
             )
         )
 
+    order_id = str(uuid.uuid4())
     order = Order(
-        id=str(uuid.uuid4()),
+        id=order_id,
         status=OrderStatus.new,
         name=payload.contact.name,
         phone=payload.contact.phone,
@@ -51,9 +53,15 @@ def create_order(db: Session, payload: OrderCreate) -> Order:
         car_comment=payload.car.comment,
         payment_method=payload.payment_method,
         total=round(total, 2),
+        created_at=datetime.utcnow(),
         items=order_items,
     )
-    db.add(order)
-    commit_or_raise(db)
-    db.refresh(order)
+    for item in order_items:
+        item.order_id = order_id
+    return order
+
+
+def submit_order_by_email(db: Session, payload: OrderCreate) -> Order:
+    order = build_order(db, payload)
+    send_order_emails(db, order)
     return order

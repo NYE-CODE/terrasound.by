@@ -17,6 +17,22 @@ class Settings(BaseSettings):
     environment: str = "development"
     trust_proxy_headers: bool = False
     uploads_dir: str = "uploads"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    notification_email: str = ""
+
+    @property
+    def smtp_from_address(self) -> str:
+        return (self.smtp_from or self.smtp_user).strip()
+
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.smtp_host.strip() and self.smtp_from_address)
 
     @property
     def uploads_path(self):

@@ -53,7 +53,8 @@ uvicorn app.main:app --reload --port 8000
 - `GET /api/products` — каталог `{ items, total }`, query: `category`, `brands`, `priceMin`, `priceMax`, `sort`, `limit`, `offset`
 - `GET /api/products/{id}` — детальная карточка
 - `GET /api/categories`, `/api/brands`, `/api/services`, `/api/blog`, `/api/team`
-- `POST /api/orders` — заявка на заказ
+- `POST /api/orders` — заявка на заказ (отправка писем клиенту и админу, **без записи в БД**)
+- `POST /api/installation/requests` (v1) / `POST /api/v2/installation-requests` — заявка на установку (письма, без БД)
 - `POST /api/products/{id}/reviews` — отзыв (rate limit)
 - `GET /api/site-stats` — статистика для главной (кэш 5 мин)
 
@@ -62,6 +63,13 @@ uvicorn app.main:app --reload --port 8000
 - `POST /api/admin/auth/login`
 - CRUD: `/api/admin/products`, `/orders`, `/reviews`, `/categories`, `/brands`, `/blog`, `/services`, `/team`
 - `PATCH /api/admin/site-stats`
+
+| `UPLOADS_DIR` | Каталог загруженных изображений |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | SMTP для заявок на заказ/установку |
+| `SMTP_FROM` | Адрес отправителя (по умолчанию `SMTP_USER`) |
+| `NOTIFICATION_EMAIL` | Email админа для уведомлений (по умолчанию — из контактов сайта) |
+
+В `development` без SMTP письма логируются в консоль. В `production` SMTP обязателен.
 
 ## Миграции и индексы
 
