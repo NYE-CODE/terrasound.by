@@ -3,7 +3,7 @@ import { Button } from "../components/atoms/Button";
 import { Check, Mail, MapPin, Phone } from "lucide-react";
 import { AddressLink } from "../components/atoms/AddressLink";
 import { useSiteContact } from "../context/SiteContactContext";
-import { pageTopOffsetClass } from "../lib/pageLayout";
+import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function OrderSuccessPage() {
   const { orderId } = useParams();
@@ -24,16 +24,20 @@ export function OrderSuccessPage() {
 
           <div className="bg-background border border-border rounded p-6 mb-8 text-left">
             <h2 className="font-heading text-lg mb-4">Что дальше?</h2>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex gap-3">
-                <Check size={16} className="text-accent mt-0.5 flex-shrink-0" />
+            <ul className="space-y-3 text-sm text-muted-foreground list-none">
+              <li className="flex gap-3">
+                <span className="text-accent mt-0.5 shrink-0" aria-hidden="true">
+                  •
+                </span>
                 <span>Мы свяжемся с вами в течение 24 часов для подтверждения заказа</span>
-              </div>
-              <div className="flex gap-3">
-                <Check size={16} className="text-accent mt-0.5 flex-shrink-0" />
+              </li>
+              <li className="flex gap-3">
+                <span className="text-accent mt-0.5 shrink-0" aria-hidden="true">
+                  •
+                </span>
                 <span>Если выбрана оплата картой или безналичный расчет — счет будет выслан на указанный email</span>
-              </div>
-            </div>
+              </li>
+            </ul>
           </div>
 
           <div className="bg-background border border-border rounded p-6 mb-8">

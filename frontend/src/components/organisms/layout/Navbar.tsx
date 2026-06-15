@@ -26,7 +26,7 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="bg-background border-b border-border">
+      <nav className="relative z-[1] bg-background border-b border-border">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center justify-between h-[var(--site-header-height)]">
             <Link
@@ -81,6 +81,13 @@ export function Navbar() {
                   </Link>
                 </div>
               </div>
+              <Link
+                to="/contact"
+                className="md:hidden flex h-10 w-10 items-center justify-center rounded text-foreground hover:text-accent hover:bg-secondary/30 transition-colors duration-200"
+                aria-label="Контакты"
+              >
+                <Phone size={20} />
+              </Link>
               <Link to="/cart" className="relative text-foreground hover:text-accent transition-colors duration-300">
                 <ShoppingCart size={20} />
                 {totalItems > 0 && (
@@ -92,11 +99,15 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen((open) => !open)}
-                className="md:hidden text-foreground p-2 -mr-2"
+                className={`md:hidden flex h-10 w-10 items-center justify-center rounded transition-colors duration-200 -mr-2 ${
+                  mobileMenuOpen
+                    ? "text-accent bg-accent/10"
+                    : "text-foreground hover:text-accent hover:bg-secondary/30"
+                }`}
                 aria-label={mobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
                 aria-expanded={mobileMenuOpen}
               >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {mobileMenuOpen ? <X size={22} strokeWidth={2} /> : <Menu size={22} strokeWidth={2} />}
               </button>
             </div>
           </div>

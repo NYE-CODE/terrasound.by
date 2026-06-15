@@ -1,8 +1,5 @@
 import { Link, useLocation } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { MapPin, Phone } from "lucide-react";
-import { AddressLink } from "../../../components/atoms/AddressLink";
-import { useSiteContact } from "../../../context/SiteContactContext";
 import { isPrimaryNavLinkActive, primaryNavLinks } from "../../../lib/navLinks";
 import { useEffect, useRef } from "react";
 
@@ -12,7 +9,6 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
-  const contact = useSiteContact();
   const location = useLocation();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -40,7 +36,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[65] md:hidden" role="dialog" aria-modal="true" aria-label="Мобильное меню">
+        <div
+          className="fixed inset-0 z-[65] md:hidden pointer-events-none"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Мобильное меню"
+        >
           <motion.button
             type="button"
             aria-label="Закрыть меню"
@@ -48,57 +49,40 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-background/90 backdrop-blur-sm"
+            className="pointer-events-auto absolute inset-0 top-[var(--site-header-stack-height)] bg-background/80 backdrop-blur-sm"
             onClick={onClose}
           />
 
           <motion.div
-            initial={{ opacity: 0, y: -24 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-x-0 top-[var(--site-header-stack-height)] mx-4"
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="pointer-events-auto absolute inset-x-0 top-[var(--site-header-stack-height)] bg-card border-b border-border shadow-lg"
           >
-            <div className="bg-card border border-card-border rounded-lg shadow-2xl overflow-hidden">
-              <nav className="divide-y divide-border">
-                {primaryNavLinks.map((link) => {
-                  const isActive = isPrimaryNavLinkActive(location.pathname, link.path);
-                  return (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={onClose}
-                      aria-current={isActive ? "page" : undefined}
-                      className={`block px-6 py-5 font-heading text-lg uppercase tracking-wider transition-colors duration-200 ${
-                        isActive
-                          ? "text-accent bg-accent/5"
-                          : "text-foreground hover:text-accent hover:bg-secondary/30"
-                      }`}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="px-6 py-5 bg-secondary/20 space-y-3 text-sm">
-                <a
-                  href={`tel:${contact.phoneTel}`}
-                  className="flex items-center gap-3 text-foreground hover:text-accent transition-colors"
-                >
-                  <Phone size={18} className="shrink-0" />
-                  {contact.phone}
-                </a>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <MapPin size={18} className="shrink-0" />
-                  <AddressLink
-                    address={contact.address}
-                    mapsUrl={contact.addressMapsUrl}
-                    className="hover:text-accent transition-colors"
-                  />
-                </div>
-              </div>
-            </div>
+            <nav
+              className="divide-y divide-border overflow-y-auto"
+              style={{ maxHeight: "calc(100dvh - var(--site-header-stack-height))" }}
+            >
+              {primaryNavLinks.map((link) => {
+                const isActive = isPrimaryNavLinkActive(location.pathname, link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={onClose}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`block px-6 py-4 font-heading text-base uppercase tracking-wider transition-colors duration-200 ${
+                      isActive
+                        ? "text-accent bg-accent/5"
+                        : "text-foreground hover:text-accent hover:bg-secondary/30"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </motion.div>
         </div>
       )}

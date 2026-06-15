@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Check } from "lucide-react";
+import { Info } from "lucide-react";
 import { Button } from "../atoms/Button";
 import { Price } from "../atoms/Price";
 import { OrderItem } from "../molecules/OrderItem";
@@ -98,7 +98,7 @@ export function OrderSummary({
 
       {variant === "checkout" && !footer && (
         <div className="mt-6 pt-6 border-t border-border flex items-start gap-2 text-sm text-muted-foreground">
-          <Check size={16} className="text-accent mt-0.5 flex-shrink-0" />
+          <Info size={16} className="text-accent mt-0.5 flex-shrink-0" />
           <span>Мы свяжемся с вами в течение 24 часов для подтверждения</span>
         </div>
       )}
