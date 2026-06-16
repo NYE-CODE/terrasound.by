@@ -1,23 +1,16 @@
+import { lazy, Suspense } from "react";
 import { RouterProvider } from "react-router";
 import { router } from "./routes";
-import { Toaster } from "sonner";
+
+const AppToaster = lazy(() => import("./components/AppToaster"));
 
 export default function App() {
   return (
     <>
       <RouterProvider router={router} />
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: '#181818',
-            border: '1px solid #2A2A2A',
-            color: '#F0EDE8',
-            fontFamily: '"Golos Text", sans-serif',
-          },
-          className: 'font-heading',
-        }}
-      />
+      <Suspense fallback={null}>
+        <AppToaster />
+      </Suspense>
     </>
   );
 }

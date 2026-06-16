@@ -1,6 +1,6 @@
-import { useProductHighlights } from "../../context/ProductHighlightsContext";
+import { ProductHighlightsProvider, useProductHighlights } from "../../context/ProductHighlightsContext";
 
-export function ProductHighlightsList() {
+function ProductHighlightsListContent() {
   const highlights = useProductHighlights();
 
   if (highlights.length === 0) {
@@ -13,5 +13,13 @@ export function ProductHighlightsList() {
         <div key={`${index}-${line}`}>• {line}</div>
       ))}
     </div>
+  );
+}
+
+export function ProductHighlightsList() {
+  return (
+    <ProductHighlightsProvider>
+      <ProductHighlightsListContent />
+    </ProductHighlightsProvider>
   );
 }

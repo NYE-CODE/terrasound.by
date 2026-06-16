@@ -1,13 +1,11 @@
-import { toast } from "sonner";
+import { toastSuccess } from "./lazyToast";
 
 export function toastAddedToCart() {
-  toast.success("Добавлено в корзину", {
+  void toastSuccess("Добавлено в корзину", {
     action: {
       label: "Перейти в корзину",
       onClick: () => {
-        void import("../routes").then(({ router }) => {
-          void router.navigate("/cart");
-        });
+        window.location.assign("/cart");
       },
     },
   });

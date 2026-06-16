@@ -88,10 +88,17 @@ export function Navbar() {
               >
                 <Phone size={20} />
               </Link>
-              <Link to="/cart" className="relative text-foreground hover:text-accent transition-colors duration-300">
-                <ShoppingCart size={20} />
+              <Link
+                to="/cart"
+                className="relative text-foreground hover:text-accent transition-colors duration-300"
+                aria-label={totalItems > 0 ? `Корзина: ${totalItems} шт.` : "Корзина"}
+              >
+                <ShoppingCart size={20} aria-hidden />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-xs flex items-center justify-center rounded-full">
+                  <span
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-xs flex items-center justify-center rounded-full"
+                    aria-hidden
+                  >
                     {totalItems}
                   </span>
                 )}

@@ -7,7 +7,6 @@ import { Footer } from "./Footer";
 import { CartProvider } from "../../../context/CartContext";
 import { CategoriesProvider } from "../../../context/CategoriesContext";
 import { SiteAnnouncementProvider } from "../../../context/SiteAnnouncementContext";
-import { ProductHighlightsProvider } from "../../../context/ProductHighlightsContext";
 import { SiteContactProvider, useSiteContact } from "../../../context/SiteContactContext";
 import { buildLocalBusinessSchema } from "../../../lib/structuredData";
 
@@ -38,11 +37,9 @@ export function RootLayout() {
     <CartProvider>
       <SiteContactProvider>
         <SiteAnnouncementProvider>
-          <ProductHighlightsProvider>
-            <CategoriesProvider>
-              <RootLayoutContent />
-            </CategoriesProvider>
-          </ProductHighlightsProvider>
+          <CategoriesProvider>
+            <RootLayoutContent />
+          </CategoriesProvider>
         </SiteAnnouncementProvider>
       </SiteContactProvider>
     </CartProvider>

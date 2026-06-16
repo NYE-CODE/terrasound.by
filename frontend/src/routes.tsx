@@ -1,13 +1,15 @@
 import { createBrowserRouter } from "react-router";
 import { RootLayout } from "./components/organisms/layout/RootLayout";
-import { HomePage } from "./pages/HomePage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: RootLayout,
     children: [
-      { index: true, Component: HomePage },
+      {
+        index: true,
+        lazy: () => import("./pages/HomePage").then((m) => ({ Component: m.HomePage })),
+      },
       {
         path: "catalogue",
         lazy: () =>

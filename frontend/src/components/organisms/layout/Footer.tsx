@@ -17,6 +17,7 @@ export function Footer() {
   return (
     <footer className="bg-card border-t border-border">
       <div className="max-w-[1400px] mx-auto px-6 py-16">
+        <h2 className="sr-only">Контакты и навигация</h2>
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div>
             <Link to="/" className="inline-flex mb-4" aria-label={SITE_NAME}>
@@ -83,8 +84,10 @@ export function Footer() {
             </div>
           </div>
 
-          <div>
-            <h4 className="font-heading text-sm uppercase tracking-wider mb-4">Каталог</h4>
+          <nav aria-labelledby="footer-catalog-heading">
+            <h3 id="footer-catalog-heading" className="font-heading text-sm uppercase tracking-wider mb-4">
+              Каталог
+            </h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               {categories.slice(0, 4).map((category) => (
                 <Link
@@ -96,10 +99,12 @@ export function Footer() {
                 </Link>
               ))}
             </div>
-          </div>
+          </nav>
 
-          <div>
-            <h4 className="font-heading text-sm uppercase tracking-wider mb-4">Услуги</h4>
+          <nav aria-labelledby="footer-services-heading">
+            <h3 id="footer-services-heading" className="font-heading text-sm uppercase tracking-wider mb-4">
+              Услуги
+            </h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
                 Установка
@@ -114,10 +119,12 @@ export function Footer() {
                 Консультация
               </Link>
             </div>
-          </div>
+          </nav>
 
-          <div>
-            <h4 className="font-heading text-sm uppercase tracking-wider mb-4">Компания</h4>
+          <nav aria-labelledby="footer-company-heading">
+            <h3 id="footer-company-heading" className="font-heading text-sm uppercase tracking-wider mb-4">
+              Компания
+            </h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               <Link to="/about" className="block w-fit hover:text-accent transition-colors duration-300">
                 О нас
@@ -135,7 +142,7 @@ export function Footer() {
                 Контакты
               </Link>
             </div>
-          </div>
+          </nav>
         </div>
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
