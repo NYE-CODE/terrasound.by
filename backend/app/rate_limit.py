@@ -22,7 +22,7 @@ _RULES: list[tuple[str, str | re.Pattern[str], int, int]] = [
     ("POST", re.compile(r"^/api/v[12]/installation-requests$"), 10, 60),
     ("POST", re.compile(r"^/api/v1/installation/requests$"), 10, 60),
     ("POST", re.compile(r"^/api/v[12]/products/[^/]+/reviews$"), 5, 60),
-    ("GET", re.compile(r"^/sitemap\.xml$"), 30, 60),
+    ("GET", re.compile(r"^/sitemap(-[a-z]+)?\.xml$"), 30, 60),
     ("GET", re.compile(r"^/api/v[12]/admin/"), 120, 60),
     ("POST", re.compile(r"^/api/v[12]/admin/(?!sessions)"), 100, 60),
     ("PATCH", re.compile(r"^/api/v[12]/admin/"), 100, 60),

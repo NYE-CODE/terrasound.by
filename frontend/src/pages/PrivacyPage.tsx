@@ -1,9 +1,16 @@
 import { useSiteContact } from "../context/SiteContactContext";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { COMPANY_NAME } from "../lib/site";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function PrivacyPage() {
   const contact = useSiteContact();
+
+  usePageMeta({
+    title: "Политика конфиденциальности",
+    description: `Политика конфиденциальности ${COMPANY_NAME} (terrasound.by).`,
+    path: "/privacy",
+  });
 
   return (
     <div className={`${pageTopOffsetClass} min-h-screen`}>

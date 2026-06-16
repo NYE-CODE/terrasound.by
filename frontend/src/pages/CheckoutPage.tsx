@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { hasPreorderItems } from "../lib/preorder";
 import { pageTopOffsetClass } from "../lib/pageLayout";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 const paymentOptions = [
   {
@@ -40,6 +41,14 @@ const paymentOptions = [
 export function CheckoutPage() {
   const navigate = useNavigate();
   const { items, replaceItems, clearCart } = useCart();
+
+  usePageMeta({
+    title: "Оформление заказа",
+    description: "Оформление заказа в TerraSound.",
+    path: "/checkout",
+    indexable: false,
+  });
+
   const [syncing, setSyncing] = useState(true);
   const [formData, setFormData] = useState({
     name: "",

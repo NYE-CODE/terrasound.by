@@ -3,6 +3,7 @@ import { Button } from "../components/atoms/Button";
 import { Check, Mail, MapPin, Phone } from "lucide-react";
 import { AddressLink } from "../components/atoms/AddressLink";
 import { useSiteContact } from "../context/SiteContactContext";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { PREORDER_NOTICE } from "../lib/preorder";
 
@@ -17,6 +18,13 @@ export function OrderSuccessPage() {
   const hasPreorderItems = Boolean(
     (location.state as OrderSuccessLocationState | null)?.hasPreorderItems,
   );
+
+  usePageMeta({
+    title: "Заказ получен",
+    description: "Заявка на заказ принята. TerraSound свяжется с вами для подтверждения.",
+    path: orderId ? `/order-success/${orderId}` : "/order-success",
+    indexable: false,
+  });
 
   return (
     <div className={`${pageTopOffsetClass} min-h-screen`}>

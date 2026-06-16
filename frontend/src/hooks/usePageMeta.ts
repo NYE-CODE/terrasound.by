@@ -7,6 +7,8 @@ interface PageMetaOptions {
   path?: string;
   image?: string;
   type?: "website" | "article" | "product";
+  /** По умолчанию true. false — noindex для корзины, оформления и т.п. */
+  indexable?: boolean;
 }
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {
@@ -29,15 +31,27 @@ function upsertLink(rel: string, href: string) {
   element.setAttribute("href", href);
 }
 
-export function usePageMeta({ title, description, path = "", image, type = "website" }: PageMetaOptions) {
+export function usePageMeta({
+  title,
+  description,
+  path = "",
+  image,
+  type = "website",
+  indexable = true,
+}: PageMetaOptions) {
   useEffect(() => {
     const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
     const url = `${SITE_ORIGIN}${path}`;
-    const ogImage = image ?? `${SITE_ORIGIN}/og-default.jpg`;
+    const ogImage = image
+      ? image.startsWith("http")
+        ? image
+        : `${SITE_ORIGIN}${image.startsWith("/") ? image : `/${image}`}`
+      : `${SITE_ORIGIN}/android-chrome-192x192.png`;
+    const robots = indexable ? "index, follow" : "noindex, nofollow";
 
     document.title = fullTitle;
     upsertMeta("name", "description", description);
-    upsertMeta("name", "robots", "index, follow");
+    upsertMeta("name", "robots", robots);
     upsertMeta("property", "og:title", fullTitle);
     upsertMeta("property", "og:description", description);
     upsertMeta("property", "og:type", type);
@@ -47,6 +61,9 @@ export function usePageMeta({ title, description, path = "", image, type = "webs
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", fullTitle);
     upsertMeta("name", "twitter:description", description);
-    upsertLink("canonical", url);
-  }, [title, description, path, image, type]);
+
+    if (indexable) {
+      upsertLink("canonical", url);
+    }
+  }, [title, description, path, image, type, indexable]);
 }

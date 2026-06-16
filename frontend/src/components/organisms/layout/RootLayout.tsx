@@ -9,31 +9,12 @@ import { CategoriesProvider } from "../../../context/CategoriesContext";
 import { SiteAnnouncementProvider } from "../../../context/SiteAnnouncementContext";
 import { ProductHighlightsProvider } from "../../../context/ProductHighlightsContext";
 import { SiteContactProvider, useSiteContact } from "../../../context/SiteContactContext";
-import { COMPANY_NAME, SITE_NAME, SITE_ORIGIN, TAGLINE } from "../../../lib/site";
+import { buildLocalBusinessSchema } from "../../../lib/structuredData";
 
 function RootLayoutContent() {
   const contact = useSiteContact();
 
-  const localBusiness = useMemo(
-    () => ({
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      name: SITE_NAME,
-      legalName: COMPANY_NAME,
-      description: TAGLINE,
-      url: SITE_ORIGIN,
-      telephone: contact.phone,
-      email: contact.email,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Гродно",
-        addressCountry: "BY",
-        streetAddress: contact.address,
-      },
-      priceRange: "$$",
-    }),
-    [contact.address, contact.email, contact.phone],
-  );
+  const localBusiness = useMemo(() => buildLocalBusinessSchema(contact), [contact]);
 
   return (
     <>

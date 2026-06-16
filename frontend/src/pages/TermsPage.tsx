@@ -1,9 +1,16 @@
 import { useSiteContact } from "../context/SiteContactContext";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { COMPANY_NAME } from "../lib/site";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function TermsPage() {
   const contact = useSiteContact();
+
+  usePageMeta({
+    title: "Условия использования",
+    description: `Условия использования сайта ${COMPANY_NAME} (terrasound.by).`,
+    path: "/terms",
+  });
 
   return (
     <div className={`${pageTopOffsetClass} min-h-screen`}>

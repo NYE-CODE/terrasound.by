@@ -1,4 +1,4 @@
-export const SITE_NAME = "TerraSound";
+export const SITE_NAME = "Территория звука";
 export const SITE_SUBTITLE = "Территория звука";
 export const SITE_BRAND_TITLE = "ТЕРРИТОРИЯ ЗВУКА";
 export const SITE_BRAND_TAGLINE = "АВТОМОБИЛЬНЫЕ АУДИОСИСТЕМЫ";

@@ -3,10 +3,18 @@ import { Button } from "../components/atoms/Button";
 import { OrderItem } from "../components/molecules/OrderItem";
 import { OrderSummary } from "../components/organisms/OrderSummary";
 import { useCart } from "../context/CartContext";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+
+  usePageMeta({
+    title: "Корзина",
+    description: "Корзина покупок TerraSound.",
+    path: "/cart",
+    indexable: false,
+  });
 
   if (items.length === 0) {
     return (

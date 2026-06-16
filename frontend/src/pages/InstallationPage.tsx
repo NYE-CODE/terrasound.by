@@ -21,6 +21,7 @@ import {
   validatePhone,
 } from "@terrasound/shared";
 import { api, messageFromApiError, type InstallationService } from "../lib/api";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { reportLoadError } from "../lib/loadError";
 import { scrollToHash } from "../lib/scrollToHash";
 import {
@@ -58,6 +59,13 @@ const timeline = [
 export function InstallationPage() {
   const { pathname, hash } = useLocation();
   const [services, setServices] = useState<InstallationService[]>([]);
+
+  usePageMeta({
+    title: "Услуги",
+    description: "Установка автозвука, калибровка, шумоизоляция и консультация в Гродно.",
+    path: "/installation",
+  });
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",

@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import { api, type Brand } from "../lib/api";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { reportLoadError } from "../lib/loadError";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 
 export function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
+
+  usePageMeta({
+    title: "Бренды",
+    description: "Бренды премиального автозвука, с которыми работает TerraSound в Гродно.",
+    path: "/brands",
+  });
 
   useEffect(() => {
     api.getBrands().then(setBrands).catch(reportLoadError);

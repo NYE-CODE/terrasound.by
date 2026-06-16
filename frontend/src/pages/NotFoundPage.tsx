@@ -1,8 +1,15 @@
 import { Link } from "react-router";
 import { Button } from "../components/atoms/Button";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { pageTopOffsetClass } from "../lib/pageLayout";
 
 export function NotFoundPage() {
+  usePageMeta({
+    title: "Страница не найдена",
+    description: "Запрошенная страница не существует.",
+    indexable: false,
+  });
+
   return (
     <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center`}>
       <div className="text-center max-w-md px-6">

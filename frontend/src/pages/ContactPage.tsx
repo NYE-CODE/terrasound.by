@@ -4,12 +4,19 @@ import { MapEmbed } from "../components/molecules/MapEmbed";
 import { TikTokIcon } from "../components/icons/TikTokIcon";
 import { TelegramIcon } from "../components/icons/TelegramIcon";
 import { useSiteContact } from "../context/SiteContactContext";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { externalUrl, socialHandle } from "../lib/contactHelpers";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { COMPANY_NAME } from "../lib/site";
 
 export function ContactPage() {
   const contact = useSiteContact();
+
+  usePageMeta({
+    title: "Контакты",
+    description: "Телефон, email, адрес студии и режим работы. TerraSound, Гродно.",
+    path: "/contact",
+  });
 
   return (
     <div className={`${pageTopOffsetClass} min-h-screen`}>

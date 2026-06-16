@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { api, messageFromApiError, type ProductDetail } from "../lib/api";
 import { toastAddedToCart } from "../lib/cartToast";
 import { getEffectivePrice } from "../lib/price";
+import { buildProductSchema } from "../lib/structuredData";
 import type { ProductReview } from "@terrasound/shared";
 import { pageTopOffsetClass } from "../lib/pageLayout";
 
@@ -49,34 +50,10 @@ export function ProductPage() {
     type: "product",
   });
 
-  const productJsonLd = useMemo(() => {
-    if (!product) return null;
-    return {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: product.name,
-      brand: { "@type": "Brand", name: product.brand },
-      image: product.images,
-      description: product.specs ? Object.values(product.specs).join(", ") : product.name,
-      offers: {
-        "@type": "Offer",
-        price: getEffectivePrice(product.price, product.salePrice),
-        priceCurrency: "BYN",
-        availability: product.inStock
-          ? "https://schema.org/InStock"
-          : "https://schema.org/PreOrder",
-      },
-      ...(product.ratingAvg
-        ? {
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: product.ratingAvg,
-              reviewCount: product.reviewCount ?? 0,
-            },
-          }
-        : {}),
-    };
-  }, [product]);
+  const productJsonLd = useMemo(
+    () => (product ? buildProductSchema(product) : null),
+    [product],
+  );
 
   const reviews = [...(product?.reviews ?? []), ...pendingReviews];
 

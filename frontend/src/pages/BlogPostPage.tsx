@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft } from "lucide-react";
+import { JsonLd } from "../components/seo/JsonLd";
 import { api, type BlogPostDetail } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { buildArticleSchema } from "../lib/structuredData";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { formatReviewDate } from "../utils/formatReviewDate";
 
@@ -21,10 +23,15 @@ export function BlogPostPage() {
 
   usePageMeta({
     title: post?.title ?? "Статья",
-    description: post?.excerpt ?? "Статья блога TerraSound об автозвуке.",
+    description: post?.excerpt ?? "Статья блога Территории звука об автозвуке.",
     path: postId ? `/blog/${postId}` : "/blog",
     type: "article",
   });
+
+  const articleJsonLd = useMemo(
+    () => (post ? buildArticleSchema(post) : null),
+    [post],
+  );
 
   if (error) {
     return (
@@ -52,6 +59,7 @@ export function BlogPostPage() {
 
   return (
     <div className={`${pageTopOffsetClass} min-h-screen`}>
+      {articleJsonLd && <JsonLd id="article" data={articleJsonLd} />}
       <article className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
         <Link
           to="/blog"
