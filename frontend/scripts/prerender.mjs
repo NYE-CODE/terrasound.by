@@ -11,6 +11,7 @@ import {
   escapeHtml,
   PRERENDER_BODY_STYLES,
 } from "./seo-prerender.mjs";
+import { buildHeroPreloadHtml, findHeroAssets } from "./hero-assets.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, "../dist");
@@ -70,7 +71,7 @@ const staticRoutes = [
   },
 ];
 
-function patchHtml(template, { title, description, canonical, headExtras = "", seoHead = "", bodyHtml = "" }) {
+function patchHtml(template, { title, description, canonical, headExtras = "", earlyHeadExtras = "", seoHead = "", bodyHtml = "" }) {
   const safeTitle = escapeHtml(title);
   const safeDescription = escapeHtml(description);
   const rootInner = bodyHtml ? `\n      ${bodyHtml}\n    ` : "";
@@ -82,6 +83,7 @@ function patchHtml(template, { title, description, canonical, headExtras = "", s
       `<meta name="description" content="${safeDescription}" />`,
     )
     .replace(/<meta name="robots" content=".*?" \/>/, `<meta name="robots" content="index, follow" />`)
+    .replace("<!-- lcp-preload -->", earlyHeadExtras || "")
     .replace("</head>", `${PRERENDER_BODY_STYLES}${seoHead}${headExtras}\n    </head>`)
     .replace(/<div id="root">\s*<\/div>/, `<div id="root">${rootInner}</div>`)
     .concat(`\n<!-- prerender: ${canonical} -->`);
@@ -205,6 +207,8 @@ async function main() {
   }
 
   const template = fs.readFileSync(templatePath, "utf8");
+  const heroAssets = findHeroAssets(distDir);
+  const heroPreload = buildHeroPreloadHtml(heroAssets);
   const routes = staticRoutes.map((route) => ({ ...route }));
   let siteBootstrap = null;
   let contact = DEFAULT_CONTACT;
@@ -294,6 +298,7 @@ async function main() {
       description: route.description,
       canonical,
       headExtras,
+      earlyHeadExtras: route.path === "/" ? heroPreload : "",
       seoHead,
       bodyHtml,
     });

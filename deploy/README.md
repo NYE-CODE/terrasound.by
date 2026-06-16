@@ -85,7 +85,8 @@ bash deploy/deploy.sh
 
 | Заголовок | Значение |
 |---|---|
-| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains; preload` |
+| `Content-Security-Policy-Report-Only` | см. `security-headers.conf` (перед enforcement) |
 | `X-Content-Type-Options` | `nosniff` |
 | `X-Frame-Options` | `DENY` |
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
@@ -111,7 +112,8 @@ HTTP (порт 80) редиректит на HTTPS; `/.well-known/acme-challenge
 Проверка после `nginx -t && systemctl reload nginx`:
 
 ```bash
-curl -sI https://terrasound.by/ | grep -iE 'strict-transport|x-frame|x-content-type|referrer-policy|cross-origin-opener'
+curl -sI https://terrasound.by/ | grep -iE 'strict-transport|content-security-policy|x-frame|x-content-type|referrer-policy|cross-origin-opener'
+curl -sI https://terrasound.by/assets/index-*.js 2>/dev/null | head -1   # после деплоя: HTTP/2 200
 curl -sI http://terrasound.by/ | head -3   # 301 → https
 ```
 

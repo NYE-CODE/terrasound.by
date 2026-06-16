@@ -12,10 +12,11 @@ import { TAGLINE } from "../lib/site";
 import { pageContentPy, pageSectionPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { abbreviateLongWords } from "../lib/abbreviateText";
 import type { ServiceReview } from "@terrasound/shared";
-import { HERO_IMAGE_HEIGHT, HERO_IMAGE_WIDTH } from "../lib/brandAssets";
-import heroSection from "../assets/hero-section.webp";
+import { HERO_IMAGE_HEIGHT, HERO_IMAGE_WIDTH, HERO_MOBILE_HEIGHT, HERO_MOBILE_WIDTH } from "../lib/brandAssets";
+import heroDesktop from "../assets/hero-section.webp";
+import heroMobile from "../assets/hero-section-mobile.webp";
 
-const HERO_IMAGE = heroSection;
+const HERO_SRCSET = `${heroMobile} ${HERO_MOBILE_WIDTH}w, ${heroDesktop} ${HERO_IMAGE_WIDTH}w`;
 
 export function HomePage() {
   const categories = useCategories();
@@ -53,10 +54,12 @@ export function HomePage() {
       <section className="relative isolate min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none lg:hidden" aria-hidden>
           <img
-            src={HERO_IMAGE}
+            src={heroMobile}
+            srcSet={HERO_SRCSET}
+            sizes="100vw"
             alt=""
-            width={HERO_IMAGE_WIDTH}
-            height={HERO_IMAGE_HEIGHT}
+            width={HERO_MOBILE_WIDTH}
+            height={HERO_MOBILE_HEIGHT}
             fetchPriority="high"
             decoding="async"
             className="absolute inset-0 z-0 w-full h-full object-cover"
@@ -82,7 +85,9 @@ export function HomePage() {
             </div>
             <div className="hidden lg:block aspect-[4/5] bg-secondary/30 rounded overflow-hidden">
               <img
-                src={HERO_IMAGE}
+                src={heroDesktop}
+                srcSet={HERO_SRCSET}
+                sizes="(min-width: 1024px) 50vw, 0px"
                 alt="Салон автомобиля с премиальной аудиосистемой"
                 width={HERO_IMAGE_WIDTH}
                 height={HERO_IMAGE_HEIGHT}

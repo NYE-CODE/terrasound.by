@@ -4,8 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build && node scripts/prerender.mjs",
-    "dev": "vite"
+    "build": "node scripts/optimize-hero.mjs && vite build && node scripts/prerender.mjs",
+    "dev": "node scripts/optimize-hero.mjs && vite"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -69,6 +69,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "4.1.12",
     "@vitejs/plugin-react": "4.7.0",
+    "sharp": "^0.35.1",
     "tailwindcss": "4.1.12",
     "vite": "6.3.5"
   },
