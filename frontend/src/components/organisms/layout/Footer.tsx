@@ -5,21 +5,46 @@ import { TikTokIcon } from "../../icons/TikTokIcon";
 import { TelegramIcon } from "../../icons/TelegramIcon";
 import { externalUrl, socialHandle } from "../../../lib/contactHelpers";
 import { COMPANY_NAME, SITE_NAME, TAGLINE } from "../../../lib/site";
-import { useCategories } from "../../../context/CategoriesContext";
 import { useSiteContact } from "../../../context/SiteContactContext";
 import logo from "../../../assets/logo.png";
 import { LOGO_HEIGHT, LOGO_WIDTH } from "../../../lib/brandAssets";
 
+const footerNavLinks = [
+  { path: "/catalogue", label: "Каталог" },
+  { path: "/installation", label: "Услуги" },
+  { path: "/brands", label: "Бренды" },
+  { path: "/blog", label: "Блог" },
+  { path: "/about", label: "О нас" },
+  { path: "/delivery", label: "Доставка" },
+  { path: "/contact", label: "Контакты" },
+] as const;
+
+const footerNavMobileColumn1 = footerNavLinks.slice(0, 4);
+const footerNavMobileColumn2 = footerNavLinks.slice(4);
+
+const footerNavLinkClass =
+  "block w-fit font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-accent transition-colors duration-300";
+
+function FooterNavLink({ path, label }: { path: string; label: string }) {
+  return (
+    <li>
+      <Link to={path} className={footerNavLinkClass}>
+        {label}
+      </Link>
+    </li>
+  );
+}
+
 export function Footer() {
   const contact = useSiteContact();
-  const categories = useCategories();
 
   return (
     <footer className="bg-card border-t border-border">
       <div className="max-w-[1400px] mx-auto px-6 py-16">
         <h2 className="sr-only">Контакты и навигация</h2>
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
-          <div>
+
+        <div className="mb-12">
+          <div className="max-w-md">
             <Link to="/" className="inline-flex mb-4" aria-label={SITE_NAME}>
               <img src={logo} alt={SITE_NAME} width={LOGO_WIDTH} height={LOGO_HEIGHT} className="h-14 w-auto" />
             </Link>
@@ -84,64 +109,25 @@ export function Footer() {
             </div>
           </div>
 
-          <nav aria-labelledby="footer-catalog-heading">
-            <h3 id="footer-catalog-heading" className="font-heading text-sm uppercase tracking-wider mb-4">
-              Каталог
-            </h3>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              {categories.slice(0, 4).map((category) => (
-                <Link
-                  key={category.id}
-                  to={`/catalogue?category=${category.id}`}
-                  className="block w-fit hover:text-accent transition-colors duration-300"
-                >
-                  {category.name}
-                </Link>
+          <nav aria-label="Навигация в подвале" className="mt-10">
+            <div className="grid grid-cols-2 gap-x-8 md:hidden">
+              <ul className="space-y-3">
+                {footerNavMobileColumn1.map((link) => (
+                  <FooterNavLink key={link.path} {...link} />
+                ))}
+              </ul>
+              <ul className="space-y-3">
+                {footerNavMobileColumn2.map((link) => (
+                  <FooterNavLink key={link.path} {...link} />
+                ))}
+              </ul>
+            </div>
+
+            <ul className="hidden md:flex md:w-full md:justify-between md:items-center md:gap-4">
+              {footerNavLinks.map((link) => (
+                <FooterNavLink key={link.path} {...link} />
               ))}
-            </div>
-          </nav>
-
-          <nav aria-labelledby="footer-services-heading">
-            <h3 id="footer-services-heading" className="font-heading text-sm uppercase tracking-wider mb-4">
-              Услуги
-            </h3>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
-                Установка
-              </Link>
-              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
-                Акустическая калибровка
-              </Link>
-              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
-                Шумоизоляция
-              </Link>
-              <Link to="/installation" className="block w-fit hover:text-accent transition-colors duration-300">
-                Консультация
-              </Link>
-            </div>
-          </nav>
-
-          <nav aria-labelledby="footer-company-heading">
-            <h3 id="footer-company-heading" className="font-heading text-sm uppercase tracking-wider mb-4">
-              Компания
-            </h3>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <Link to="/about" className="block w-fit hover:text-accent transition-colors duration-300">
-                О нас
-              </Link>
-              <Link to="/blog" className="block w-fit hover:text-accent transition-colors duration-300">
-                Блог
-              </Link>
-              <Link to="/brands" className="block w-fit hover:text-accent transition-colors duration-300">
-                Бренды
-              </Link>
-              <Link to="/delivery" className="block w-fit hover:text-accent transition-colors duration-300">
-                Доставка
-              </Link>
-              <Link to="/contact" className="block w-fit hover:text-accent transition-colors duration-300">
-                Контакты
-              </Link>
-            </div>
+            </ul>
           </nav>
         </div>
 
