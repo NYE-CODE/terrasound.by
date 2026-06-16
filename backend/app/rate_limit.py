@@ -34,7 +34,7 @@ _RULES: list[tuple[str, str | re.Pattern[str], int, int]] = [
         re.compile(
             r"^/api/v[12]/(products|categories|brands|blog-posts|portfolio-works|"
             r"installation-services|service-reviews|vehicles|"
-            r"site-stats|site-contact|site-announcement|product-highlights|catalog)"
+            r"site-stats|site-contact|site-announcement|product-highlights|legal-pages|catalog)"
         ),
         180,
         60,

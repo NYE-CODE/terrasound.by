@@ -84,6 +84,7 @@ def run_migrations(engine: Engine) -> None:
     _migrate_site_announcement(engine)
     _migrate_site_announcement_scroll_duration(engine)
     _migrate_order_items_in_stock(engine)
+    _migrate_site_legal_pages(engine)
 
 
 def _migrate_order_items_in_stock(engine: Engine) -> None:
@@ -401,3 +402,27 @@ def _migrate_catalog_categories(engine: Engine) -> None:
         conn.execute(text("UPDATE categories SET name = 'Динамики' WHERE id = 'speakers'"))
 
         conn.execute(text("DELETE FROM categories WHERE id = 'subwoofers'"))
+
+
+def _migrate_site_legal_pages(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_legal_pages" in inspector.get_table_names():
+        return
+
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                """
+                CREATE TABLE site_legal_pages (
+                    slug VARCHAR(32) NOT NULL PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    content TEXT NOT NULL DEFAULT '',
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            )
+        )
+

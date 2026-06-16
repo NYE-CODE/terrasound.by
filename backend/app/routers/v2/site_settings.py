@@ -9,7 +9,7 @@ from app.routers.admin.deps import ADMIN_ROUTER_DEPENDENCIES
 from app.schemas.product_highlights import ProductHighlightsOut, ProductHighlightsUpdate
 from app.schemas.site_announcement import SiteAnnouncementOut, SiteAnnouncementUpdate
 from app.schemas.site_contact import SiteContactOut, SiteContactUpdate
-from app.schemas.site_stats import SiteStatsOut, SiteStatsUpdate
+from app.schemas.site_legal_page import SiteLegalPageOut, SiteLegalPageUpdate
 from app.services.product_highlights import (
     get_or_create_product_highlights,
     get_public_product_highlights,
@@ -27,6 +27,14 @@ from app.services.site_contact import (
     get_public_site_contact,
     site_contact_to_out,
     update_site_contact,
+)
+from app.schemas.site_stats import SiteStatsOut, SiteStatsUpdate
+from app.services.site_legal_page import (
+    get_or_create_legal_page,
+    get_public_legal_page,
+    list_legal_pages,
+    site_legal_page_to_out,
+    update_legal_page,
 )
 from app.services.site_stats import (
     get_or_create_site_stats,
@@ -61,6 +69,14 @@ def get_site_announcement_v2(db: Annotated[Session, Depends(get_db)]) -> SiteAnn
 @public_router.get("/product-highlights", response_model=ProductHighlightsOut)
 def get_product_highlights_v2(db: Annotated[Session, Depends(get_db)]) -> ProductHighlightsOut:
     return get_public_product_highlights(db)
+
+
+@public_router.get("/legal-pages/{slug}", response_model=SiteLegalPageOut)
+def get_legal_page_v2(
+    slug: str,
+    db: Annotated[Session, Depends(get_db)],
+) -> SiteLegalPageOut:
+    return get_public_legal_page(db, slug)
 
 
 @admin_router.get("/stats", response_model=SiteStatsOut)
@@ -113,3 +129,25 @@ def patch_product_highlights_v2(
     db: Annotated[Session, Depends(get_db)],
 ) -> ProductHighlightsOut:
     return product_highlights_to_out(update_product_highlights(db, payload))
+
+
+@admin_router.get("/legal-pages", response_model=list[SiteLegalPageOut])
+def list_admin_legal_pages_v2(db: Annotated[Session, Depends(get_db)]) -> list[SiteLegalPageOut]:
+    return list_legal_pages(db)
+
+
+@admin_router.get("/legal-pages/{slug}", response_model=SiteLegalPageOut)
+def get_admin_legal_page_v2(
+    slug: str,
+    db: Annotated[Session, Depends(get_db)],
+) -> SiteLegalPageOut:
+    return site_legal_page_to_out(get_or_create_legal_page(db, slug))
+
+
+@admin_router.patch("/legal-pages/{slug}", response_model=SiteLegalPageOut)
+def patch_legal_page_v2(
+    slug: str,
+    payload: SiteLegalPageUpdate,
+    db: Annotated[Session, Depends(get_db)],
+) -> SiteLegalPageOut:
+    return site_legal_page_to_out(update_legal_page(db, slug, payload))

@@ -194,6 +194,17 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  legalPages: () => request<SiteLegalPage[]>(`${API_V2_ADMIN}/site/settings/legal-pages`),
+
+  legalPage: (slug: LegalPageSlug) =>
+    request<SiteLegalPage>(`${API_V2_ADMIN}/site/settings/legal-pages/${slug}`),
+
+  updateLegalPage: (slug: LegalPageSlug, data: SiteLegalPageInput) =>
+    request<SiteLegalPage>(`${API_V2_ADMIN}/site/settings/legal-pages/${slug}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
   orders: (params?: OrderListParams) =>
     request<Paginated<Order>>(
       `${API_V2_ADMIN}/orders${buildListQuery({
@@ -586,6 +597,20 @@ export interface ProductHighlights {
 
 export interface ProductHighlightsInput {
   highlights: string[];
+}
+
+export type LegalPageSlug = "privacy" | "terms";
+
+export interface SiteLegalPage {
+  slug: LegalPageSlug;
+  title: string;
+  content: string;
+  updatedAt: string;
+}
+
+export interface SiteLegalPageInput {
+  title: string;
+  content: string;
 }
 
 export interface ChangePasswordInput {

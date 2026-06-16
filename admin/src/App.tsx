@@ -23,6 +23,7 @@ import { PortfolioFormPage } from "./pages/forms/PortfolioFormPage";
 import { SiteContactPage } from "./pages/SiteContactPage";
 import { SiteAnnouncementPage } from "./pages/SiteAnnouncementPage";
 import { ProductHighlightsPage } from "./pages/ProductHighlightsPage";
+import { SiteLegalPage } from "./pages/SiteLegalPage";
 import { SiteStatsPage } from "./pages/SiteStatsPage";
 import { ChangePasswordPage } from "./pages/ChangePasswordPage";
 
@@ -85,6 +86,7 @@ export default function App() {
             <Route path="settings/contact" element={<SiteContactPage />} />
             <Route path="settings/announcement" element={<SiteAnnouncementPage />} />
             <Route path="settings/product-highlights" element={<ProductHighlightsPage />} />
+            <Route path="settings/legal" element={<SiteLegalPage />} />
             <Route path="settings/stats" element={<SiteStatsPage />} />
             <Route path="settings/password" element={<ChangePasswordPage />} />
           </Route>

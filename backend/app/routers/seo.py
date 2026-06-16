@@ -9,6 +9,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.content import BlogPost, Category
 from app.models.product import Product
+from app.models.site_legal_page import LEGAL_PAGE_PRIVACY, LEGAL_PAGE_TERMS, SiteLegalPage
 
 router = APIRouter(tags=["seo"])
 
@@ -101,9 +102,20 @@ def _category_lastmods(db: Session) -> dict[str, str | None]:
 
 def build_static_sitemap(db: Session) -> str:
     site_lastmod = _site_content_lastmod(db)
-    entries: list[tuple[str, str | None, str]] = [
-        (f"{SITE_ORIGIN}{path}", site_lastmod, changefreq) for path, changefreq in STATIC_PATHS
-    ]
+    legal_lastmods = {
+        row.slug: _format_lastmod(row.updated_at)
+        for row in db.query(SiteLegalPage.slug, SiteLegalPage.updated_at).all()
+    }
+    entries: list[tuple[str, str | None, str]] = []
+
+    for path, changefreq in STATIC_PATHS:
+        if path == "/privacy":
+            lastmod = legal_lastmods.get(LEGAL_PAGE_PRIVACY) or site_lastmod
+        elif path == "/terms":
+            lastmod = legal_lastmods.get(LEGAL_PAGE_TERMS) or site_lastmod
+        else:
+            lastmod = site_lastmod
+        entries.append((f"{SITE_ORIGIN}{path}", lastmod, changefreq))
 
     category_mods = _category_lastmods(db)
     categories = db.query(Category.id).filter(Category.published.is_(True)).all()

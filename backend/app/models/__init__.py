@@ -1,7 +1,7 @@
 from app.models.attribute import Attribute, AttributeOption, CategoryAttribute, ProductAttributeValue
 from app.models.content import BlogPost, Brand, Category, InstallationService, PortfolioWork
 from app.models.admin_account import AdminAccount
-from app.models.site_contact import SiteContact
+from app.models.site_legal_page import SiteLegalPage
 from app.models.site_announcement import SiteAnnouncement
 from app.models.product_highlights import ProductHighlights
 from app.models.site_stats import SiteStats
@@ -31,6 +31,7 @@ __all__ = [
     "BlogPost",
     "PortfolioWork",
     "SiteContact",
+    "SiteLegalPage",
     "SiteStats",
     "SiteAnnouncement",
     "ProductHighlights",

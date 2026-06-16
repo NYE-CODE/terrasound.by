@@ -206,6 +206,9 @@ export const api = {
   getProductHighlights: () => request<ProductHighlights>(`${API_V2}/site/settings/product-highlights`),
 
   getSiteContact: () => request<SiteContact>(`${API_V2}/site/settings/contact`),
+
+  getLegalPage: (slug: "privacy" | "terms") =>
+    request<SiteLegalPage>(`${API_V2}/site/settings/legal-pages/${slug}`),
 };
 
 export interface SiteStats {
@@ -244,6 +247,13 @@ export interface SiteContact {
   addressMapsUrl: string;
   mapEmbedUrl: string;
   workingHours: string;
+}
+
+export interface SiteLegalPage {
+  slug: string;
+  title: string;
+  content: string;
+  updatedAt: string;
 }
 
 export interface Category {

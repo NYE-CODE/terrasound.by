@@ -792,3 +792,6 @@ def seed_database(db: Session) -> None:
     _seed_site_contact(db)
     _seed_site_announcement(db)
     _seed_product_highlights(db)
+    from app.services.site_legal_page import seed_legal_pages
+
+    seed_legal_pages(db)

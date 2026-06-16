@@ -185,6 +185,8 @@ export const PRERENDER_BODY_STYLES = `<style id="ssg-prerender-style">
 #ssg-prerender .ssg-muted{opacity:.75;font-size:.875rem}
 #ssg-prerender .ssg-price{font-size:1.25rem;font-weight:700}
 #ssg-prerender .ssg-lead{font-size:1.05rem;opacity:.9}
+#ssg-prerender .ssg-legal-sections section+section{margin-top:1.5rem}
+#ssg-prerender .ssg-legal-sections h2{font-size:1.35rem;line-height:1.25;margin:0 0 .75rem;font-weight:700}
 </style>`;
 
 function absoluteAssetUrl(value, siteOrigin) {
@@ -204,9 +206,46 @@ function formatPrice(price) {
 }
 
 export function buildStaticPrerenderBody(route) {
+  if (route.legalPage) {
+    return buildLegalPrerenderBody(route.legalPage);
+  }
+
   return `<main id="ssg-prerender" data-prerender="page">
     <h1>${escapeHtml(staticPageHeading(route.title))}</h1>
     <p class="ssg-lead">${escapeHtml(route.description)}</p>
+  </main>`;
+}
+
+export function buildLegalPrerenderBody(page) {
+  const sections = page.content
+    .split(/\n(?=## )/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  const sectionsHtml = sections
+    .map((block) => {
+      if (!block.startsWith("## ")) {
+        return `<p class="ssg-lead">${escapeHtml(block)}</p>`;
+      }
+
+      const newlineIndex = block.indexOf("\n");
+      const heading = newlineIndex === -1 ? block.slice(3).trim() : block.slice(3, newlineIndex).trim();
+      const body = newlineIndex === -1 ? "" : block.slice(newlineIndex + 1).trim();
+      const paragraphs = body
+        .split(/\n{2,}/)
+        .flatMap((chunk) => chunk.split("\n"))
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+        .join("");
+
+      return `<section><h2>${escapeHtml(heading)}</h2>${paragraphs}</section>`;
+    })
+    .join("");
+
+  return `<main id="ssg-prerender" data-prerender="legal">
+    <h1>${escapeHtml(page.title)}</h1>
+    <div class="ssg-legal-sections">${sectionsHtml}</div>
   </main>`;
 }
 

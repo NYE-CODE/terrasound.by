@@ -1,62 +1,44 @@
-import { useSiteContact } from "../context/SiteContactContext";
+import { useEffect, useState } from "react";
+import { LegalPageContent } from "../components/organisms/LegalPageContent";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { api, type SiteLegalPage } from "../lib/api";
 import { COMPANY_NAME } from "../lib/site";
-import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
+import { pageTopOffsetClass } from "../lib/pageLayout";
 
 export function TermsPage() {
-  const contact = useSiteContact();
+  const [page, setPage] = useState<SiteLegalPage | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    api
+      .getLegalPage("terms")
+      .then(setPage)
+      .catch(() => setError(true));
+  }, []);
 
   usePageMeta({
-    title: "Условия использования",
-    description: `Условия использования сайта ${COMPANY_NAME} (terrasound.by).`,
+    title: page?.title ?? "Условия использования",
+    description: page
+      ? `${page.title} ${COMPANY_NAME} (terrasound.by).`
+      : `Условия использования сайта ${COMPANY_NAME} (terrasound.by).`,
     path: "/terms",
   });
 
-  return (
-    <div className={`${pageTopOffsetClass} min-h-screen`}>
-      <div className={`max-w-3xl mx-auto px-6 ${pageContentPy}`}>
-        <h1 className="font-heading text-5xl mb-8">Условия использования</h1>
-
-        <div className="space-y-6 text-muted-foreground">
-          <section>
-            <h2 className="font-heading text-2xl text-foreground mb-4">Продажа товаров</h2>
-            <p>
-              На все товары распространяется гарантия производителя. На услуги установки
-              предоставляется 2 года гарантии на выполненные работы.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-heading text-2xl text-foreground mb-4">Услуги установки</h2>
-            <p>
-              Мы работаем только по записи. Отмена должна быть произведена не менее чем за 48 часов,
-              иначе взимается плата за отмену.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-heading text-2xl text-foreground mb-4">Возврат и возмещение</h2>
-            <p>
-              Не вскрытые товары можно вернуть в течение 14 дней с момента покупки. Установленное
-              оборудование возврату не подлежит, за исключением случаев брака.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="font-heading text-2xl text-foreground mb-4">Контакты</h2>
-            <p>
-              Вопросы по условиям? Свяжитесь с {COMPANY_NAME}:{" "}
-              <a href={`mailto:${contact.email}`} className="hover:text-accent transition-colors">
-                {contact.email}
-              </a>{" "}
-              или{" "}
-              <a href={`tel:${contact.phoneTel}`} className="hover:text-accent transition-colors">
-                {contact.phone}
-              </a>
-            </p>
-          </section>
-        </div>
+  if (error) {
+    return (
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center text-muted-foreground`}>
+        Не удалось загрузить страницу
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (!page) {
+    return (
+      <div className={`${pageTopOffsetClass} min-h-screen flex items-center justify-center text-muted-foreground`}>
+        Загрузка...
+      </div>
+    );
+  }
+
+  return <LegalPageContent title={page.title} content={page.content} />;
 }

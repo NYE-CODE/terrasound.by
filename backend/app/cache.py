@@ -13,6 +13,7 @@ SITE_STATS = "site-stats"
 SITE_CONTACT = "site-contact"
 SITE_ANNOUNCEMENT = "site-announcement"
 PRODUCT_HIGHLIGHTS = "product-highlights"
+SITE_LEGAL_PAGE_PREFIX = "site-legal-page"
 
 
 def category_filters_cache_key(category_id: str) -> str:
@@ -48,6 +49,7 @@ site_stats_cache = TTLCache()
 site_contact_cache = TTLCache()
 site_announcement_cache = TTLCache()
 product_highlights_cache = TTLCache()
+site_legal_page_cache = TTLCache()
 
 
 def invalidate_content_cache() -> None:

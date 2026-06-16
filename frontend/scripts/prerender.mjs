@@ -158,6 +158,22 @@ async function fetchContact() {
   }
 }
 
+async function fetchLegalPages() {
+  const pages = await Promise.all(
+    ["privacy", "terms"].map(async (slug) => {
+      try {
+        return await fetchJson(`${apiUrl}/api/v2/site/settings/legal-pages/${slug}`);
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return Object.fromEntries(
+    pages.filter(Boolean).map((page) => [page.slug, page]),
+  );
+}
+
 function buildRouteSeoHead(route, contact, localBusiness) {
   const canonical = `${siteOrigin}${route.path}`;
   const jsonLd = [{ id: "local-business", data: localBusiness }];
@@ -200,6 +216,22 @@ async function main() {
   }
 
   const localBusiness = buildLocalBusinessJsonLd(contact, siteOrigin);
+
+  let legalPages = {};
+  try {
+    legalPages = await fetchLegalPages();
+    for (const route of routes) {
+      const slug = route.path === "/privacy" ? "privacy" : route.path === "/terms" ? "terms" : null;
+      if (slug && legalPages[slug]) {
+        const page = legalPages[slug];
+        route.title = `${page.title} | Территория звука`;
+        route.description = `${page.title} terrasound.by.`;
+        route.legalPage = page;
+      }
+    }
+  } catch {
+    // legal pages optional during local build
+  }
 
   try {
     const products = await fetchAllProducts();
