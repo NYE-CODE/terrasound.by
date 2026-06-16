@@ -16,9 +16,28 @@ function figmaAssetResolver() {
   }
 }
 
+/** CSS (и @font-face) раньше JS — шрифты из preload применяются без предупреждения. */
+function cssBeforeJs() {
+  return {
+    name: 'css-before-js',
+    enforce: 'post' as const,
+    transformIndexHtml(html: string) {
+      const stylesheet = html.match(/<link rel="stylesheet" crossorigin href="[^"]+">/)
+      const moduleScript = html.match(/<script type="module" crossorigin src="[^"]+"><\/script>/)
+      if (!stylesheet || !moduleScript) return html
+      if (html.indexOf(stylesheet[0]) < html.indexOf(moduleScript[0])) return html
+
+      return html
+        .replace(stylesheet[0], '')
+        .replace(moduleScript[0], `${stylesheet[0]}\n      ${moduleScript[0]}`)
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     figmaAssetResolver(),
+    cssBeforeJs(),
     // The React and Tailwind plugins are both required for Make, even if
     // Tailwind is not being actively used – do not remove them
     react(),

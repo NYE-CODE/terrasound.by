@@ -8,7 +8,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        lazy: () => import("./pages/HomePage").then((m) => ({ Component: m.HomePage })),
+        lazy: () =>
+          import("./pages/HomePage").then((m) => ({
+            Component: m.HomePage,
+            HydrateFallback: m.HomeHydrateFallback,
+          })),
       },
       {
         path: "catalogue",

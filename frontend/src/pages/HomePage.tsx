@@ -18,6 +18,18 @@ const HomePageSections = lazy(() =>
 
 const HERO_SRCSET = `${heroMobile} ${HERO_MOBILE_WIDTH}w, ${heroDesktop} ${HERO_IMAGE_WIDTH}w`;
 
+const HOME_PRERENDER_TITLE = "Территория звука — премиальный автозвук в Гродно";
+
+/** Совпадает с prerender главной — для HydrateFallback и плавного старта. */
+export function HomeHydrateFallback() {
+  return (
+    <main id="ssg-prerender" data-prerender="page">
+      <h1>{HOME_PRERENDER_TITLE}</h1>
+      <p className="ssg-lead">{TAGLINE}</p>
+    </main>
+  );
+}
+
 export function HomePage() {
   const categories = useCategories();
   const [serviceReviews, setServiceReviews] = useState<ServiceReview[]>([]);

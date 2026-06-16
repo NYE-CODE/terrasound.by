@@ -20,7 +20,8 @@ PAYMENT_METHOD_LABELS: dict[str, str] = {
     "bank": "Безналичный расчёт для юрлиц",
 }
 
-SITE_NAME = "TerraSound"
+SITE_NAME = "Территория звука"
+CLIENT_SIGN_OFF_TEXT = 'С уважением,\nкоманда "Территория звука"'
 PREORDER_LABEL = "Под заказ"
 PREORDER_USER_NOTE = (
     "В заказе есть товары под заказ. Сроки поставки мы согласуем с вами отдельно."
@@ -113,11 +114,14 @@ def _preorder_admin_html_block(order: Order) -> str:
     )
 
 
+def _client_sign_off_html() -> str:
+    return '<p style="margin-top:24px">С уважением,<br>команда "Территория звука"</p>'
+
+
 def _wrap_html(body: str) -> str:
     return (
         "<!DOCTYPE html><html><body style='font-family:sans-serif;color:#222;line-height:1.5'>"
         f"{body}"
-        f"<p style='margin-top:24px;color:#666;font-size:13px'>{escape(SITE_NAME)}</p>"
         "</body></html>"
     )
 
@@ -154,7 +158,7 @@ def send_order_emails(db: Session, order: Order) -> None:
     )
     if order.car_comment:
         user_text += f"Комментарий к авто: {order.car_comment}\n"
-    user_text += f"\nС уважением,\nкоманда {SITE_NAME}"
+    user_text += f"\n{CLIENT_SIGN_OFF_TEXT}"
 
     user_html = _wrap_html(
         f"<p>Здравствуйте, <strong>{escape(order.name)}</strong>!</p>"
@@ -173,6 +177,7 @@ def send_order_emails(db: Session, order: Order) -> None:
             if order.car_comment
             else ""
         )
+        + _client_sign_off_html()
     )
 
     admin_subject = f"Новая заявка на заказ №{order_ref} — {order.name}"
@@ -244,7 +249,7 @@ def send_installation_request_emails(
         f"Услуга: {payload.service}\n"
         f"Автомобиль: {payload.car_model}\n"
         f"Телефон: {payload.phone}\n\n"
-        f"С уважением,\nкоманда {SITE_NAME}"
+        f"{CLIENT_SIGN_OFF_TEXT}"
     )
     user_html = _wrap_html(
         f"<p>Здравствуйте, <strong>{escape(payload.name)}</strong>!</p>"
@@ -253,6 +258,7 @@ def send_installation_request_emails(
         f"<p><strong>Услуга:</strong> {escape(payload.service)}<br>"
         f"<strong>Автомобиль:</strong> {escape(payload.car_model)}<br>"
         f"<strong>Телефон:</strong> {escape(payload.phone)}</p>"
+        + _client_sign_off_html()
     )
 
     admin_subject = f"Новая заявка на установку №{request_ref} — {payload.name}"
