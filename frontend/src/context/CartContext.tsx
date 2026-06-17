@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { CartContextItem } from "@terrasound/shared";
-import { clampQuantity, loadSanitizedCart } from "../lib/cart";
-
-const CART_STORAGE_KEY = "terrasound-cart";
+import { areCartItemsEqual, CART_STORAGE_KEY, clampQuantity, loadSanitizedCart } from "../lib/cart";
 
 interface CartContextType {
   items: CartContextItem[];
@@ -24,6 +22,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    const syncFromOtherTab = (event: StorageEvent) => {
+      if (event.key !== CART_STORAGE_KEY || event.storageArea !== localStorage) return;
+
+      const nextItems = loadSanitizedCart(event.newValue);
+      setItems((current) => (areCartItemsEqual(current, nextItems) ? current : nextItems));
+    };
+
+    window.addEventListener("storage", syncFromOtherTab);
+    return () => window.removeEventListener("storage", syncFromOtherTab);
+  }, []);
 
   const addItem = (item: Omit<CartContextItem, "quantity">) => {
     if (!Number.isFinite(item.price) || item.price <= 0) return;

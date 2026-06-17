@@ -1,5 +1,7 @@
 import type { CartContextItem } from "@terrasound/shared";
 
+export const CART_STORAGE_KEY = "terrasound-cart";
+
 export const MAX_CART_QUANTITY = 99;
 export const MAX_REVIEW_TEXT_LENGTH = 2000;
 
@@ -47,4 +49,11 @@ export function loadSanitizedCart(raw: string | null): CartContextItem[] {
   } catch {
     return [];
   }
+}
+
+export function areCartItemsEqual(
+  left: CartContextItem[],
+  right: CartContextItem[],
+): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
 }
