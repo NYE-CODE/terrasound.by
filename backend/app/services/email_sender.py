@@ -5,15 +5,15 @@ from __future__ import annotations
 import logging
 import re
 import smtplib
-from email.headerregistry import Address
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.utils import parseaddr
+from email.utils import formataddr, parseaddr
 
 from app.config import settings
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w.-]+\.\w+")
 _EMAIL_IN_ANGLE = re.compile(r"<([^>@\s]+@[^>\s]+)>")
+_ASCII_FROM_NAME = "Territoriya zvuka"
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +22,17 @@ class EmailDeliveryError(Exception):
     """Не удалось доставить письмо."""
 
 
+def _is_email(value: str) -> bool:
+    return bool(_EMAIL.fullmatch(value.strip()))
+
+
 def _extract_from_parts(raw: str) -> tuple[str, str]:
-    text = raw.strip()
+    text = raw.strip().strip("\"'")
     if not text:
         return "", ""
 
     name, addr = parseaddr(text)
-    if addr:
+    if addr and _is_email(addr):
         return name.strip(), addr.strip()
 
     angle = _EMAIL_IN_ANGLE.search(text)
@@ -47,25 +51,32 @@ def _extract_from_parts(raw: str) -> tuple[str, str]:
     if emails:
         return "", emails[0]
 
-    return text, ""
+    return "", ""
 
 
 def _format_from_header() -> str:
-    raw = settings.smtp_from_address
+    raw = settings.smtp_from_address.strip()
     name, addr = _extract_from_parts(raw)
 
-    if not addr:
+    if not _is_email(addr):
         addr = settings.smtp_user.strip()
-        if not addr:
-            return raw.strip()
+        if not _is_email(addr):
+            emails = _EMAIL.findall(raw)
+            addr = emails[0] if emails else ""
 
-    if "@" in name:
+    if not _is_email(addr):
+        return raw
+
+    if "@" in name or "<" in name or ">" in name:
         name = ""
+
+    if name and not name.isascii():
+        name = _ASCII_FROM_NAME
 
     if not name:
         return addr
 
-    return str(Address(display_name=name, addr_spec=addr))
+    return formataddr((name, addr))
 
 
 def send_message(*, to: str, subject: str, text_body: str, html_body: str) -> None:
