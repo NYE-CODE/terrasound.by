@@ -74,6 +74,7 @@ export function InstallationPage() {
     service: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serviceSelectKey, setServiceSelectKey] = useState(0);
 
   useEffect(() => {
     api.getServices().then(setServices).catch(reportLoadError);
@@ -116,6 +117,7 @@ export function InstallationPage() {
       });
       toast.success("Заявка отправлена! Подтверждение придёт на email.");
       setFormData({ name: "", phone: "", email: "", carModel: "", service: "" });
+      setServiceSelectKey((key) => key + 1);
       setErrors({});
     } catch (error) {
       toast.error(messageFromApiError(error, "Не удалось отправить заявку"));
@@ -238,6 +240,7 @@ export function InstallationPage() {
                 Интересующая услуга
               </label>
               <Select
+                key={serviceSelectKey}
                 value={formData.service || undefined}
                 onValueChange={(value) => setFormData({ ...formData, service: value })}
               >
