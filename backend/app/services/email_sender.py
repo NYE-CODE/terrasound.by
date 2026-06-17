@@ -3,17 +3,69 @@
 from __future__ import annotations
 
 import logging
+import re
 import smtplib
+from email.headerregistry import Address
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import parseaddr
 
 from app.config import settings
+
+_EMAIL = re.compile(r"[\w.+-]+@[\w.-]+\.\w+")
+_EMAIL_IN_ANGLE = re.compile(r"<([^>@\s]+@[^>\s]+)>")
 
 logger = logging.getLogger(__name__)
 
 
 class EmailDeliveryError(Exception):
     """Не удалось доставить письмо."""
+
+
+def _extract_from_parts(raw: str) -> tuple[str, str]:
+    text = raw.strip()
+    if not text:
+        return "", ""
+
+    name, addr = parseaddr(text)
+    if addr:
+        return name.strip(), addr.strip()
+
+    angle = _EMAIL_IN_ANGLE.search(text)
+    if angle:
+        addr = angle.group(1).strip()
+        name = text[: angle.start()].strip().strip("\"'")
+        name = _EMAIL.sub("", name).strip().strip("\"'<>")
+        return name, addr
+
+    emails = _EMAIL.findall(text)
+    if len(emails) == 1:
+        addr = emails[0]
+        name = text.replace(addr, "").strip().strip("\"'<>")
+        return name, addr
+
+    if emails:
+        return "", emails[0]
+
+    return text, ""
+
+
+def _format_from_header() -> str:
+    raw = settings.smtp_from_address
+    name, addr = _extract_from_parts(raw)
+
+    if not addr:
+        addr = settings.smtp_user.strip()
+        if not addr:
+            return raw.strip()
+
+    if "@" in name:
+        name = ""
+
+    if not name:
+        return addr
+
+    return str(Address(display_name=name, addr_spec=addr))
 
 
 def send_message(*, to: str, subject: str, text_body: str, html_body: str) -> None:
@@ -34,7 +86,7 @@ def send_message(*, to: str, subject: str, text_body: str, html_body: str) -> No
 
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = settings.smtp_from_address
+    message["From"] = _format_from_header()
     message["To"] = recipient
     message.attach(MIMEText(text_body, "plain", "utf-8"))
     message.attach(MIMEText(html_body, "html", "utf-8"))
