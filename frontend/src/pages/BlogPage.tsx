@@ -4,6 +4,7 @@ import { api, type BlogPostCard } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
+import { SITE_NAME } from "../lib/site";
 import { formatReviewDate } from "../utils/formatReviewDate";
 
 export function BlogPage() {
@@ -11,7 +12,7 @@ export function BlogPage() {
 
   usePageMeta({
     title: "Блог",
-    description: "Экспертные советы и материалы об автозвуке от TerraSound в Гродно.",
+    description: `Экспертные советы и материалы об автозвуке от ${SITE_NAME} в Гродно.`,
     path: "/blog",
   });
 

@@ -21,6 +21,7 @@ import { getEffectivePrice } from "../lib/price";
 import { buildProductSchema } from "../lib/structuredData";
 import type { ProductReview } from "@terrasound/shared";
 import { pageTopOffsetClass } from "../lib/pageLayout";
+import { SITE_NAME } from "../lib/site";
 
 export function ProductPage() {
   const { id } = useParams();
@@ -44,7 +45,7 @@ export function ProductPage() {
     title: product?.name ?? "Товар",
     description: product
       ? `${product.brand} ${product.name} — купить в Гродно. Цена ${getEffectivePrice(product.price, product.salePrice)} BYN.`
-      : "Товар TerraSound — премиальный автозвук в Гродно.",
+      : `Товар ${SITE_NAME} — премиальный автозвук в Гродно.`,
     path: `/product/${productId}`,
     image: product?.images[0],
     type: "product",

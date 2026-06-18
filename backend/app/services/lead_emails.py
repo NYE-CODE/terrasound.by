@@ -161,7 +161,7 @@ def send_order_emails(db: Session, order: Order) -> None:
     user_text += f"\n{CLIENT_SIGN_OFF_TEXT}"
 
     user_html = _wrap_html(
-        f"<p>Здравствуйте, <strong>{escape(order.name)}</strong>!</p>"
+        f"<p>Здравствуйте, {escape(order.name)}!</p>"
         f"<p>Мы получили вашу заявку на заказ <strong>№{order_ref}</strong>. "
         "Менеджер свяжется с вами в ближайшее время.</p>"
         f"<p><strong>Сумма:</strong> {order.total:.2f} BYN<br>"
@@ -252,7 +252,7 @@ def send_installation_request_emails(
         f"{CLIENT_SIGN_OFF_TEXT}"
     )
     user_html = _wrap_html(
-        f"<p>Здравствуйте, <strong>{escape(payload.name)}</strong>!</p>"
+        f"<p>Здравствуйте, {escape(payload.name)}!</p>"
         f"<p>Мы получили вашу заявку на установку <strong>№{request_ref}</strong>. "
         "Менеджер свяжется с вами в ближайшее время.</p>"
         f"<p><strong>Услуга:</strong> {escape(payload.service)}<br>"

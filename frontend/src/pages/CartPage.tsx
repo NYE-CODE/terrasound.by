@@ -5,13 +5,14 @@ import { OrderSummary } from "../components/organisms/OrderSummary";
 import { useCart } from "../context/CartContext";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
+import { SITE_NAME } from "../lib/site";
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
 
   usePageMeta({
     title: "Корзина",
-    description: "Корзина покупок TerraSound.",
+    description: `Корзина покупок ${SITE_NAME}.`,
     path: "/cart",
     indexable: false,
   });

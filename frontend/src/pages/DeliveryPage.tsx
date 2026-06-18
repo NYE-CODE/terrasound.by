@@ -4,12 +4,13 @@ import { AddressLink } from "../components/atoms/AddressLink";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useSiteContact } from "../context/SiteContactContext";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
+import { SITE_NAME } from "../lib/site";
 
 export function DeliveryPage() {
   const contact = useSiteContact();
   usePageMeta({
     title: "Доставка и оплата",
-    description: "Бесплатная доставка по Гродно. Доставка автозвукового оборудования по Беларуси. Условия оплаты TerraSound.",
+    description: `Бесплатная доставка по Гродно. Доставка автозвукового оборудования по Беларуси. Условия оплаты ${SITE_NAME}.`,
     path: "/delivery",
   });
 

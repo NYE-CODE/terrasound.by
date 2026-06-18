@@ -7,6 +7,9 @@ export const SITE_ORIGIN = import.meta.env.VITE_SITE_URL ?? "https://terrasound.
 export const COMPANY_NAME = 'ООО «Территория звука»';
 export const WORKING_HOURS = "Пн–Пт, 10:00–18:00, обед 14:00–15:00";
 export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";
+export const HOME_PAGE_TITLE = "Территория звука — премиальный автозвук в Гродно";
+export const HOME_PAGE_DESCRIPTION =
+  "Территория звука (terrasound.by) — премиальный автозвук, подбор под ваш автомобиль, профессиональная установка в Гродно.";
 
 /** Значения по умолчанию до загрузки из API (и fallback при ошибке сети). */
 export const DEFAULT_SITE_CONTACT = {

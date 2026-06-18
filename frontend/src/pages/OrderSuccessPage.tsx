@@ -6,6 +6,7 @@ import { useSiteContact } from "../context/SiteContactContext";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { PREORDER_NOTICE } from "../lib/preorder";
+import { SITE_NAME } from "../lib/site";
 
 type OrderSuccessLocationState = {
   hasPreorderItems?: boolean;
@@ -21,7 +22,7 @@ export function OrderSuccessPage() {
 
   usePageMeta({
     title: "Заказ получен",
-    description: "Заявка на заказ принята. TerraSound свяжется с вами для подтверждения.",
+    description: `Заявка на заказ принята. ${SITE_NAME} свяжется с вами для подтверждения.`,
     path: orderId ? `/order-success/${orderId}` : "/order-success",
     indexable: false,
   });

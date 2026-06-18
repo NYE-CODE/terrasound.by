@@ -1,6 +1,9 @@
 export const SITE_NAME = "Территория звука";
 export const COMPANY_NAME = "ООО «Территория звука»";
 export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";
+export const HOME_PAGE_TITLE = "Территория звука — премиальный автозвук в Гродно";
+export const HOME_PAGE_DESCRIPTION =
+  "Территория звука (terrasound.by) — премиальный автозвук, подбор под ваш автомобиль, профессиональная установка в Гродно.";
 
 export const DEFAULT_CONTACT = {
   phone: "+375 33 917 7444",

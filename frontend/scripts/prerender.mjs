@@ -9,6 +9,8 @@ import {
   buildSeoHead,
   DEFAULT_CONTACT,
   escapeHtml,
+  HOME_PAGE_DESCRIPTION,
+  HOME_PAGE_TITLE,
   PRERENDER_BODY_STYLES,
 } from "./seo-prerender.mjs";
 import { buildHeroPreloadHtml, findHeroAssets } from "./hero-assets.mjs";
@@ -21,8 +23,8 @@ const siteOrigin = process.env.VITE_SITE_URL ?? "https://terrasound.by";
 const staticRoutes = [
   {
     path: "/",
-    title: "Территория звука — премиальный автозвук в Гродно",
-    description: "Премиальный автозвук и профессиональная установка в Гродно.",
+    title: HOME_PAGE_TITLE,
+    description: HOME_PAGE_DESCRIPTION,
   },
   {
     path: "/catalogue",

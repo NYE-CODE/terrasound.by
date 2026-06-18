@@ -32,6 +32,7 @@ import {
   scrollMtBelowHeaderClass,
 } from "../lib/pageLayout";
 import installationHero from "../assets/installation-hero.webp";
+import { SITE_NAME } from "../lib/site";
 
 const timeline = [
   {
@@ -130,7 +131,7 @@ export function InstallationPage() {
       <section className={`relative isolate ${minHScreenBelowHeaderClass} flex items-center justify-center overflow-hidden`}>
         <img
           src={installationHero}
-          alt="Студия TerraSound"
+          alt={`Студия ${SITE_NAME}`}
           className="absolute inset-0 z-0 w-full h-full object-cover pointer-events-none"
         />
         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/50 via-background/70 to-background pointer-events-none" />

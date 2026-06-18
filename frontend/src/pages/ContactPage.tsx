@@ -7,14 +7,14 @@ import { useSiteContact } from "../context/SiteContactContext";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { externalUrl, socialHandle } from "../lib/contactHelpers";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
-import { COMPANY_NAME } from "../lib/site";
+import { COMPANY_NAME, SITE_NAME } from "../lib/site";
 
 export function ContactPage() {
   const contact = useSiteContact();
 
   usePageMeta({
     title: "Контакты",
-    description: "Телефон, email, адрес студии и режим работы. TerraSound, Гродно.",
+    description: `Телефон, email, адрес студии и режим работы. ${SITE_NAME}, Гродно.`,
     path: "/contact",
   });
 
@@ -127,7 +127,7 @@ export function ContactPage() {
             embedUrl={contact.mapEmbedUrl}
             openUrl={contact.addressMapsUrl}
             address={contact.address}
-            title={`Расположение TerraSound: ${contact.address}`}
+            title={`Расположение ${SITE_NAME}: ${contact.address}`}
           />
         </div>
       </div>

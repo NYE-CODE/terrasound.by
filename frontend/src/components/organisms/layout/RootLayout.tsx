@@ -4,6 +4,7 @@ import { ScrollToTop } from "../../ScrollToTop";
 import { JsonLd } from "../../seo/JsonLd";
 import { SiteHeader } from "./SiteHeader";
 import { Footer } from "./Footer";
+import { SsgRouteFallback } from "../../SsgRouteFallback";
 import { CartProvider } from "../../../context/CartContext";
 import { CategoriesProvider } from "../../../context/CategoriesContext";
 import { SiteAnnouncementProvider } from "../../../context/SiteAnnouncementContext";
@@ -22,7 +23,7 @@ function RootLayoutContent() {
       <div className="min-h-screen bg-background flex flex-col">
         <SiteHeader />
         <main className="flex-1">
-          <Suspense fallback={null}>
+          <Suspense fallback={<SsgRouteFallback />}>
             <Outlet />
           </Suspense>
         </main>

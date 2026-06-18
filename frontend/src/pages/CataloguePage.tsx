@@ -18,6 +18,7 @@ import { api, type CategoryFilters, type ProductCard as ProductCardData } from "
 import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
 import { pageContentPy, pageTopOffsetClass, stickyBelowHeaderClass } from "../lib/pageLayout";
+import { SITE_NAME } from "../lib/site";
 
 const PAGE_SIZE = 9;
 
@@ -49,7 +50,7 @@ export function CataloguePage() {
   usePageMeta({
     title: activeCategoryName ?? "Каталог",
     description: activeCategoryName
-      ? `${activeCategoryName} — премиальное автозвуковое оборудование в Гродно. TerraSound.`
+      ? `${activeCategoryName} — премиальное автозвуковое оборудование в Гродно. ${SITE_NAME}.`
       : "Каталог премиального автозвукового оборудования в Гродно. Акустика, сабвуферы, усилители, установка.",
     path: selectedCategory !== "all" ? `/catalogue?category=${selectedCategory}` : "/catalogue",
   });
