@@ -173,17 +173,24 @@
 
   .site-logo-wordmark {
     align-items: flex-start;
+    gap: 0.125rem;
   }
 
+  /* Брендбук: Montserrat Bold 26px / Regular ~14.7px, tracking +25 (0.025em). */
   .site-logo-title {
     font-family: var(--font-heading);
+    font-size: 1.625rem;
     font-weight: 700;
+    line-height: 1.05;
     letter-spacing: 0.025em;
   }
 
   .site-logo-tagline {
     font-family: var(--font-heading);
-    font-weight: 500;
+    font-size: 0.91875rem;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: 0.025em;
   }
 
   .site-logo-line {

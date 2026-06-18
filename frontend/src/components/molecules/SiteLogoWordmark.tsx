@@ -82,15 +82,11 @@ export function SiteLogoWordmark({ title, tagline }: SiteLogoWordmarkProps) {
   }, [title, tagline]);
 
   return (
-    <div ref={containerRef} className="site-logo-wordmark hidden md:flex md:flex-col md:items-start leading-tight">
-      <span ref={titleRef} className="site-logo-title site-logo-line text-sm sm:text-base uppercase">
+    <div ref={containerRef} className="site-logo-wordmark hidden md:flex md:flex-col md:items-start">
+      <span ref={titleRef} className="site-logo-title site-logo-line uppercase">
         {title}
       </span>
-      <span
-        ref={taglineRef}
-        className="site-logo-tagline site-logo-line text-[10px] sm:text-xs uppercase text-muted-foreground"
-        style={{ letterSpacing: `${LOGO_TRACKING_BASE_EM}em` }}
-      >
+      <span ref={taglineRef} className="site-logo-tagline site-logo-line uppercase text-muted-foreground">
         {tagline}
       </span>
     </div>
