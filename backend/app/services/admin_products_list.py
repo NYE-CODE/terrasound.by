@@ -24,7 +24,6 @@ def _product_list_options():
     return (
         joinedload(Product.images),
         joinedload(Product.specs),
-        joinedload(Product.compatibility),
         joinedload(Product.attribute_values),
     )
 

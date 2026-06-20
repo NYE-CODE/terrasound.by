@@ -43,19 +43,19 @@ export function RadioOption({
   }
 
   return (
-    <label className={`flex items-start gap-3 cursor-pointer ${className ?? ""}`.trim()}>
+    <label className={`flex items-start gap-3 cursor-pointer min-w-0 ${className ?? ""}`.trim()}>
       <input
         type="radio"
         name={name}
         value={value}
         checked={checked}
         onChange={onChange}
-        className="mt-1 accent-accent"
+        className="mt-1 accent-accent shrink-0"
         {...props}
       />
-      <div>
-        <div className="font-heading mb-1">{label}</div>
-        {description && <div className="text-sm text-muted-foreground">{description}</div>}
+      <div className="min-w-0 flex-1">
+        <div className="font-heading mb-1 break-words">{label}</div>
+        {description && <div className="text-sm text-muted-foreground break-words">{description}</div>}
         {price !== undefined && (
           <Price amount={price} size="md" className="mt-1" />
         )}

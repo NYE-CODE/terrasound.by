@@ -10,7 +10,7 @@ from app.db_commit import commit_or_raise
 from app.money import round_money
 
 from app.models.content import Category
-from app.models.product import Product, ProductCompatibility, ProductImage, ProductSpec
+from app.models.product import Product, ProductImage, ProductSpec
 from app.schemas.content import ProductAdminOut, ProductCreate, ProductUpdate
 from app.services.media import (
     cleanup_removed_urls,
@@ -26,6 +26,8 @@ from app.services.attributes import (
     sync_product_attributes,
     validate_and_normalize_attributes,
 )
+from app.services.products import product_gallery_urls
+from app.services.site_home import invalidate_site_home_cache
 
 
 def _product_attributes_for_admin(db: Session, product: Product) -> dict:
@@ -40,12 +42,11 @@ def _invalidate_product_list_caches(*category_ids: str) -> None:
     for category_id in category_ids:
         if category_id:
             invalidate_category_filters_cache(category_id)
+    invalidate_site_home_cache()
 
 
 def product_to_admin_out(db: Session, product: Product) -> ProductAdminOut:
-    images = [img.url for img in sorted(product.images, key=lambda i: i.sort_order)]
-    if not images:
-        images = [product.image_url]
+    images = product_gallery_urls(product)
 
     return ProductAdminOut(
         id=product.id,
@@ -57,10 +58,10 @@ def product_to_admin_out(db: Session, product: Product) -> ProductAdminOut:
         image_url=product.image_url,
         specs_short=product.specs_short,
         in_stock=product.in_stock,
+        featured_on_home=product.featured_on_home,
         images=images,
         specs={spec.key: spec.value for spec in product.specs},
         attributes=_product_attributes_for_admin(db, product),
-        compatibility=[item.vehicle for item in product.compatibility],
     )
 
 
@@ -76,13 +77,6 @@ def _sync_specs(db: Session, product: Product, specs: dict[str, str]) -> None:
         db.delete(spec)
     for key, value in specs.items():
         db.add(ProductSpec(product_id=product.id, key=key, value=value))
-
-
-def _sync_compatibility(db: Session, product: Product, vehicles: list[str]) -> None:
-    for item in list(product.compatibility):
-        db.delete(item)
-    for vehicle in vehicles:
-        db.add(ProductCompatibility(product_id=product.id, vehicle=vehicle))
 
 
 def _validate_sale_price(price: float, sale_price: float | None) -> None:
@@ -112,7 +106,6 @@ def _load_product_for_admin(db: Session, product_id: str) -> Product:
         .options(
             joinedload(Product.images),
             joinedload(Product.specs),
-            joinedload(Product.compatibility),
             joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
@@ -127,8 +120,8 @@ def create_product(db: Session, payload: ProductCreate, *, product_id: str | Non
     _ensure_category_exists(db, payload.category)
     _validate_sale_price(payload.price, payload.sale_price)
     product_id = product_id or str(uuid.uuid4())
-    images = payload.images or [payload.image_url]
-    main_image, gallery = finalize_product_media(product_id, payload.image_url, images)
+    gallery = payload.images or []
+    main_image, gallery = finalize_product_media(product_id, payload.image_url, gallery)
 
     product = Product(
         id=product_id,
@@ -140,6 +133,7 @@ def create_product(db: Session, payload: ProductCreate, *, product_id: str | Non
         image_url=main_image,
         specs_short=payload.specs_short,
         in_stock=payload.in_stock,
+        featured_on_home=payload.featured_on_home,
     )
     db.add(product)
     db.flush()
@@ -147,7 +141,6 @@ def create_product(db: Session, payload: ProductCreate, *, product_id: str | Non
     _sync_specs(db, product, payload.specs)
     normalized_attrs = validate_and_normalize_attributes(db, payload.category, payload.attributes)
     sync_product_attributes(db, product, normalized_attrs, replace_all=True)
-    _sync_compatibility(db, product, payload.compatibility)
     commit_or_raise(db)
     _invalidate_product_list_caches(payload.category)
     return (
@@ -155,7 +148,6 @@ def create_product(db: Session, payload: ProductCreate, *, product_id: str | Non
         .options(
             joinedload(Product.images),
             joinedload(Product.specs),
-            joinedload(Product.compatibility),
             joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
@@ -169,7 +161,6 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
         .options(
             joinedload(Product.images),
             joinedload(Product.specs),
-            joinedload(Product.compatibility),
             joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
@@ -187,7 +178,6 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
     images = data.pop("images", None)
     specs = data.pop("specs", None)
     attributes = data.pop("attributes", None)
-    compatibility = data.pop("compatibility", None)
 
     if "category" in data:
         _ensure_category_exists(db, data["category"])
@@ -225,8 +215,6 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
             product_id=product.id,
         )
         sync_product_attributes(db, product, normalized_attrs)
-    if compatibility is not None:
-        _sync_compatibility(db, product, compatibility)
 
     commit_or_raise(db)
 
@@ -243,7 +231,6 @@ def update_product(db: Session, product_id: str, payload: ProductUpdate) -> Prod
         .options(
             joinedload(Product.images),
             joinedload(Product.specs),
-            joinedload(Product.compatibility),
             joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)
@@ -270,10 +257,10 @@ def duplicate_product(db: Session, product_id: str) -> Product:
         image_url=main_image,
         specs_short=admin.specs_short,
         in_stock=admin.in_stock,
+        featured_on_home=False,
         images=gallery,
         specs=admin.specs,
         attributes=admin.attributes,
-        compatibility=admin.compatibility,
     )
     return create_product(db, payload, product_id=new_product_id)
 

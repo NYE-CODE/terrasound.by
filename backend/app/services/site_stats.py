@@ -29,6 +29,7 @@ def site_stats_to_out(stats: SiteStats) -> SiteStatsOut:
     return SiteStatsOut(
         installations_completed=stats.installations_completed,
         years_expertise=stats.years_expertise,
+        enabled=stats.enabled,
     )
 
 
@@ -44,6 +45,7 @@ def update_site_stats(db: Session, payload: SiteStatsUpdate) -> SiteStats:
     stats = get_or_create_site_stats(db)
     stats.installations_completed = payload.installations_completed
     stats.years_expertise = payload.years_expertise
+    stats.enabled = payload.enabled
     commit_or_raise(db)
     db.refresh(stats)
     site_stats_cache.invalidate(SITE_STATS)

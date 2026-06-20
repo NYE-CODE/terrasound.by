@@ -18,7 +18,7 @@ export function FormField({
   const input = <Input error={!!error} {...inputProps} />;
 
   return (
-    <div>
+    <div className="min-w-0">
       <label className="block font-heading text-sm uppercase tracking-wider mb-2">
         {label}
         {markRequired && <> <span className="text-accent">*</span></>}

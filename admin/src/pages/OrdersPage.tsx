@@ -12,7 +12,7 @@ import { PAGE_SIZE } from "../hooks/usePagination";
 import { reportActionError, reportLoadError } from "../lib/formError";
 import { iconButtonClass } from "../lib/iconButton";
 import {
-  PAYMENT_METHOD_LABELS,
+  formatOrderPaymentMethod,
   type PaymentMethod,
 } from "../lib/orderStatus";
 import { api, type Order, type OrderStatus } from "../lib/api";
@@ -209,10 +209,12 @@ export function OrdersPage() {
                           <h3 className="font-heading mb-2">Контакты</h3>
                           <p>{order.email}</p>
                           <p>
-                            {order.city}, {order.address}
+                            {order.address.trim()
+                              ? `${order.city}, ${order.address}`
+                              : order.city.trim() || "Адрес не указан"}
                           </p>
                           <p className="mt-2">
-                            Оплата: {PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod}
+                            Способы оплаты: {formatOrderPaymentMethod(order.paymentMethod)}
                           </p>
                         </div>
                         <div>

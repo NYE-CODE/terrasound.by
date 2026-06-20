@@ -11,7 +11,7 @@ from app.schemas.review import ProductReviewPublicOut
 from app.services.attribute_filters import apply_attribute_filters
 from app.money import round_money
 from app.services.attributes import product_attribute_specs, product_attributes_dict_from_rows
-from app.services.compatibility import apply_vehicle_filter
+from app.services.media import resolve_product_image_url
 
 SORT_OPTIONS = frozenset({"popularity", "price-low", "price-high", "new", "rating"})
 PUBLIC_PRODUCT_LIST_DEFAULT_LIMIT = 50
@@ -71,6 +71,27 @@ def _review_stats(product: Product) -> tuple[float | None, int]:
     return avg, len(published)
 
 
+def product_gallery_urls(product: Product) -> list[str]:
+    """Главное фото (image_url) первым — как в карточке каталога, далее галерея без дубликатов."""
+    main = resolve_product_image_url(product.id, (product.image_url or "").strip())
+    gallery = [
+        resolve_product_image_url(product.id, img.url.strip())
+        for img in sorted(product.images, key=lambda i: i.sort_order)
+        if img.url and img.url.strip()
+    ]
+
+    if not main and not gallery:
+        return []
+
+    ordered: list[str] = []
+    if main:
+        ordered.append(main)
+    for url in gallery:
+        if url not in ordered:
+            ordered.append(url)
+    return ordered
+
+
 def product_to_card(
     product: Product,
     rating_avg: float | None = None,
@@ -119,9 +140,6 @@ def _apply_product_filters(
     category: str | None,
     brand: str | None,
     brands: list[str] | None,
-    make: str | None,
-    model: str | None,
-    year: int | None,
     price_min: float | None,
     price_max: float | None,
     in_stock: list[bool] | None = None,
@@ -146,7 +164,6 @@ def _apply_product_filters(
         if len(unique) == 1:
             query = query.filter(Product.in_stock.is_(next(iter(unique))))
 
-    query = apply_vehicle_filter(db, query, make, model, year)
     if attr_filters:
         query = apply_attribute_filters(db, query, attr_filters)
     return query
@@ -174,9 +191,6 @@ def list_products(
     category: str | None = None,
     brand: str | None = None,
     brands: list[str] | None = None,
-    make: str | None = None,
-    model: str | None = None,
-    year: int | None = None,
     price_min: float | None = None,
     price_max: float | None = None,
     in_stock: list[bool] | None = None,
@@ -197,9 +211,6 @@ def list_products(
         category=category,
         brand=brand,
         brands=brands,
-        make=make,
-        model=model,
-        year=year,
         price_min=price_min,
         price_max=price_max,
         in_stock=in_stock,
@@ -232,9 +243,6 @@ def list_products(
         category=category,
         brand=brand,
         brands=brands,
-        make=make,
-        model=model,
-        year=year,
         price_min=price_min,
         price_max=price_max,
         in_stock=in_stock,
@@ -254,14 +262,42 @@ def list_products(
     return paginated(items, total=total, limit=limit, offset=offset)
 
 
+def list_featured_products(db: Session) -> list[ProductCardOut]:
+    """Товары с флагом «на главной» для секции популярных товаров."""
+    review_stats = _review_stats_subquery(db)
+    query = (
+        db.query(Product, review_stats.c.rating_avg, review_stats.c.review_count)
+        .options(
+            load_only(
+                Product.id,
+                Product.brand,
+                Product.name,
+                Product.price,
+                Product.sale_price,
+                Product.image_url,
+                Product.category,
+                Product.in_stock,
+                Product.specs_short,
+                Product.created_at,
+            )
+        )
+        .filter(Product.featured_on_home.is_(True))
+        .outerjoin(review_stats, Product.id == review_stats.c.product_id)
+        .order_by(Product.name.asc())
+    )
+    rows = query.all()
+    return [
+        product_to_card(product, rating_avg=rating_avg, review_count=review_count)
+        for product, rating_avg, review_count in rows
+    ]
+
+
 def product_to_detail(
     db: Session,
     product: Product,
     reviews: list[ProductReview] | None = None,
 ) -> ProductDetailOut:
-    images = [img.url for img in sorted(product.images, key=lambda i: i.sort_order)]
-    if not images:
-        images = [product.image_url]
+    images = product_gallery_urls(product)
 
     review_list = reviews if reviews is not None else [r for r in product.reviews if r.published]
     rating_avg, review_count = _review_stats(product)
@@ -276,7 +312,6 @@ def product_to_detail(
         specs={spec.key: spec.value for spec in product.specs},
         attributes=product_attributes_dict_from_rows(list(product.attribute_values)),
         attribute_specs=product_attribute_specs(db, product),
-        compatibility=[item.vehicle for item in product.compatibility],
         reviews=[ProductReviewPublicOut.model_validate(r) for r in review_list],
         in_stock=product.in_stock,
         rating_avg=rating_avg,
@@ -290,7 +325,6 @@ def get_product_or_404(db: Session, product_id: str) -> Product:
         .options(
             joinedload(Product.images),
             joinedload(Product.specs),
-            joinedload(Product.compatibility),
             joinedload(Product.reviews),
             joinedload(Product.attribute_values),
         )

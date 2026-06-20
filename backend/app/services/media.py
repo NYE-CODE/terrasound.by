@@ -253,19 +253,45 @@ def _move_file(source: Path, target: Path) -> None:
     source.rename(target)
 
 
+def _product_image_target_path(product_id: str, filename: str) -> Path:
+    return uploads_root() / "products" / product_id / filename
+
+
+def _product_image_target_url(product_id: str, filename: str) -> str:
+    return f"{PRODUCTS_URL_PREFIX}{product_id}/{filename}"
+
+
+def resolve_product_image_url(product_id: str, url: str) -> str:
+    """Подставляет финальный URL, если файл уже перенесён из _pending в папку товара."""
+    pending_prefix = f"{PRODUCTS_URL_PREFIX}{PENDING_PRODUCTS_DIR}/"
+    if not url or not url.startswith(pending_prefix):
+        return url
+    if not PRODUCT_ID_PATTERN.fullmatch(product_id):
+        return url
+
+    filename = url.removeprefix(pending_prefix)
+    target = _product_image_target_path(product_id, filename)
+    if target.is_file():
+        return _product_image_target_url(product_id, filename)
+    return url
+
+
 def _rewrite_pending_url(product_id: str, url: str) -> str:
     pending_prefix = f"{PRODUCTS_URL_PREFIX}{PENDING_PRODUCTS_DIR}/"
     if not url.startswith(pending_prefix):
         return url
 
     filename = url.removeprefix(pending_prefix)
+    target = _product_image_target_path(product_id, filename)
+    if target.is_file():
+        return _product_image_target_url(product_id, filename)
+
     source = url_to_filesystem_path(url)
     if source is None or not source.is_file():
         return url
 
-    target = uploads_root() / "products" / product_id / filename
     _move_file(source, target)
-    return f"{PRODUCTS_URL_PREFIX}{product_id}/{filename}"
+    return _product_image_target_url(product_id, filename)
 
 
 def _rewrite_pending_portfolio_url(portfolio_id: str, url: str) -> str:

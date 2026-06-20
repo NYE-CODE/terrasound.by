@@ -18,7 +18,7 @@ import { api, type CategoryFilters, type ProductCard as ProductCardData } from "
 import { useCategories } from "../context/CategoriesContext";
 import { reportLoadError } from "../lib/loadError";
 import { pageContentPy, pageTopOffsetClass, stickyBelowHeaderClass } from "../lib/pageLayout";
-import { SITE_NAME } from "../lib/site";
+import { SITE_NAME, STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 
 const PAGE_SIZE = 9;
 
@@ -51,7 +51,7 @@ export function CataloguePage() {
     title: activeCategoryName ?? "Каталог",
     description: activeCategoryName
       ? `${activeCategoryName} — премиальное автозвуковое оборудование в Гродно. ${SITE_NAME}.`
-      : "Каталог премиального автозвукового оборудования в Гродно. Акустика, сабвуферы, усилители, установка.",
+      : STATIC_PAGE_DESCRIPTIONS.catalogue,
     path: selectedCategory !== "all" ? `/catalogue?category=${selectedCategory}` : "/catalogue",
   });
 
@@ -180,7 +180,6 @@ export function CataloguePage() {
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">
             {activeCategoryName ?? "Каталог"}
           </h1>
-          <p className="text-muted-foreground">Премиальное автозвуковое оборудование для энтузиастов</p>
         </div>
 
         {!filtersOpen && (

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { SITE_NAME, SITE_ORIGIN } from "../lib/site";
+import { SITE_NAME, SITE_ORIGIN, SITE_ICONS } from "../lib/site";
 
 interface PageMetaOptions {
   title: string;
@@ -46,7 +46,7 @@ export function usePageMeta({
       ? image.startsWith("http")
         ? image
         : `${SITE_ORIGIN}${image.startsWith("/") ? image : `/${image}`}`
-      : `${SITE_ORIGIN}/android-chrome-192x192.png`;
+      : `${SITE_ORIGIN}${SITE_ICONS.ogImage}`;
     const robots = indexable ? "index, follow" : "noindex, nofollow";
 
     document.title = fullTitle;
@@ -61,6 +61,7 @@ export function usePageMeta({
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", fullTitle);
     upsertMeta("name", "twitter:description", description);
+    upsertMeta("name", "twitter:image", ogImage);
 
     if (indexable) {
       upsertLink("canonical", url);

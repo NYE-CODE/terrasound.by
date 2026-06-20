@@ -28,7 +28,6 @@ try:
             images=[img.url for img in new_p.images],
             specs={s.key: s.value for s in new_p.specs},
             attributes={a.attribute_id: a.value_string or a.value_number or a.value_bool for a in new_p.attribute_values},
-            compatibility=[c.vehicle for c in new_p.compatibility]
         )
         update_product(db, new_p.id, payload)
         print("Updated successfully")

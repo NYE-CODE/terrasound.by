@@ -545,11 +545,13 @@ export interface DashboardStats {
 export interface SiteStats {
   installationsCompleted: string;
   yearsExpertise: string;
+  enabled: boolean;
 }
 
 export interface SiteStatsInput {
   installationsCompleted: string;
   yearsExpertise: string;
+  enabled: boolean;
 }
 
 export interface SiteContact {
@@ -692,10 +694,10 @@ export interface AdminProduct {
   imageUrl: string;
   specsShort: string;
   inStock: boolean;
+  featuredOnHome: boolean;
   images: string[];
   specs: Record<string, string>;
   attributes: Record<string, string | number | boolean | null>;
-  compatibility: string[];
 }
 
 export interface ProductInput {
@@ -707,10 +709,10 @@ export interface ProductInput {
   imageUrl: string;
   specsShort?: string;
   inStock?: boolean;
+  featuredOnHome?: boolean;
   images?: string[];
   specs?: Record<string, string>;
   attributes?: Record<string, string | number | boolean | null>;
-  compatibility?: string[];
 }
 
 export interface AttributeOption {

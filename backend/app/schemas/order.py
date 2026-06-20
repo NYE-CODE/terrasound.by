@@ -8,15 +8,12 @@ from app.schemas.datetime_format import serialize_utc_datetime
 from app.models.order import OrderStatus
 from app.validation import validate_car_model, validate_person_name, validate_phone_number
 
-PaymentMethod = Literal["cash", "card", "bank"]
-
-
 class ContactIn(BaseModel):
     name: str = Field(max_length=100)
     phone: str = Field(max_length=30)
     email: EmailStr
     city: str = Field(default="", max_length=100)
-    address: str = Field(min_length=1, max_length=500)
+    address: str = Field(default="", max_length=500)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -27,6 +24,13 @@ class ContactIn(BaseModel):
     @classmethod
     def validate_phone(cls, value: str) -> str:
         return validate_phone_number(value)
+
+    @field_validator("address", mode="before")
+    @classmethod
+    def normalize_address(cls, value: str | None) -> str:
+        if value is None:
+            return ""
+        return str(value).strip()
 
 
 class CarIn(BaseModel):
@@ -59,7 +63,6 @@ class OrderCreate(BaseModel):
     contact: ContactIn
     car: CarIn
     items: list[OrderItemIn] = Field(min_length=1, max_length=50)
-    payment_method: PaymentMethod = Field(alias="paymentMethod")
 
 
 class OrderItemOut(CamelModel):

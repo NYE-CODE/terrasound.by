@@ -94,7 +94,7 @@ export function CartPage() {
               footer={
                 <div className="mt-6 pt-6 border-t border-border text-sm text-muted-foreground space-y-2">
                   <div>
-                    • Бесплатная доставка по Гродно.{" "}
+                    •{" "}
                     <Link
                       to="/delivery"
                       className="text-accent hover:underline underline-offset-2 transition-colors"
@@ -102,7 +102,7 @@ export function CartPage() {
                       Подробнее о доставке
                     </Link>
                   </div>
-                  <div>• Гарантия 2 года на всё оборудование</div>
+                  <div>• Гарантия на оборудование</div>
                   <div>• Доступна профессиональная установка</div>
                 </div>
               }

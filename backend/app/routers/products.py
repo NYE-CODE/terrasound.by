@@ -27,9 +27,6 @@ def list_products_route(
     category: str | None = Query(default=None, max_length=50),
     brand: str | None = Query(default=None, max_length=100),
     brands: list[str] | None = Query(default=None, max_length=20),
-    make: str | None = Query(default=None, max_length=50),
-    model: str | None = Query(default=None, max_length=50),
-    year: int | None = Query(default=None, ge=1980, le=2035),
     price_min: float | None = Query(default=None, alias="priceMin", ge=0),
     price_max: float | None = Query(default=None, alias="priceMax", ge=0),
     in_stock: list[bool] | None = Query(default=None, alias="inStock"),
@@ -37,7 +34,7 @@ def list_products_route(
     limit: int = Query(default=PUBLIC_PRODUCT_LIST_DEFAULT_LIMIT, ge=1, le=PUBLIC_PRODUCT_LIST_MAX_LIMIT),
     offset: int = Query(default=0, ge=0),
 ) -> PaginatedOut[ProductCardOut]:
-    """Каталог товаров с фильтрами (attr.*), авто и характеристиками."""
+    """Каталог товаров с фильтрами (attr.*) и характеристиками."""
     if sort not in SORT_OPTIONS:
         raise HTTPException(status_code=422, detail="Некорректная сортировка")
     try:
@@ -50,9 +47,6 @@ def list_products_route(
         category=category,
         brand=brand,
         brands=brands,
-        make=make,
-        model=model,
-        year=year,
         price_min=price_min,
         price_max=price_max,
         in_stock=in_stock,

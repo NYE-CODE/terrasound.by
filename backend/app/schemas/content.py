@@ -228,10 +228,10 @@ class ProductAdminOut(CamelModel):
     image_url: str
     specs_short: str
     in_stock: bool
+    featured_on_home: bool
     images: list[str] = []
     specs: dict[str, str] = {}
     attributes: dict[str, Any] = {}
-    compatibility: list[str] = []
 
 
 class ProductDuplicateCreate(CamelModel):
@@ -249,10 +249,11 @@ class ProductCreate(BaseModel):
     image_url: str = Field(min_length=1)
     specs_short: str = ""
     in_stock: bool = True
+    featured_on_home: bool = False
     images: list[str] = []
     specs: dict[str, str] = {}
     attributes: dict[str, Any] = {}
-    compatibility: list[str] = []
+
 
     @field_validator("price", mode="before")
     @classmethod
@@ -276,10 +277,11 @@ class ProductUpdate(BaseModel):
     image_url: str | None = None
     specs_short: str | None = None
     in_stock: bool | None = None
+    featured_on_home: bool | None = None
     images: list[str] | None = None
     specs: dict[str, str] | None = None
     attributes: dict[str, Any] | None = None
-    compatibility: list[str] | None = None
+
 
     @field_validator("price", mode="before")
     @classmethod

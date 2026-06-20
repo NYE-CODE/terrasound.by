@@ -21,7 +21,7 @@ from app.services.site_contact import (
     DEFAULT_WORKING_HOURS,
 )
 from app.services.admin_account import hash_password
-from app.models.product import Product, ProductCompatibility, ProductImage, ProductSpec
+from app.models.product import Product, ProductImage, ProductSpec
 from app.models.review import ProductReview, ServiceReview
 
 CATEGORIES = [
@@ -308,35 +308,6 @@ PRODUCT_1_SPECS = {
     "Вуфер": "165 мм с конусом",
 }
 
-PRODUCT_1_COMPATIBILITY = [
-    "Audi A4 (2016-2023)",
-    "Audi A6 (2018-2023)",
-    "BMW 3 Series (2015-2023)",
-    "Mercedes C-Class (2014-2023)",
-    "Volkswagen Passat (2015-2023)",
-]
-
-PRODUCT_COMPATIBILITY: dict[str, list[str]] = {
-    "1": PRODUCT_1_COMPATIBILITY,
-    "3": [
-        "Audi A4 (2016-2023)",
-        "Volkswagen Passat (2015-2023)",
-        "BMW 3 Series (2015-2023)",
-    ],
-    "6": [
-        "Audi A4 (2016-2023)",
-        "Audi A6 (2018-2023)",
-        "BMW 3 Series (2015-2023)",
-        "BMW 5 Series (2017-2023)",
-        "Mercedes C-Class (2014-2023)",
-    ],
-    "9": [
-        "Audi A4 (2016-2023)",
-        "Mercedes C-Class (2014-2023)",
-        "Volkswagen Passat (2015-2023)",
-    ],
-}
-
 SERVICE_REVIEWS = [
     {
         "id": "sr-1",
@@ -582,10 +553,6 @@ def _seed_products(db: Session) -> None:
 
     for key, value in PRODUCT_1_SPECS.items():
         db.add(ProductSpec(product_id="1", key=key, value=value))
-
-    for product_id, vehicles in PRODUCT_COMPATIBILITY.items():
-        for vehicle in vehicles:
-            db.add(ProductCompatibility(product_id=product_id, vehicle=vehicle))
 
     for item in PRODUCT_REVIEWS:
         db.add(ProductReview(**item))

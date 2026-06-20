@@ -18,9 +18,9 @@ export interface ContactFormProps {
 
 export function ContactForm({ heading, values, errors, onChange }: ContactFormProps) {
   return (
-    <section className="bg-card border border-card-border rounded p-6">
+    <section className="bg-card border border-card-border rounded p-4 sm:p-6 min-w-0">
       {heading && <h2 className="font-heading text-xl mb-6">{heading}</h2>}
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0">
         <FormField
           label="Имя"
           markRequired
@@ -31,7 +31,7 @@ export function ContactForm({ heading, values, errors, onChange }: ContactFormPr
           placeholder="Введите ваше имя"
         />
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4 min-w-0 [&>*]:min-w-0">
           <FormField
             label="Телефон"
             markRequired
@@ -53,7 +53,7 @@ export function ContactForm({ heading, values, errors, onChange }: ContactFormPr
           />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 gap-4 min-w-0 [&>*]:min-w-0">
           <FormField
             label="Город"
             type="text"
@@ -63,7 +63,6 @@ export function ContactForm({ heading, values, errors, onChange }: ContactFormPr
 
           <FormField
             label="Адрес доставки"
-            markRequired
             type="text"
             value={values.address}
             onChange={(e) => onChange("address", e.target.value)}

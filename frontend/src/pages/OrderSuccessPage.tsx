@@ -49,12 +49,6 @@ export function OrderSuccessPage() {
                 </span>
                 <span>Мы свяжемся с вами в течение 24 часов для подтверждения заказа</span>
               </li>
-              <li className="flex gap-3">
-                <span className="text-accent mt-0.5 shrink-0" aria-hidden="true">
-                  •
-                </span>
-                <span>Если выбрана оплата картой или безналичный расчет — счет будет выслан на указанный email</span>
-              </li>
               {hasPreorderItems ? (
                 <li className="flex gap-3">
                   <span className="text-accent mt-0.5 shrink-0" aria-hidden="true">

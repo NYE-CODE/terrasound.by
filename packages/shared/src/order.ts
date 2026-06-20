@@ -7,6 +7,5 @@ export interface Order {
   contact: Contact;
   car: Car;
   items: CartItem[];
-  paymentMethod: string;
   total: number;
 }

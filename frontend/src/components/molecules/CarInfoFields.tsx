@@ -24,7 +24,7 @@ export function CarInfoFields({
   onYearChange,
 }: CarInfoFieldsProps) {
   return (
-    <div className="grid md:grid-cols-3 gap-4">
+    <div className="grid md:grid-cols-3 gap-4 min-w-0 [&>*]:min-w-0">
       <FormField
         label="Марка"
         type="text"

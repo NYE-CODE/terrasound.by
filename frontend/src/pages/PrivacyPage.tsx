@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { LegalPageContent } from "../components/organisms/LegalPageContent";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { api, type SiteLegalPage } from "../lib/api";
-import { COMPANY_NAME } from "../lib/site";
+import { SITE_NAME, STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 import { pageTopOffsetClass } from "../lib/pageLayout";
 
 export function PrivacyPage() {
@@ -19,8 +19,8 @@ export function PrivacyPage() {
   usePageMeta({
     title: page?.title ?? "Политика конфиденциальности",
     description: page
-      ? `${page.title} ${COMPANY_NAME} (terrasound.by).`
-      : `Политика конфиденциальности ${COMPANY_NAME} (terrasound.by).`,
+      ? `${page.title} ${SITE_NAME} (terrasound.by).`
+      : STATIC_PAGE_DESCRIPTIONS.privacy,
     path: "/privacy",
   });
 

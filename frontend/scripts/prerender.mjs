@@ -12,6 +12,9 @@ import {
   HOME_PAGE_DESCRIPTION,
   HOME_PAGE_TITLE,
   PRERENDER_BODY_STYLES,
+  pageTitle,
+  SITE_NAME,
+  STATIC_PAGE_DESCRIPTIONS,
 } from "./seo-prerender.mjs";
 import { buildHeroPreloadHtml, findHeroAssets } from "./hero-assets.mjs";
 
@@ -28,48 +31,48 @@ const staticRoutes = [
   },
   {
     path: "/catalogue",
-    title: "Каталог | Территория звука",
-    description: "Каталог премиального автозвукового оборудования в Гродно.",
+    title: pageTitle("Каталог"),
+    description: STATIC_PAGE_DESCRIPTIONS.catalogue,
   },
   {
     path: "/installation",
-    title: "Услуги | Территория звука",
-    description: "Профессиональная установка автозвука в Гродно.",
+    title: pageTitle("Услуги"),
+    description: STATIC_PAGE_DESCRIPTIONS.installation,
   },
   {
     path: "/brands",
-    title: "Бренды | Территория звука",
-    description: "Бренды премиального автозвука в Территории звука.",
+    title: pageTitle("Бренды"),
+    description: STATIC_PAGE_DESCRIPTIONS.brands,
   },
   {
     path: "/blog",
-    title: "Блог | Территория звука",
-    description: "Экспертные материалы об автозвуке.",
+    title: pageTitle("Блог"),
+    description: STATIC_PAGE_DESCRIPTIONS.blog,
   },
   {
     path: "/delivery",
-    title: "Доставка и оплата | Территория звука",
-    description: "Бесплатная доставка по Гродно. Доставка по Беларуси.",
+    title: pageTitle("Доставка и оплата"),
+    description: STATIC_PAGE_DESCRIPTIONS.delivery,
   },
   {
     path: "/about",
-    title: "О нас | Территория звука",
-    description: "О компании Территория звука — автозвук в Гродно.",
+    title: pageTitle("О нас"),
+    description: STATIC_PAGE_DESCRIPTIONS.about,
   },
   {
     path: "/contact",
-    title: "Контакты | Территория звука",
-    description: "Контакты Территории звука в Гродно.",
+    title: pageTitle("Контакты"),
+    description: STATIC_PAGE_DESCRIPTIONS.contact,
   },
   {
     path: "/privacy",
-    title: "Политика конфиденциальности | Территория звука",
-    description: "Политика конфиденциальности terrasound.by.",
+    title: pageTitle("Политика конфиденциальности"),
+    description: STATIC_PAGE_DESCRIPTIONS.privacy,
   },
   {
     path: "/terms",
-    title: "Условия использования | Территория звука",
-    description: "Условия использования сайта terrasound.by.",
+    title: pageTitle("Условия использования"),
+    description: STATIC_PAGE_DESCRIPTIONS.terms,
   },
 ];
 
@@ -230,8 +233,8 @@ async function main() {
       const slug = route.path === "/privacy" ? "privacy" : route.path === "/terms" ? "terms" : null;
       if (slug && legalPages[slug]) {
         const page = legalPages[slug];
-        route.title = `${page.title} | Территория звука`;
-        route.description = `${page.title} terrasound.by.`;
+        route.title = pageTitle(page.title);
+        route.description = `${page.title} ${SITE_NAME} (terrasound.by).`;
         route.legalPage = page;
       }
     }
@@ -251,7 +254,7 @@ async function main() {
 
       routes.push({
         path: `/product/${product.id}`,
-        title: `${product.name} | Территория звука`,
+        title: pageTitle(product.name),
         description: `${product.brand} ${product.name} — купить в Гродно.`,
         ogType: "product",
         ogImage,
@@ -263,7 +266,7 @@ async function main() {
     for (const post of posts) {
       routes.push({
         path: `/blog/${post.id}`,
-        title: `${post.title} | Территория звука`,
+        title: pageTitle(post.title),
         description: post.excerpt,
         ogType: "article",
         post,

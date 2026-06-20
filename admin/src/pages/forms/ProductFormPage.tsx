@@ -22,6 +22,7 @@ const emptyForm: ProductInput = {
   imageUrl: "",
   specsShort: "",
   inStock: true,
+  featuredOnHome: false,
 };
 
 function linesToList(value: string) {
@@ -54,7 +55,6 @@ export function ProductFormPage() {
   const [form, setForm] = useState<ProductInput>(emptyForm);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [specsText, setSpecsText] = useState("");
-  const [compatibilityText, setCompatibilityText] = useState("");
   const [loading, setLoading] = useState(isEdit);
   const [submitting, setSubmitting] = useState(false);
   const [categories, setCategories] = useState<CategoryAdmin[]>([]);
@@ -88,10 +88,10 @@ export function ProductFormPage() {
         imageUrl: product.imageUrl,
         specsShort: product.specsShort,
         inStock: product.inStock,
+        featuredOnHome: product.featuredOnHome,
       });
       setGalleryImages(product.images.filter((url) => url !== product.imageUrl));
       setSpecsText(specsToText(product.specs));
-      setCompatibilityText(listToLines(product.compatibility));
       setAttributeValues(product.attributes ?? {});
     }).catch(reportLoadError).finally(() => setLoading(false));
   }, [status, id]);
@@ -142,7 +142,6 @@ export function ProductFormPage() {
         salePrice: form.salePrice != null ? roundMoney(form.salePrice) : null,
         images: galleryImages,
         specs: textToSpecs(specsText),
-        compatibility: linesToList(compatibilityText),
       };
 
       if (attributeSchema.length > 0) {
@@ -168,9 +167,9 @@ export function ProductFormPage() {
           imageUrl: payload.imageUrl,
           specsShort: payload.specsShort,
           inStock: payload.inStock,
+          featuredOnHome: payload.featuredOnHome,
           images: payload.images,
           specs: payload.specs,
-          compatibility: payload.compatibility,
         };
         if (payload.attributes !== undefined) {
           updatePayload.attributes = payload.attributes;
@@ -358,24 +357,17 @@ export function ProductFormPage() {
             className={textareaClass}
           />
         </FormField>
-
-        <FormField
-          label="Совместимость"
-          htmlFor="product-compatibility"
-          optional
-          hint="По одной модели автомобиля на строку."
-          className="md:col-span-2"
-        >
-          <textarea
-            id="product-compatibility"
-            value={compatibilityText}
-            onChange={(e) => setCompatibilityText(e.target.value)}
-            className={textareaClass}
-          />
-        </FormField>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={form.inStock} onChange={(e) => setForm({ ...form, inStock: e.target.checked })} />
           В наличии
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.featuredOnHome ?? false}
+            onChange={(e) => setForm({ ...form, featuredOnHome: e.target.checked })}
+          />
+          Показывать на главной в «Популярные товары»
         </label>
         <div className="md:col-span-2">
           <FormActions cancelTo="/products" submitLabel={isEdit ? "Сохранить" : "Создать"} isSubmitting={submitting} />

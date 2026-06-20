@@ -70,7 +70,6 @@ export interface ProductDetail {
   specs: Record<string, string>;
   attributes?: Record<string, string | number | boolean | null>;
   attributeSpecs?: ProductAttributeSpec[];
-  compatibility: string[];
   inStock: boolean;
   reviews: ProductReview[];
   ratingAvg?: number | null;
@@ -99,7 +98,6 @@ export interface OrderCreatePayload {
     comment?: string;
   };
   items: Array<{ productId: string; quantity: number }>;
-  paymentMethod: string;
 }
 
 export interface InstallationRequestInput {
@@ -214,6 +212,7 @@ export const api = {
 export interface SiteStats {
   installationsCompleted: string;
   yearsExpertise: string;
+  enabled: boolean;
 }
 
 export interface SiteHome {

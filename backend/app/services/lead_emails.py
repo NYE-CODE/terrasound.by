@@ -14,14 +14,39 @@ from app.schemas.installation import InstallationRequestCreate
 from app.services.email_sender import EmailDeliveryError, send_message
 from app.services.site_contact import get_or_create_site_contact
 
-PAYMENT_METHOD_LABELS: dict[str, str] = {
+PAYMENT_METHODS_INFO = (
+    "Банковская карта",
+    "Наличные денежные средства",
+    "Расчетная система ЕРИП",
+    "Безналичный расчёт для юридических лиц",
+)
+
+# Для старых заказов в админке (cash/card/bank).
+LEGACY_PAYMENT_METHOD_LABELS: dict[str, str] = {
     "cash": "Наличные при получении",
     "card": "Оплата картой",
     "bank": "Безналичный расчёт для юрлиц",
 }
 
-SITE_NAME = "Территория звука"
-CLIENT_SIGN_OFF_TEXT = 'С уважением,\nкоманда "Территория звука"'
+
+def _format_order_delivery_location(city: str, address: str) -> str:
+    city_val = (city or "").strip()
+    address_val = (address or "").strip()
+    if city_val and address_val:
+        return f"{city_val}, {address_val}"
+    if city_val:
+        return city_val
+    if address_val:
+        return address_val
+    return "не указан"
+
+
+def _format_order_street_address(address: str) -> str:
+    value = (address or "").strip()
+    return value or "не указан"
+
+SITE_NAME = "Территория Звука"
+CLIENT_SIGN_OFF_TEXT = 'С уважением,\nкоманда "Территория Звука"'
 PREORDER_LABEL = "Под заказ"
 PREORDER_USER_NOTE = (
     "В заказе есть товары под заказ. Сроки поставки мы согласуем с вами отдельно."
@@ -115,7 +140,7 @@ def _preorder_admin_html_block(order: Order) -> str:
 
 
 def _client_sign_off_html() -> str:
-    return '<p style="margin-top:24px">С уважением,<br>команда "Территория звука"</p>'
+    return '<p style="margin-top:24px">С уважением,<br>команда "Территория Звука"</p>'
 
 
 def _wrap_html(body: str) -> str:
@@ -130,8 +155,26 @@ def _raise_delivery_error(message: str, exc: EmailDeliveryError) -> None:
     raise HTTPException(status_code=503, detail=message) from exc
 
 
+def _payment_methods_text_block() -> str:
+    lines = ["Способы оплаты:"]
+    lines.extend(f"- {item}" for item in PAYMENT_METHODS_INFO)
+    return "\n".join(lines) + "\n\n"
+
+
+def _payment_methods_html_block() -> str:
+    items = "".join(f"<li>{escape(item)}</li>" for item in PAYMENT_METHODS_INFO)
+    return f"<p><strong>Способы оплаты:</strong></p><ul>{items}</ul>"
+
+
+def _legacy_payment_label(payment_method: str) -> str | None:
+    value = (payment_method or "").strip()
+    if not value:
+        return None
+    return LEGACY_PAYMENT_METHOD_LABELS.get(value, value)
+
+
 def send_order_emails(db: Session, order: Order) -> None:
-    payment = PAYMENT_METHOD_LABELS.get(order.payment_method, order.payment_method)
+    legacy_payment = _legacy_payment_label(order.payment_method)
     car = _format_car(order)
     items_text = _format_order_items_text(order)
     items_html = _format_order_items_html(order)
@@ -144,7 +187,7 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"Мы получили вашу заявку на заказ №{order_ref}.\n"
         f"Менеджер свяжется с вами в ближайшее время.\n\n"
         f"Сумма: {order.total:.2f} BYN\n"
-        f"Способ оплаты: {payment}\n\n"
+        f"{_payment_methods_text_block()}"
         f"Состав заказа:\n{items_text}\n"
     )
     if has_preorder:
@@ -153,7 +196,7 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"\nКонтакты для связи:\n"
         f"Телефон: {order.phone}\n"
         f"Email: {order.email}\n"
-        f"Адрес: {order.city}, {order.address}\n"
+        f"Адрес: {_format_order_delivery_location(order.city, order.address)}\n"
         f"Автомобиль: {car}\n"
     )
     if order.car_comment:
@@ -164,13 +207,13 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"<p>Здравствуйте, {escape(order.name)}!</p>"
         f"<p>Мы получили вашу заявку на заказ <strong>№{order_ref}</strong>. "
         "Менеджер свяжется с вами в ближайшее время.</p>"
-        f"<p><strong>Сумма:</strong> {order.total:.2f} BYN<br>"
-        f"<strong>Способ оплаты:</strong> {escape(payment)}</p>"
-        f"<h3>Состав заказа</h3>{items_html}"
+        f"<p><strong>Сумма:</strong> {order.total:.2f} BYN</p>"
+        + _payment_methods_html_block()
+        + f"<h3>Состав заказа</h3>{items_html}"
         + (_preorder_user_html_block() if has_preorder else "")
         + f"<p><strong>Телефон:</strong> {escape(order.phone)}<br>"
         f"<strong>Email:</strong> {escape(order.email)}<br>"
-        f"<strong>Адрес:</strong> {escape(order.city)}, {escape(order.address)}<br>"
+        f"<strong>Адрес:</strong> {escape(_format_order_delivery_location(order.city, order.address))}<br>"
         f"<strong>Автомобиль:</strong> {escape(car)}</p>"
         + (
             f"<p><strong>Комментарий:</strong> {escape(order.car_comment)}</p>"
@@ -188,13 +231,15 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"Телефон: {order.phone}\n"
         f"Email: {order.email}\n"
         f"Город: {order.city}\n"
-        f"Адрес: {order.address}\n"
+        f"Адрес: {_format_order_street_address(order.address)}\n"
         f"Автомобиль: {car}\n"
     )
     if order.car_comment:
         admin_text += f"Комментарий к авто: {order.car_comment}\n"
+    if legacy_payment:
+        admin_text += f"\nВыбранный способ оплаты (архив): {legacy_payment}\n"
     admin_text += (
-        f"\nОплата: {payment}\n"
+        f"\n{_payment_methods_text_block()}"
         f"Сумма: {order.total:.2f} BYN\n\n"
         f"Товары:\n{items_text}\n"
     )
@@ -207,15 +252,20 @@ def send_order_emails(db: Session, order: Order) -> None:
         f"<p><strong>Клиент:</strong> {escape(order.name)}<br>"
         f"<strong>Телефон:</strong> {escape(order.phone)}<br>"
         f"<strong>Email:</strong> {escape(order.email)}<br>"
-        f"<strong>Адрес:</strong> {escape(order.city)}, {escape(order.address)}<br>"
+        f"<strong>Адрес:</strong> {escape(_format_order_delivery_location(order.city, order.address))}<br>"
         f"<strong>Автомобиль:</strong> {escape(car)}</p>"
         + (
             f"<p><strong>Комментарий:</strong> {escape(order.car_comment)}</p>"
             if order.car_comment
             else ""
         )
-        + f"<p><strong>Оплата:</strong> {escape(payment)}<br>"
-        f"<strong>Сумма:</strong> {order.total:.2f} BYN</p>"
+        + (
+            f"<p><strong>Выбранный способ оплаты (архив):</strong> {escape(legacy_payment)}</p>"
+            if legacy_payment
+            else ""
+        )
+        + _payment_methods_html_block()
+        + f"<p><strong>Сумма:</strong> {order.total:.2f} BYN</p>"
         f"<h3>Товары</h3>{items_html}"
         + (_preorder_admin_html_block(order) if has_preorder else "")
     )

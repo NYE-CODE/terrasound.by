@@ -12,7 +12,6 @@ import { ProductReviewForm } from "../components/organisms/ProductReviewForm";
 import type { ProductReviewFormData } from "../components/organisms/ProductReviewForm";
 import { ProductHighlightsList } from "../components/molecules/ProductHighlightsList";
 import { ProductPageTemplate } from "../components/templates/ProductPageTemplate";
-import { Check } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { toast } from "sonner";
 import { api, messageFromApiError, type ProductDetail } from "../lib/api";
@@ -36,6 +35,8 @@ export function ProductPage() {
 
   useEffect(() => {
     setLoadError(false);
+    setSelectedImage(0);
+    setQuantity(1);
     api.getProduct(productId)
       .then(setProduct)
       .catch(() => setLoadError(true));
@@ -69,7 +70,7 @@ export function ProductPage() {
         brand: product.brand,
         name: product.name,
         price: getEffectivePrice(product.price, product.salePrice),
-        image: product.images[0],
+        image: product.images[0] ?? "",
         inStock: product.inStock,
       });
     }
@@ -88,9 +89,7 @@ export function ProductPage() {
 
   const tabs = [
     { id: "specs", label: "Характеристики" },
-    { id: "compatibility", label: "Совместимость" },
     { id: "reviews", label: "Отзывы" },
-    { id: "tips", label: "Советы" },
   ];
 
   if (loadError) {
@@ -117,6 +116,10 @@ export function ProductPage() {
     );
   }
 
+  const galleryImages = product.images.filter((url) => url.trim().length > 0);
+  const activeImageIndex = Math.min(selectedImage, Math.max(galleryImages.length - 1, 0));
+  const activeImageSrc = galleryImages[activeImageIndex] ?? "";
+
   return (
     <>
       {productJsonLd && <JsonLd id="product" data={productJsonLd} />}
@@ -125,17 +128,18 @@ export function ProductPage() {
         <>
           <div className="aspect-square bg-secondary/30 rounded mb-4 overflow-hidden">
             <ProductImage
-              src={product.images[selectedImage] ?? product.images[0] ?? ""}
+              key={`${product.id}-${activeImageIndex}`}
+              src={activeImageSrc}
               alt={product.name}
             />
           </div>
           <div className="flex gap-4">
-            {product.images.map((image, index) => (
+            {galleryImages.map((image, index) => (
               <button
-                key={index}
+                key={`${product.id}-${index}-${image}`}
                 onClick={() => setSelectedImage(index)}
                 className={`aspect-square w-20 bg-secondary/30 rounded overflow-hidden border-2 transition-all duration-300 ${
-                  selectedImage === index ? "border-accent" : "border-transparent"
+                  activeImageIndex === index ? "border-accent" : "border-transparent"
                 }`}
               >
                 <ProductImage src={image} alt={`Вид ${index + 1}`} />
@@ -257,20 +261,6 @@ export function ProductPage() {
             );
           })()}
 
-          {activeTab === "compatibility" && (
-            <div>
-              <h3 className="font-heading text-xl mb-6">Совместимые автомобили</h3>
-              <div className="space-y-3">
-                {product.compatibility.map((vehicle, index) => (
-                  <div key={index} className="flex items-center gap-3 py-3 border-b border-border">
-                    <Check size={16} className="text-accent" />
-                    <span>{vehicle}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {activeTab === "reviews" && (
             <div className="space-y-8">
               <ProductReviewForm onSubmit={handleReviewSubmit} />
@@ -287,17 +277,6 @@ export function ProductPage() {
             </div>
           )}
 
-          {activeTab === "tips" && (
-            <div className="prose prose-invert max-w-none">
-              <h3 className="font-heading text-xl mb-4">Советы по установке</h3>
-              <ul className="space-y-3 text-muted-foreground">
-                <li>Для оптимального качества звука рекомендуется профессиональная установка</li>
-                <li>Для лучшей производительности требуется шумоизоляция</li>
-                <li>Лучше всего работает с 4-канальным усилителем (80 Вт+ на канал)</li>
-                <li>Рекомендуется акустическая калибровка после установки</li>
-              </ul>
-            </div>
-          )}
         </div>
       }
     />

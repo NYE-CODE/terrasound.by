@@ -9,6 +9,7 @@ import { api, type SiteStats, type SiteStatsInput } from "../lib/api";
 const defaultForm: SiteStatsInput = {
   installationsCompleted: "1200+",
   yearsExpertise: "8",
+  enabled: false,
 };
 
 export function SiteStatsPage() {
@@ -26,6 +27,7 @@ export function SiteStatsPage() {
         setForm({
           installationsCompleted: stats.installationsCompleted,
           yearsExpertise: stats.yearsExpertise,
+          enabled: stats.enabled,
         });
       })
       .catch(reportLoadError)
@@ -62,7 +64,7 @@ export function SiteStatsPage() {
       <p className="text-sm text-[var(--muted-foreground)] mb-6 max-w-2xl">
         Значения отображаются на главной странице как есть — можно использовать цифры, текст и
         символы (например, «1200+» или «8 лет»). Третий блок («100% — Профессионалы своего дела»)
-        задаётся в коде сайта.
+        задаётся в коде сайта. Секция по умолчанию скрыта — включите показ чекбоксом ниже.
       </p>
 
       <form onSubmit={handleSubmit} className={`${formCardClass} max-w-xl space-y-4`}>
@@ -103,6 +105,15 @@ export function SiteStatsPage() {
             required
           />
         </FormField>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.enabled}
+            onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
+          />
+          <span className="text-sm">Показывать секцию на главной</span>
+        </label>
 
         <button
           type="submit"

@@ -11,6 +11,35 @@ export const HOME_PAGE_TITLE = "Территория звука — премиа
 export const HOME_PAGE_DESCRIPTION =
   "Территория звука (terrasound.by) — премиальный автозвук, подбор под ваш автомобиль, профессиональная установка в Гродно.";
 
+/** Пути к иконкам — только frontend/public/. ogImage не использовать как favicon вкладки. */
+export const SITE_ICONS = {
+  faviconIco: "/favicon.ico",
+  favicon16: "/favicon-16x16.png",
+  favicon32: "/favicon-32x32.png",
+  favicon48: "/favicon-48x48.png",
+  appleTouch: "/apple-touch-icon.png",
+  manifest: "/site.webmanifest",
+  ogImage: "/android-chrome-192x192.png",
+} as const;
+
+export function pageTitle(title: string): string {
+  return `${title} | ${SITE_NAME}`;
+}
+
+/** Meta description для статических страниц (prerender + SPA). */
+export const STATIC_PAGE_DESCRIPTIONS = {
+  catalogue:
+    "Каталог премиального автозвукового оборудования в Гродно. Акустика, сабвуферы, усилители, установка.",
+  installation: "Подбор, установка и настройка акустических систем в Гродно.",
+  brands: `Бренды премиального автозвука, с которыми работает ${SITE_NAME} в Гродно.`,
+  blog: `Полезные советы и статьи об автозвуке от ${SITE_NAME} в Гродно.`,
+  delivery: `Бесплатная доставка по Гродно. Доставка автозвукового оборудования по Беларуси. Условия оплаты ${SITE_NAME}.`,
+  about: `О компании ${SITE_NAME} — премиальный автозвук и профессиональная установка в Гродно.`,
+  contact: `Телефон, email, адрес студии и режим работы. ${SITE_NAME}, Гродно.`,
+  privacy: `Политика конфиденциальности ${SITE_NAME} (terrasound.by).`,
+  terms: `Условия использования сайта ${SITE_NAME} (terrasound.by).`,
+} as const;
+
 /** Значения по умолчанию до загрузки из API (и fallback при ошибке сети). */
 export const DEFAULT_SITE_CONTACT = {
   phone: "+375 33 917 7444",

@@ -4,7 +4,7 @@ import { api, type BlogPostCard } from "../lib/api";
 import { reportLoadError } from "../lib/loadError";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
-import { SITE_NAME } from "../lib/site";
+import { STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 import { formatReviewDate } from "../utils/formatReviewDate";
 
 export function BlogPage() {
@@ -12,7 +12,7 @@ export function BlogPage() {
 
   usePageMeta({
     title: "Блог",
-    description: `Экспертные советы и материалы об автозвуке от ${SITE_NAME} в Гродно.`,
+    description: STATIC_PAGE_DESCRIPTIONS.blog,
     path: "/blog",
   });
 
@@ -26,7 +26,7 @@ export function BlogPage() {
         <div className="mb-12">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">Блог</h1>
           <p className="text-muted-foreground text-lg">
-            Экспертные советы и материалы об автозвуке
+            Полезные советы и статьи об автозвуке
           </p>
         </div>
 

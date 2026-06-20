@@ -1,7 +1,5 @@
-import { COMPANY_NAME, DEFAULT_SITE_CONTACT, SITE_NAME, SITE_ORIGIN, TAGLINE } from "./site";
+import { COMPANY_NAME, DEFAULT_SITE_CONTACT, SITE_ICONS, SITE_NAME, SITE_ORIGIN, TAGLINE } from "./site";
 import type { SiteContact } from "./api";
-
-const OG_IMAGE_PATH = "/android-chrome-192x192.png";
 
 function effectivePrice(price: number, salePrice?: number | null): number {
   if (salePrice != null && salePrice > 0 && salePrice < price) return salePrice;
@@ -25,7 +23,7 @@ export function buildLocalBusinessSchema(contact: SiteContact) {
     legalName: COMPANY_NAME,
     description: TAGLINE,
     url: SITE_ORIGIN,
-    image: `${SITE_ORIGIN}${OG_IMAGE_PATH}`,
+    image: `${SITE_ORIGIN}${SITE_ICONS.ogImage}`,
     telephone: data.phone,
     email: data.email,
     address: {
@@ -83,7 +81,7 @@ export function buildProductSchema(product: {
       ? image
       : image
         ? `${SITE_ORIGIN}${image.startsWith("/") ? image : `/${image}`}`
-        : `${SITE_ORIGIN}${OG_IMAGE_PATH}`;
+        : `${SITE_ORIGIN}${SITE_ICONS.ogImage}`;
 
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",

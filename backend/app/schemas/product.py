@@ -39,7 +39,6 @@ class ProductDetailOut(CamelModel):
     specs: dict[str, str]
     attributes: dict[str, Any] = {}
     attribute_specs: list["ProductAttributeSpecOut"] = []
-    compatibility: list[str]
     reviews: list[ProductReviewPublicOut] = []
     in_stock: bool = True
     rating_avg: float | None = None

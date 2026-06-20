@@ -44,6 +44,30 @@ class MediaServiceTests(unittest.TestCase):
         self.assertEqual(gallery, [])
         self.assertTrue((self.root / "products" / product_id).exists())
 
+    def test_finalize_duplicate_pending_url_in_main_and_gallery(self) -> None:
+        file = self._upload(_make_png_bytes())
+        pending_url = asyncio.run(media.save_product_image(None, file))
+        product_id = str(uuid.uuid4())
+
+        main, gallery = media.finalize_product_media(product_id, pending_url, [pending_url])
+        expected = f"/uploads/products/{product_id}/{Path(pending_url).name}"
+
+        self.assertEqual(main, expected)
+        self.assertEqual(gallery, [expected])
+        self.assertFalse((self.root / "products" / media.PENDING_PRODUCTS_DIR / Path(pending_url).name).exists())
+
+    def test_resolve_product_image_url_when_pending_file_already_moved(self) -> None:
+        product_id = str(uuid.uuid4())
+        filename = "961e21feb22f47e8b609f7748c04c2a8.webp"
+        target_dir = self.root / "products" / product_id
+        target_dir.mkdir(parents=True)
+        (target_dir / filename).write_bytes(_make_png_bytes())
+
+        pending_url = f"/uploads/products/{media.PENDING_PRODUCTS_DIR}/{filename}"
+        resolved = media.resolve_product_image_url(product_id, pending_url)
+
+        self.assertEqual(resolved, f"/uploads/products/{product_id}/{filename}")
+
     def test_save_and_finalize_pending_portfolio_image(self) -> None:
         file = self._upload(_make_png_bytes())
         pending_url = asyncio.run(media.save_portfolio_image(None, file))

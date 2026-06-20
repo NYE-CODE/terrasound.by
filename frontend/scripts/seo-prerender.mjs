@@ -1,9 +1,30 @@
+import { SITE_ICONS } from "./site-icons.mjs";
+
 export const SITE_NAME = "Территория звука";
 export const COMPANY_NAME = "ООО «Территория звука»";
 export const TAGLINE = "Премиальный автозвук и профессиональная установка в Гродно";
 export const HOME_PAGE_TITLE = "Территория звука — премиальный автозвук в Гродно";
 export const HOME_PAGE_DESCRIPTION =
   "Территория звука (terrasound.by) — премиальный автозвук, подбор под ваш автомобиль, профессиональная установка в Гродно.";
+
+export { SITE_ICONS };
+
+export function pageTitle(title) {
+  return `${title} | ${SITE_NAME}`;
+}
+
+export const STATIC_PAGE_DESCRIPTIONS = {
+  catalogue:
+    "Каталог премиального автозвукового оборудования в Гродно. Акустика, сабвуферы, усилители, установка.",
+  installation: "Подбор, установка и настройка акустических систем в Гродно.",
+  brands: `Бренды премиального автозвука, с которыми работает ${SITE_NAME} в Гродно.`,
+  blog: `Полезные советы и статьи об автозвуке от ${SITE_NAME} в Гродно.`,
+  delivery: `Бесплатная доставка по Гродно. Доставка автозвукового оборудования по Беларуси. Условия оплаты ${SITE_NAME}.`,
+  about: `О компании ${SITE_NAME} — премиальный автозвук и профессиональная установка в Гродно.`,
+  contact: `Телефон, email, адрес студии и режим работы. ${SITE_NAME}, Гродно.`,
+  privacy: `Политика конфиденциальности ${SITE_NAME} (terrasound.by).`,
+  terms: `Условия использования сайта ${SITE_NAME} (terrasound.by).`,
+};
 
 export const DEFAULT_CONTACT = {
   phone: "+375 33 917 7444",
@@ -17,7 +38,7 @@ export const DEFAULT_CONTACT = {
   workingHours: "Пн–Пт, 10:00–18:00, обед 14:00–15:00",
 };
 
-const OG_IMAGE_PATH = "/android-chrome-192x192.png";
+const OG_IMAGE_PATH = SITE_ICONS.ogImage;
 
 export function escapeHtml(value) {
   return String(value)

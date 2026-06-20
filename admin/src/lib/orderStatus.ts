@@ -25,3 +25,19 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 export type PaymentMethod = keyof typeof PAYMENT_METHOD_LABELS;
 
 export const PAYMENT_METHODS: PaymentMethod[] = ["cash", "card", "bank"];
+
+export const PAYMENT_METHODS_INFO = [
+  "Банковская карта",
+  "Наличные денежные средства",
+  "Расчетная система ЕРИП",
+  "Безналичный расчёт для юридических лиц",
+] as const;
+
+/** Для новых заказов paymentMethod пустой — показываем справочный список. */
+export function formatOrderPaymentMethod(paymentMethod: string): string {
+  const value = paymentMethod.trim();
+  if (!value) {
+    return PAYMENT_METHODS_INFO.join("; ");
+  }
+  return PAYMENT_METHOD_LABELS[value] ?? value;
+}

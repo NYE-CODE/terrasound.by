@@ -22,6 +22,7 @@ export interface OrderSummaryProps {
   total: number;
   variant: "checkout" | "cart";
   submitLabel?: string;
+  isSubmitting?: boolean;
   actions?: ReactNode;
   footer?: ReactNode;
 }
@@ -33,13 +34,14 @@ export function OrderSummary({
   total,
   variant,
   submitLabel = "Отправить заказ",
+  isSubmitting = false,
   actions,
   footer,
 }: OrderSummaryProps) {
   const showPreorderNotice = hasPreorderItems(items);
 
   return (
-    <div className="bg-card border border-card-border rounded p-6 sticky top-32">
+    <div className="bg-card border border-card-border rounded p-4 sm:p-6 min-w-0 w-full lg:sticky lg:top-32">
       <h2 className="font-heading text-xl mb-6">{title}</h2>
 
       {variant === "checkout" && (
@@ -64,38 +66,32 @@ export function OrderSummary({
       >
         {variant === "checkout" ? (
           <>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Товары</span>
-              <Price amount={subtotal} variant="summary" />
+            <div className="flex justify-between gap-3 min-w-0 text-sm">
+              <span className="text-muted-foreground shrink-0">Товары</span>
+              <Price amount={subtotal} variant="summary" className="text-right" />
             </div>
 
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Доставка</span>
-              <span className="font-heading text-accent">Бесплатно</span>
+            <div className="flex justify-between gap-3 min-w-0 text-sm">
+              <span className="text-muted-foreground shrink-0">Доставка</span>
+              <span className="font-heading text-accent text-right">Бесплатно</span>
             </div>
           </>
         ) : (
-          <>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Подытог</span>
-              <Price amount={subtotal} size="base" />
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Доставка</span>
-              <span className="font-heading text-accent">Бесплатно</span>
-            </div>
-          </>
+          <div className="flex justify-between gap-3 min-w-0 text-sm">
+            <span className="text-muted-foreground shrink-0">Подытог</span>
+            <Price amount={subtotal} size="base" className="text-right" />
+          </div>
         )}
       </div>
 
-      <div className="flex justify-between mb-8">
-        <span className="font-heading text-lg">Итого</span>
-        <Price amount={total} size="lg" />
+      <div className="flex justify-between gap-3 min-w-0 mb-8">
+        <span className="font-heading text-lg shrink-0">Итого</span>
+        <Price amount={total} size="lg" className="text-right" />
       </div>
 
       {variant === "checkout" && (
-        <Button type="submit" variant="primary" className="w-full">
-          {submitLabel}
+        <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Отправка..." : submitLabel}
         </Button>
       )}
 

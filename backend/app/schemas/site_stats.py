@@ -6,6 +6,7 @@ from app.schemas.common import CamelModel, to_camel
 class SiteStatsOut(CamelModel):
     installations_completed: str
     years_expertise: str
+    enabled: bool
 
 
 class SiteStatsUpdate(BaseModel):
@@ -13,3 +14,4 @@ class SiteStatsUpdate(BaseModel):
 
     installations_completed: str = Field(min_length=1, max_length=64, strip_whitespace=True)
     years_expertise: str = Field(min_length=1, max_length=64, strip_whitespace=True)
+    enabled: bool = False

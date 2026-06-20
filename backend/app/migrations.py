@@ -38,6 +38,10 @@ def run_migrations(engine: Engine) -> None:
         with engine.begin() as conn:
             conn.execute(text("DROP TABLE team_members"))
 
+    if "product_compatibility" in tables:
+        with engine.begin() as conn:
+            conn.execute(text("DROP TABLE product_compatibility"))
+
     if "orders" in tables:
         order_columns = {col["name"] for col in inspector.get_columns("orders")}
         if "installation_consultation_requested" in order_columns:
@@ -76,6 +80,7 @@ def run_migrations(engine: Engine) -> None:
     _migrate_catalog_categories(engine)
     _migrate_attributes_filter_type(engine)
     _migrate_site_stats_to_text(engine)
+    _migrate_site_stats_enabled(engine)
     _migrate_admin_token_version(engine)
     _migrate_site_contact_telegram(engine)
     _migrate_site_contact_maps_url(engine)
@@ -85,6 +90,25 @@ def run_migrations(engine: Engine) -> None:
     _migrate_site_announcement_scroll_duration(engine)
     _migrate_order_items_in_stock(engine)
     _migrate_site_legal_pages(engine)
+    _migrate_products_featured_on_home(engine)
+
+
+def _migrate_products_featured_on_home(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "products" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("products")}
+    if "featured_on_home" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "ALTER TABLE products ADD COLUMN featured_on_home BOOLEAN NOT NULL DEFAULT 0"
+                )
+            )
 
 
 def _migrate_order_items_in_stock(engine: Engine) -> None:
@@ -328,6 +352,22 @@ def _migrate_site_stats_to_text(engine: Engine) -> None:
         )
         conn.execute(text("DROP TABLE site_stats"))
         conn.execute(text("ALTER TABLE site_stats_new RENAME TO site_stats"))
+
+
+def _migrate_site_stats_enabled(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    inspector = inspect(engine)
+    if "site_stats" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_stats")}
+    if "enabled" not in columns:
+        with engine.begin() as conn:
+            conn.execute(
+                text("ALTER TABLE site_stats ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 0")
+            )
 
 
 def _migrate_attributes_filter_type(engine: Engine) -> None:

@@ -28,6 +28,20 @@ PAYMENT_METHOD_LABELS: dict[str, str] = {
     "bank": "Безналичный расчёт",
 }
 
+PAYMENT_METHODS_INFO = (
+    "Банковская карта",
+    "Наличные денежные средства",
+    "Расчетная система ЕРИП",
+    "Безналичный расчёт для юридических лиц",
+)
+
+
+def _format_order_payment_method(payment_method: str) -> str:
+    value = (payment_method or "").strip()
+    if not value:
+        return "; ".join(PAYMENT_METHODS_INFO)
+    return PAYMENT_METHOD_LABELS.get(value, value)
+
 
 @dataclass(frozen=True)
 class OrderListFilters:
@@ -145,7 +159,7 @@ def export_orders_csv(db: Session, filters: OrderListFilters) -> tuple[bytes, in
                 order.address,
                 _format_car(order),
                 order.car_comment or "",
-                PAYMENT_METHOD_LABELS.get(order.payment_method, order.payment_method),
+                _format_order_payment_method(order.payment_method),
                 f"{order.total:.2f}",
                 _format_order_items(order),
             ]

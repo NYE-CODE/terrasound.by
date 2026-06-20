@@ -7,13 +7,12 @@ from app.schemas.content import BrandOut, PortfolioWorkOut
 from app.schemas.product import ProductCardOut
 from app.schemas.review import ServiceReviewOut
 from app.schemas.site_home import SiteHomeOut
-from app.services.products import list_products
+from app.services.products import list_featured_products
 from app.services.site_stats import get_public_site_stats
 
 SITE_HOME = "site:home"
 site_home_cache = TTLCache()
 
-HOME_FEATURED_PRODUCTS = 3
 HOME_PORTFOLIO_LIMIT = 500
 HOME_SERVICE_REVIEWS_LIMIT = 100
 
@@ -56,7 +55,7 @@ def _load_service_reviews(db: Session) -> list[ServiceReviewOut]:
 
 def get_site_home(db: Session) -> SiteHomeOut:
     def load() -> dict:
-        featured = list_products(db, sort="popularity", limit=HOME_FEATURED_PRODUCTS).data
+        featured = list_featured_products(db)
         return SiteHomeOut(
             stats=get_public_site_stats(db),
             featured_products=featured,

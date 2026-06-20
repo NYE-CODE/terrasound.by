@@ -13,7 +13,7 @@ from app.config import settings
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w.-]+\.\w+")
 _EMAIL_IN_ANGLE = re.compile(r"<([^>@\s]+@[^>\s]+)>")
-_ASCII_FROM_NAME = "Territoriya zvuka"
+_ASCII_FROM_NAME = "Territoriya Zvuka"
 
 logger = logging.getLogger(__name__)
 

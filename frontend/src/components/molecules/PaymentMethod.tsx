@@ -15,7 +15,7 @@ export interface PaymentMethodProps {
 
 export function PaymentMethod({ name, value, onChange, options }: PaymentMethodProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0">
       {options.map((option) => (
         <RadioOption
           key={option.value}

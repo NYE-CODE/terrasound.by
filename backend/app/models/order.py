@@ -23,7 +23,7 @@ class Order(Base):
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     city: Mapped[str] = mapped_column(String(100), nullable=False)
-    address: Mapped[str] = mapped_column(Text, nullable=False)
+    address: Mapped[str] = mapped_column(Text, default="", nullable=False)
     car_make: Mapped[str] = mapped_column(String(100), default="", nullable=False)
     car_model: Mapped[str] = mapped_column(String(100), default="", nullable=False)
     car_year: Mapped[str] = mapped_column(String(10), default="", nullable=False)

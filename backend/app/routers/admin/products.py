@@ -82,7 +82,6 @@ def get_product_admin(
         .options(
             joinedload(Product.images),
             joinedload(Product.specs),
-            joinedload(Product.compatibility),
             joinedload(Product.attribute_values),
         )
         .filter(Product.id == product_id)

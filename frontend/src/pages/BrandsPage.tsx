@@ -3,14 +3,14 @@ import { api, type Brand } from "../lib/api";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { reportLoadError } from "../lib/loadError";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
-import { SITE_NAME } from "../lib/site";
+import { STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 
 export function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
 
   usePageMeta({
     title: "Бренды",
-    description: `Бренды премиального автозвука, с которыми работает ${SITE_NAME} в Гродно.`,
+    description: STATIC_PAGE_DESCRIPTIONS.brands,
     path: "/brands",
   });
 
@@ -24,7 +24,7 @@ export function BrandsPage() {
         <div className="mb-12">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl mb-4">Наши бренды</h1>
           <p className="text-muted-foreground text-lg">
-            Мы сотрудничаем с ведущими мировыми производителями автозвука
+            Мы сотрудничаем с ведущими мировыми производителями компонентов для автомобильных акустических систем
           </p>
         </div>
 

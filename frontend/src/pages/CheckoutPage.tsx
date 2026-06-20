@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { useCart } from "../context/CartContext";
 import { Button } from "../components/atoms/Button";
 import { CarInfoFields } from "../components/molecules/CarInfoFields";
-import { PaymentMethod } from "../components/molecules/PaymentMethod";
+import { PaymentMethodsInfo } from "../components/molecules/PaymentMethodsInfo";
 import { ContactForm } from "../components/organisms/ContactForm";
 import { OrderSummary } from "../components/organisms/OrderSummary";
 import { CheckoutTemplate } from "../components/templates/CheckoutTemplate";
@@ -20,24 +20,6 @@ import { hasPreorderItems } from "../lib/preorder";
 import { pageTopOffsetClass } from "../lib/pageLayout";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { SITE_NAME } from "../lib/site";
-
-const paymentOptions = [
-  {
-    value: "cash",
-    label: "Наличными при получении",
-    description: "Оплата при получении товара",
-  },
-  {
-    value: "card",
-    label: "Оплата картой",
-    description: "Счет будет выслан на указанный email",
-  },
-  {
-    value: "bank",
-    label: "Безналичный расчет для юрлиц",
-    description: "Счет будет выслан на указанный email",
-  },
-];
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -61,10 +43,11 @@ export function CheckoutPage() {
     carModel: "",
     carYear: "",
     carComment: "",
-    paymentMethod: "cash",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -165,7 +148,6 @@ export function CheckoutPage() {
     if (!nameResult.ok) newErrors.name = nameResult.error;
     if (!phoneResult.ok) newErrors.phone = phoneResult.error;
     if (!formData.email.trim()) newErrors.email = "Укажите email";
-    if (!formData.address.trim()) newErrors.address = "Укажите адрес доставки";
     if (!makeResult.ok) newErrors.carMake = makeResult.error;
     if (!modelResult.ok) newErrors.carModel = modelResult.error;
 
@@ -196,9 +178,12 @@ export function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (syncing) return;
+    if (syncing || submittingRef.current) return;
     const validation = validateForm();
     if (!validation.ok || !validation.normalized) return;
+
+    submittingRef.current = true;
+    setSubmitting(true);
 
     try {
       const order = await api.createOrder({
@@ -207,7 +192,7 @@ export function CheckoutPage() {
           phone: validation.normalized.phone,
           email: formData.email,
           city: formData.city,
-          address: formData.address,
+          address: formData.address.trim(),
         },
         car: {
           make: validation.normalized.carMake,
@@ -216,7 +201,6 @@ export function CheckoutPage() {
           comment: formData.carComment || undefined,
         },
         items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
-        paymentMethod: formData.paymentMethod,
       });
 
       clearCart();
@@ -227,6 +211,9 @@ export function CheckoutPage() {
       toast.error(
         messageFromApiError(error, "Не удалось оформить заказ. Попробуйте ещё раз."),
       );
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -273,7 +260,7 @@ export function CheckoutPage() {
             onChange={(field, value) => setFormData({ ...formData, [field]: value })}
           />
 
-          <section className="bg-card border border-card-border rounded p-6">
+          <section className="bg-card border border-card-border rounded p-4 sm:p-6 min-w-0">
             <h2 className="font-heading text-xl mb-6">Информация об автомобиле</h2>
             <CarInfoFields
               make={formData.carMake}
@@ -288,7 +275,7 @@ export function CheckoutPage() {
               onYearChange={(value) => setFormData({ ...formData, carYear: value })}
             />
 
-            <div className="mt-4">
+            <div className="mt-4 min-w-0">
               <label className="block font-heading text-sm uppercase tracking-wider mb-2">
                 Комментарий
               </label>
@@ -296,20 +283,15 @@ export function CheckoutPage() {
                 value={formData.carComment}
                 onChange={(e) => setFormData({ ...formData, carComment: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-3 bg-input border border-border rounded text-foreground focus:border-accent focus:outline-none transition-all duration-300 resize-none"
+                className="w-full max-w-full min-w-0 px-4 py-3 bg-input border border-border rounded text-foreground focus:border-accent focus:outline-none transition-all duration-300 resize-none"
                 placeholder="Дополнительная информация об автомобиле"
               />
             </div>
           </section>
 
-          <section className="bg-card border border-card-border rounded p-6">
-            <h2 className="font-heading text-xl mb-6">Способ оплаты</h2>
-            <PaymentMethod
-              name="paymentMethod"
-              value={formData.paymentMethod}
-              onChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-              options={paymentOptions}
-            />
+          <section className="bg-card border border-card-border rounded p-4 sm:p-6 min-w-0">
+            <h2 className="font-heading text-xl mb-6">Способы оплаты</h2>
+            <PaymentMethodsInfo />
           </section>
         </>
       }
@@ -320,6 +302,7 @@ export function CheckoutPage() {
           subtotal={serverTotal}
           total={serverTotal}
           variant="checkout"
+          isSubmitting={submitting}
         />
       }
     />

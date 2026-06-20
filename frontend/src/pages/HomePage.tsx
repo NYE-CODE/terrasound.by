@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { lazyRoute } from "../lib/lazyRoute";
 import { Link } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { api, type Brand, type PortfolioWork, type ProductCard as ProductCardData, type SiteStats } from "../lib/api";
@@ -12,7 +13,7 @@ import { HERO_IMAGE_HEIGHT, HERO_IMAGE_WIDTH, HERO_MOBILE_HEIGHT, HERO_MOBILE_WI
 import heroDesktop from "../assets/hero-section.webp";
 import heroMobile from "../assets/hero-section-mobile.webp";
 
-const HomePageSections = lazy(() =>
+const HomePageSections = lazyRoute(() =>
   import("./HomePageSections").then((m) => ({ default: m.HomePageSections })),
 );
 
@@ -27,6 +28,7 @@ export function HomePage() {
   const [siteStats, setSiteStats] = useState<SiteStats>({
     installationsCompleted: "1200+",
     yearsExpertise: "8",
+    enabled: false,
   });
 
   useEffect(() => {

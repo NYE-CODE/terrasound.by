@@ -1,16 +1,17 @@
 import { Link } from "react-router";
+import { PaymentMethodsInfo } from "../components/molecules/PaymentMethodsInfo";
 import { Button } from "../components/atoms/Button";
 import { AddressLink } from "../components/atoms/AddressLink";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { useSiteContact } from "../context/SiteContactContext";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
-import { SITE_NAME } from "../lib/site";
+import { STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 
 export function DeliveryPage() {
   const contact = useSiteContact();
   usePageMeta({
     title: "Доставка и оплата",
-    description: `Бесплатная доставка по Гродно. Доставка автозвукового оборудования по Беларуси. Условия оплаты ${SITE_NAME}.`,
+    description: STATIC_PAGE_DESCRIPTIONS.delivery,
     path: "/delivery",
   });
 
@@ -42,18 +43,14 @@ export function DeliveryPage() {
           <section>
             <h2 className="font-heading text-2xl text-foreground mb-4">По Беларуси</h2>
             <p>
-              Доставка в другие города Республики Беларусь осуществляется Европочтой. Стоимость и сроки
+              Доставка в другие города Республики Беларусь осуществляется сторонними службами доставки. Стоимость и сроки
               рассчитываются индивидуально в зависимости от веса заказа и адреса.
             </p>
           </section>
 
           <section>
             <h2 className="font-heading text-2xl text-foreground mb-4">Оплата</h2>
-            <ul className="space-y-2 list-disc list-inside">
-              <li>Наличными при получении</li>
-              <li>Банковской картой в интернет-магазине или точке самовывоза</li>
-              <li>Безналичный расчёт для юридических лиц</li>
-            </ul>
+            <PaymentMethodsInfo />
           </section>
 
           <section>

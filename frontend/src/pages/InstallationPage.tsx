@@ -32,28 +32,31 @@ import {
   scrollMtBelowHeaderClass,
 } from "../lib/pageLayout";
 import installationHero from "../assets/installation-hero.webp";
-import { SITE_NAME } from "../lib/site";
+import { SITE_NAME, STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 
 const timeline = [
   {
     number: "01",
     title: "Консультация",
-    description: "Обсуждаем ваши цели, бюджет и особенности автомобиля, чтобы спроектировать идеальную систему.",
+    description:
+      "Обсуждаем ваши цели и желания, чтобы подобрать и спроектировать идеальную систему для Вас.",
   },
   {
     number: "02",
     title: "Подбор компонентов",
-    description: "Подбираем оборудование из нашего каталога или из каталога наших партнёров.",
+    description: "Подбираем оборудование в соответствии с вашими вкусовыми предпочтениями.",
   },
   {
     number: "03",
     title: "Установка",
-    description: "Профессиональный монтаж в нашей студии с вниманием к деталям и заботой о вашем автомобиле.",
+    description:
+      "Профессиональная установка в нашей студии с вниманием к деталям и заботой о вашем автомобиле.",
   },
   {
     number: "04",
     title: "Настройка",
-    description: "Точная акустическая настройка для превосходного качества звука в вашем автомобиле.",
+    description:
+      "Точная акустическая настройка для создания звуковой сцены и правильного звучания в вашем автомобиле.",
   },
 ];
 
@@ -63,7 +66,7 @@ export function InstallationPage() {
 
   usePageMeta({
     title: "Услуги",
-    description: "Установка автозвука, калибровка, шумоизоляция и консультация в Гродно.",
+    description: STATIC_PAGE_DESCRIPTIONS.installation,
     path: "/installation",
   });
 
@@ -138,7 +141,7 @@ export function InstallationPage() {
         <div className="relative z-[2] flex flex-col items-center text-center max-w-3xl px-6">
           <h1 className="font-heading text-3xl sm:text-4xl md:text-6xl mb-6">Профессиональная установка</h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
-            Экспертная установка и акустическая калибровка в нашей студии в Гродно
+            Подбор, установка и настройка акустических систем
           </p>
           <button
             type="button"
@@ -197,7 +200,7 @@ export function InstallationPage() {
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-heading text-4xl mb-4 text-center">Записаться на консультацию</h2>
           <p className="text-center text-muted-foreground mb-12">
-            Получите экспертную консультацию и подробную смету по вашему проекту
+            Получите подробную консультацию по возможным вариантам акустических систем для вашего автомобиля
           </p>
           <form onSubmit={handleSubmit} className="bg-card border border-card-border rounded p-8 space-y-6">
             <FormField
@@ -234,7 +237,7 @@ export function InstallationPage() {
               value={formData.carModel}
               onChange={(e) => setFormData({ ...formData, carModel: e.target.value })}
               error={errors.carModel}
-              placeholder="например, BMW 5 Series 2020 или БМВ 5"
+              placeholder="WV Passat 2020"
             />
             <div>
               <label className="block font-heading text-sm uppercase tracking-wider mb-2">

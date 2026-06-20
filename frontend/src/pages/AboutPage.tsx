@@ -3,13 +3,13 @@ import { MapEmbed } from "../components/molecules/MapEmbed";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { useSiteContact } from "../context/SiteContactContext";
-import { SITE_NAME } from "../lib/site";
+import { SITE_NAME, STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
 
 export function AboutPage() {
   const contact = useSiteContact();
   usePageMeta({
     title: "О нас",
-    description: `О компании ${SITE_NAME} — премиальный автозвук и профессиональная установка в Гродно.`,
+    description: STATIC_PAGE_DESCRIPTIONS.about,
     path: "/about",
   });
 
@@ -22,9 +22,11 @@ export function AboutPage() {
               <h1 className="font-heading text-4xl sm:text-5xl mb-6">Наша студия</h1>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  Студия в Гродно оснащена профессиональным инструментом и оборудованием для установки акустических систем.
+                  Студия в Гродно оснащена профессиональным инструментом и оборудованием для установки и настройки акустических систем.
                 </p>
-                <p>Мы работаем только по записи, чтобы каждая установка получала должное внимание.</p>
+                <p>
+                  Нам важно чтобы каждый клиент остался доволен подобранной акустической системой и настройкой.
+                </p>
                 <div className="pt-6 space-y-2">
                   <div>
                     <span className="text-foreground font-heading">Адрес:</span>{" "}
