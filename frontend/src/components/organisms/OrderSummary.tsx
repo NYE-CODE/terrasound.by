@@ -65,17 +65,10 @@ export function OrderSummary({
         className={`${variant === "checkout" ? "space-y-3" : "space-y-4"} mb-6 pb-6 border-b border-border`}
       >
         {variant === "checkout" ? (
-          <>
-            <div className="flex justify-between gap-3 min-w-0 text-sm">
-              <span className="text-muted-foreground shrink-0">Товары</span>
-              <Price amount={subtotal} variant="summary" className="text-right" />
-            </div>
-
-            <div className="flex justify-between gap-3 min-w-0 text-sm">
-              <span className="text-muted-foreground shrink-0">Доставка</span>
-              <span className="font-heading text-accent text-right">Бесплатно</span>
-            </div>
-          </>
+          <div className="flex justify-between gap-3 min-w-0 text-sm">
+            <span className="text-muted-foreground shrink-0">Товары</span>
+            <Price amount={subtotal} variant="summary" className="text-right" />
+          </div>
         ) : (
           <div className="flex justify-between gap-3 min-w-0 text-sm">
             <span className="text-muted-foreground shrink-0">Подытог</span>
