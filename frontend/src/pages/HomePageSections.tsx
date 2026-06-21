@@ -61,8 +61,8 @@ export function HomePageSections({
         <section className={`${pageSectionPy} bg-card/50`}>
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="font-heading text-4xl mb-12">Популярные товары</h2>
-            <FeaturedProductsCarousel products={featuredProducts} />
           </div>
+          <FeaturedProductsCarousel products={featuredProducts} />
         </section>
       )}
 
