@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { FeaturedProductsCarousel } from "../components/organisms/FeaturedProductsCarousel";
+import { HorizontalScrollCursor } from "../components/molecules/HorizontalScrollCursor";
 import { ReviewCard } from "../components/organisms/ReviewCard";
 import type { Brand, PortfolioWork, ProductCard as ProductCardData, SiteStats } from "../lib/api";
 import { resolveMediaUrl } from "../lib/mediaUrl";
@@ -94,7 +95,10 @@ export function HomePageSections({
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Наши работы</h2>
           {portfolioWorks.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            <HorizontalScrollCursor
+              ariaLabel="Горизонтальная лента наших работ"
+              className="flex gap-4 pb-4"
+            >
               {portfolioWorks.map((work) => (
                 <div key={work.id} className="flex-shrink-0 w-[320px]">
                   <div className="relative overflow-hidden rounded aspect-[4/3] group">
@@ -109,7 +113,7 @@ export function HomePageSections({
                   </div>
                 </div>
               ))}
-            </div>
+            </HorizontalScrollCursor>
           ) : (
             <p className="text-muted-foreground">Работы скоро появятся</p>
           )}
@@ -119,13 +123,16 @@ export function HomePageSections({
       <section className={`${pageSectionPy} bg-background`}>
         <div className="max-w-[1400px] mx-auto px-6">
           <h2 className="font-heading text-4xl mb-12">Отзывы клиентов</h2>
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+          <HorizontalScrollCursor
+            ariaLabel="Горизонтальная лента отзывов клиентов"
+            className="flex gap-6 pb-4"
+          >
             {serviceReviews.map((review) => (
               <div key={review.id} className="flex-shrink-0 w-[360px]">
                 <ReviewCard variant="service" review={review} />
               </div>
             ))}
-          </div>
+          </HorizontalScrollCursor>
         </div>
       </section>
 
