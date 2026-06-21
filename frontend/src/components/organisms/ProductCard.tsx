@@ -54,7 +54,6 @@ export function ProductCard({
           )}
           <button
             type="button"
-            data-scroll-cursor-ignore
             onClick={handleAddToCart}
             className="absolute bottom-3 right-3 lg:opacity-0 lg:group-hover:opacity-100 flex cursor-pointer items-center gap-2 px-3 py-2 bg-background/95 border border-border rounded text-xs font-heading uppercase tracking-wider text-accent hover:text-foreground transition-all"
             aria-label="Добавить в корзину"
