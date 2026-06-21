@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { ProductCard as ProductCardData } from "../../lib/api";
+import { cn } from "../../utils/cn";
 import { ProductCard } from "./ProductCard";
 
 export interface FeaturedProductsCarouselProps {
   products: ProductCardData[];
 }
+
+const navButtonClass =
+  "flex h-28 w-8 shrink-0 items-center justify-center rounded-sm border border-border/30 bg-muted/25 text-muted-foreground/50 opacity-70 transition-[opacity,background-color,color,border-color] hover:border-border/50 hover:bg-muted/45 hover:text-muted-foreground hover:opacity-100 disabled:cursor-default";
 
 /** Горизонтальный слайдер популярных товаров: ~1 карточка на мобиле, 4–5 на десктопе. */
 export function FeaturedProductsCarousel({ products }: FeaturedProductsCarouselProps) {
@@ -43,13 +47,30 @@ export function FeaturedProductsCarousel({ products }: FeaturedProductsCarouselP
   }, [updateScrollState]);
 
   return (
-    <div className="relative">
+    <div className="md:flex md:items-center md:gap-2">
+      <div
+        className={cn(
+          "hidden overflow-hidden transition-[width,opacity] duration-200 md:block",
+          canScrollPrev ? "w-8 opacity-100" : "w-0 opacity-0",
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => scrollByPage("prev")}
+          disabled={!canScrollPrev}
+          className={navButtonClass}
+          aria-label="Показать предыдущие популярные товары"
+        >
+          <ArrowLeft size={18} strokeWidth={1.75} />
+        </button>
+      </div>
+
       <div
         ref={scrollRef}
         role="region"
         aria-label="Горизонтальная лента популярных товаров"
         tabIndex={0}
-        className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 md:px-12"
+        className="min-w-0 flex-1 flex gap-4 overflow-x-auto scrollbar-hide pb-4"
         onScroll={updateScrollState}
       >
         {products.map((product) => (
@@ -62,24 +83,22 @@ export function FeaturedProductsCarousel({ products }: FeaturedProductsCarouselP
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={() => scrollByPage("prev")}
-        disabled={!canScrollPrev}
-        className="absolute inset-y-0 left-0 z-10 hidden w-10 items-center justify-center rounded border border-border bg-background/90 text-accent shadow-lg backdrop-blur transition-opacity hover:bg-background disabled:pointer-events-none disabled:opacity-0 md:flex"
-        aria-label="Показать предыдущие популярные товары"
+      <div
+        className={cn(
+          "hidden overflow-hidden transition-[width,opacity] duration-200 md:block",
+          canScrollNext ? "w-8 opacity-100" : "w-0 opacity-0",
+        )}
       >
-        <ArrowLeft size={22} />
-      </button>
-      <button
-        type="button"
-        onClick={() => scrollByPage("next")}
-        disabled={!canScrollNext}
-        className="absolute inset-y-0 right-0 z-10 hidden w-10 items-center justify-center rounded border border-border bg-background/90 text-accent shadow-lg backdrop-blur transition-opacity hover:bg-background disabled:pointer-events-none disabled:opacity-0 md:flex"
-        aria-label="Показать следующие популярные товары"
-      >
-        <ArrowRight size={22} />
-      </button>
+        <button
+          type="button"
+          onClick={() => scrollByPage("next")}
+          disabled={!canScrollNext}
+          className={navButtonClass}
+          aria-label="Показать следующие популярные товары"
+        >
+          <ArrowRight size={18} strokeWidth={1.75} />
+        </button>
+      </div>
     </div>
   );
 }
