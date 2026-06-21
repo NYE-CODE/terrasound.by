@@ -22,6 +22,16 @@ export function FeaturedProductsCarousel({ products }: FeaturedProductsCarouselP
       }}
       className="w-full"
     >
+      <div className="mb-4 hidden md:flex justify-end gap-2">
+        <CarouselPrevious
+          variant="outline"
+          className="static size-10 translate-x-0 translate-y-0 border-border bg-background/95 hover:bg-background"
+        />
+        <CarouselNext
+          variant="outline"
+          className="static size-10 translate-x-0 translate-y-0 border-border bg-background/95 hover:bg-background"
+        />
+      </div>
       <CarouselContent>
         {products.map((product) => (
           <CarouselItem
@@ -32,14 +42,6 @@ export function FeaturedProductsCarousel({ products }: FeaturedProductsCarouselP
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious
-        variant="outline"
-        className="hidden md:inline-flex left-2 top-1/2 -translate-y-1/2 border-border bg-background/95 hover:bg-background"
-      />
-      <CarouselNext
-        variant="outline"
-        className="hidden md:inline-flex right-2 top-1/2 -translate-y-1/2 border-border bg-background/95 hover:bg-background"
-      />
     </Carousel>
   );
 }
