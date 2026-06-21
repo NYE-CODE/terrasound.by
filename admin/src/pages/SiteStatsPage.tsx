@@ -12,6 +12,14 @@ const defaultForm: SiteStatsInput = {
   enabled: false,
 };
 
+function toForm(stats: SiteStats): SiteStatsInput {
+  return {
+    installationsCompleted: stats.installationsCompleted,
+    yearsExpertise: stats.yearsExpertise,
+    enabled: stats.enabled,
+  };
+}
+
 export function SiteStatsPage() {
   const { status } = useAuth();
   const [form, setForm] = useState<SiteStatsInput>(defaultForm);
@@ -24,11 +32,7 @@ export function SiteStatsPage() {
     api
       .siteStats()
       .then((stats: SiteStats) => {
-        setForm({
-          installationsCompleted: stats.installationsCompleted,
-          yearsExpertise: stats.yearsExpertise,
-          enabled: stats.enabled,
-        });
+        setForm(toForm(stats));
       })
       .catch(reportLoadError)
       .finally(() => setLoading(false));
@@ -41,10 +45,7 @@ export function SiteStatsPage() {
     setSaved(false);
     try {
       const stats = await api.updateSiteStats(form);
-      setForm({
-        installationsCompleted: stats.installationsCompleted,
-        yearsExpertise: stats.yearsExpertise,
-      });
+      setForm(toForm(stats));
       setSaved(true);
     } catch (error) {
       reportFormError(error);

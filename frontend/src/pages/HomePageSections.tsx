@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ProductCard } from "../components/organisms/ProductCard";
+import { FeaturedProductsCarousel } from "../components/organisms/FeaturedProductsCarousel";
 import { ReviewCard } from "../components/organisms/ReviewCard";
 import type { Brand, PortfolioWork, ProductCard as ProductCardData, SiteStats } from "../lib/api";
 import { resolveMediaUrl } from "../lib/mediaUrl";
@@ -60,11 +60,7 @@ export function HomePageSections({
         <section className={`${pageSectionPy} bg-card/50`}>
           <div className="max-w-[1400px] mx-auto px-6">
             <h2 className="font-heading text-4xl mb-12">Популярные товары</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
+            <FeaturedProductsCarousel products={featuredProducts} />
           </div>
         </section>
       )}

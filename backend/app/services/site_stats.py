@@ -49,4 +49,7 @@ def update_site_stats(db: Session, payload: SiteStatsUpdate) -> SiteStats:
     commit_or_raise(db)
     db.refresh(stats)
     site_stats_cache.invalidate(SITE_STATS)
+    from app.services.site_home import invalidate_site_home_cache
+
+    invalidate_site_home_cache()
     return stats
