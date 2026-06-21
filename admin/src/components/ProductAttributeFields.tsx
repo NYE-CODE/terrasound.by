@@ -59,7 +59,7 @@ export function ProductAttributeFields({ schema, values, onChange }: ProductAttr
                     required={field.required}
                   >
                     <option value="">—</option>
-                    {field.options.map((opt) => (
+                    {(field.options ?? []).map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>

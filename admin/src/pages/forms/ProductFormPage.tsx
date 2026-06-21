@@ -29,12 +29,8 @@ function linesToList(value: string) {
   return value.split("\n").map((line) => line.trim()).filter(Boolean);
 }
 
-function listToLines(items: string[]) {
-  return items.join("\n");
-}
-
 function specsToText(specs: Record<string, string>) {
-  return Object.entries(specs).map(([key, val]) => `${key}: ${val}`).join("\n");
+  return Object.entries(specs ?? {}).map(([key, val]) => `${key}: ${val}`).join("\n");
 }
 
 function textToSpecs(value: string) {
@@ -90,8 +86,8 @@ export function ProductFormPage() {
         inStock: product.inStock,
         featuredOnHome: product.featuredOnHome,
       });
-      setGalleryImages(product.images.filter((url) => url !== product.imageUrl));
-      setSpecsText(specsToText(product.specs));
+      setGalleryImages((product.images ?? []).filter((url) => url !== product.imageUrl));
+      setSpecsText(specsToText(product.specs ?? {}));
       setAttributeValues(product.attributes ?? {});
     }).catch(reportLoadError).finally(() => setLoading(false));
   }, [status, id]);
