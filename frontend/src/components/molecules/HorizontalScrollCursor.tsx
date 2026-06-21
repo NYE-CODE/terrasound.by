@@ -28,7 +28,13 @@ function resolveDirection(
   return null;
 }
 
-function isInteractiveTarget(target: EventTarget | null): boolean {
+function shouldHideCursorForTarget(target: EventTarget | null): boolean {
+  return target instanceof Element && Boolean(
+    target.closest("button, input, textarea, select, label, [role='button'], [data-scroll-cursor-ignore]"),
+  );
+}
+
+function shouldBlockScrollClick(target: EventTarget | null): boolean {
   return target instanceof Element && Boolean(
     target.closest("a, button, input, textarea, select, label, [role='button'], [data-scroll-cursor-ignore]"),
   );
@@ -56,7 +62,7 @@ export function HorizontalScrollCursor({
   }, []);
 
   const updateCursor = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDesktopPointer || isInteractiveTarget(event.target)) {
+    if (!isDesktopPointer || shouldHideCursorForTarget(event.target)) {
       setCursor(null);
       return;
     }
@@ -76,7 +82,7 @@ export function HorizontalScrollCursor({
   }, [canScrollNext, canScrollPrev, isDesktopPointer]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!cursor?.direction || isInteractiveTarget(event.target)) return;
+    if (!cursor?.direction || shouldBlockScrollClick(event.target)) return;
 
     const scroller = scrollerRef.current;
     if (!scroller) return;
