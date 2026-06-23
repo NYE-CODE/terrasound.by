@@ -1,3 +1,5 @@
+import { cn } from "../ui/utils";
+
 interface MapEmbedProps {
   embedUrl: string;
   openUrl: string;
@@ -6,11 +8,11 @@ interface MapEmbedProps {
   className?: string;
 }
 
-export function MapEmbed({ embedUrl, openUrl, address, title, className = "" }: MapEmbedProps) {
+export function MapEmbed({ embedUrl, openUrl, address, title, className }: MapEmbedProps) {
   if (!embedUrl.trim()) return null;
 
   return (
-    <div className={`relative aspect-video bg-secondary/30 rounded overflow-hidden ${className}`.trim()}>
+    <div className={cn("relative aspect-video bg-secondary/30 rounded overflow-hidden", className)}>
       <iframe
         src={embedUrl}
         title={title ?? `Карта: ${address}`}

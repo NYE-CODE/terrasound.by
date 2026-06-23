@@ -4,6 +4,7 @@ import { usePageMeta } from "../hooks/usePageMeta";
 import { pageContentPy, pageTopOffsetClass } from "../lib/pageLayout";
 import { useSiteContact } from "../context/SiteContactContext";
 import { SITE_NAME, STATIC_PAGE_DESCRIPTIONS } from "../lib/site";
+import vorotaImage from "../assets/vorota.webp";
 
 export function AboutPage() {
   const contact = useSiteContact();
@@ -17,7 +18,7 @@ export function AboutPage() {
     <div className={`${pageTopOffsetClass} min-h-screen`}>
       <div className={`max-w-[1400px] mx-auto px-6 ${pageContentPy}`}>
         <section>
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid gap-8 items-start md:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)_minmax(0,0.85fr)] md:items-stretch md:gap-10 lg:gap-12">
             <div>
               <h1 className="font-heading text-4xl sm:text-5xl mb-6">Наша студия</h1>
               <div className="space-y-4 text-muted-foreground">
@@ -53,11 +54,21 @@ export function AboutPage() {
                 </div>
               </div>
             </div>
+
+            <div className="mx-auto w-full max-w-[360px] md:mx-0 md:max-w-none md:h-full md:min-h-0">
+              <img
+                src={vorotaImage}
+                alt={`Вход в студию ${SITE_NAME}`}
+                className="aspect-[4/3] h-full w-full rounded object-cover md:aspect-auto"
+              />
+            </div>
+
             <MapEmbed
               embedUrl={contact.mapEmbedUrl}
               openUrl={contact.addressMapsUrl}
               address={contact.address}
               title={`Расположение студии ${SITE_NAME}: ${contact.address}`}
+              className="mx-auto aspect-[4/3] h-full w-full max-w-[360px] min-h-0 md:mx-0 md:max-w-none md:aspect-auto"
             />
           </div>
         </section>

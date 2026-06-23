@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { Button } from "../components/atoms/Button";
 import { FormField } from "../components/molecules/FormField";
@@ -79,6 +79,8 @@ export function InstallationPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serviceSelectKey, setServiceSelectKey] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     api.getServices().then(setServices).catch(reportLoadError);
@@ -91,6 +93,8 @@ export function InstallationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (submittingRef.current) return;
 
     const nextErrors: Record<string, string> = {};
     const nameResult = validatePersonName(formData.name);
@@ -111,6 +115,9 @@ export function InstallationPage() {
     if (Object.keys(nextErrors).length > 0) return;
     if (!nameResult.ok || !phoneResult.ok || !carModelResult.ok) return;
 
+    submittingRef.current = true;
+    setSubmitting(true);
+
     try {
       await api.createInstallationRequest({
         name: nameResult.value,
@@ -125,6 +132,9 @@ export function InstallationPage() {
       setErrors({});
     } catch (error) {
       toast.error(messageFromApiError(error, "Не удалось отправить заявку"));
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -270,8 +280,8 @@ export function InstallationPage() {
                 <p className="text-xs leading-tight text-destructive mt-1">{errors.service}</p>
               )}
             </div>
-            <Button type="submit" variant="primary" className="w-full">
-              Запросить консультацию
+            <Button type="submit" variant="primary" className="w-full" disabled={submitting}>
+              {submitting ? "Отправка..." : "Запросить консультацию"}
             </Button>
             <div className="flex items-start gap-3 pt-4 text-sm text-muted-foreground">
               <Info size={16} className="text-accent mt-1 flex-shrink-0" />

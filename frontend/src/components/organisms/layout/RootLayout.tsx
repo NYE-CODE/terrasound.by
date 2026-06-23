@@ -9,6 +9,8 @@ import { CartProvider } from "../../../context/CartContext";
 import { CategoriesProvider } from "../../../context/CategoriesContext";
 import { SiteAnnouncementProvider } from "../../../context/SiteAnnouncementContext";
 import { SiteContactProvider, useSiteContact } from "../../../context/SiteContactContext";
+import { CookieConsent } from "./CookieConsent";
+import { YandexMetrika } from "./YandexMetrika";
 import { buildLocalBusinessSchema } from "../../../lib/structuredData";
 
 function RootLayoutContent() {
@@ -29,6 +31,8 @@ function RootLayoutContent() {
         </main>
         <Footer />
       </div>
+      <CookieConsent />
+      <YandexMetrika />
     </>
   );
 }
