@@ -1,6 +1,7 @@
 import type { CategoryAttributeSchema } from "../lib/api";
 import { inputClass } from "../lib/formStyles";
 import { parseOptionalNumber } from "../lib/numbers";
+import { MultilineAttributeField } from "./molecules/MultilineAttributeField";
 
 interface ProductAttributeFieldsProps {
   schema: CategoryAttributeSchema[];
@@ -73,6 +74,14 @@ export function ProductAttributeFields({ schema, values, onChange }: ProductAttr
                     onChange={(e) => onChange(field.attributeId, parseOptionalNumber(e.target.value))}
                     className={inputClass}
                     required={field.required}
+                  />
+                ) : field.valueType === "text" ? (
+                  <MultilineAttributeField
+                    id={`product-attr-${field.attributeId}`}
+                    value={String(values[field.attributeId] ?? "")}
+                    onChange={(nextValue) => onChange(field.attributeId, nextValue)}
+                    required={field.required}
+                    label={field.label}
                   />
                 ) : (
                   <input

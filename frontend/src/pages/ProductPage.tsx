@@ -243,15 +243,15 @@ export function ProductPage() {
             return (
               <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
                 {attributeSpecs.map((spec) => (
-                  <div key={spec.label} className="flex justify-between py-3 border-b border-border gap-4">
-                    <span className="text-muted-foreground">{spec.label}</span>
-                    <span className="font-heading text-right">{spec.value}</span>
+                  <div key={spec.label} className="flex justify-between items-start py-3 border-b border-border gap-4">
+                    <span className="text-muted-foreground shrink-0">{spec.label}</span>
+                    <span className="font-heading text-right whitespace-pre-line">{spec.value}</span>
                   </div>
                 ))}
                 {legacySpecs.map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-3 border-b border-border gap-4">
-                    <span className="text-muted-foreground">{key}</span>
-                    <span className="font-heading text-right">{value}</span>
+                  <div key={key} className="flex justify-between items-start py-3 border-b border-border gap-4">
+                    <span className="text-muted-foreground shrink-0">{key}</span>
+                    <span className="font-heading text-right whitespace-pre-line">{value}</span>
                   </div>
                 ))}
                 {attributeSpecs.length === 0 && legacySpecs.length === 0 && (

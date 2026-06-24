@@ -25,6 +25,11 @@ const footerNavColumns = [
   [{ path: "/contact", label: "Контакты" }],
 ] as const;
 
+const footerNavMobileColumns = [
+  [...footerNavColumns[0], ...footerNavColumns[1]],
+  [...footerNavColumns[2], ...footerNavColumns[3]],
+] as const;
+
 const footerNavLinkClass =
   "block w-fit font-heading text-sm uppercase tracking-wider text-muted-foreground hover:text-accent transition-colors duration-300";
 
@@ -139,8 +144,8 @@ export function Footer() {
           </nav>
 
           <nav aria-label="Навигация в подвале" className="mt-10 md:hidden">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
-              {footerNavColumns.map((links) => (
+            <div className="grid grid-cols-2 gap-x-8">
+              {footerNavMobileColumns.map((links) => (
                 <FooterNavList key={links[0].path} links={links} />
               ))}
             </div>
