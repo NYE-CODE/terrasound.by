@@ -4,6 +4,7 @@ import {
   ATTRIBUTE_TEXT_MAX_LENGTH,
   attributeTextHasLineBreaks,
   clampAttributeText,
+  formatAttributeTextPreview,
 } from "../../lib/attributeText";
 import { formCardClass, inputClass, textareaClass } from "../../lib/formStyles";
 
@@ -45,21 +46,26 @@ export function MultilineAttributeField({
     onChange(clampAttributeText(event.target.value));
   };
 
+  const openModal = () => setModalOpen(true);
+
   return (
     <>
       <div className="relative">
         <input
           id={id}
           type="text"
-          value={value}
-          onChange={handleMainChange}
+          value={hasLineBreaks ? formatAttributeTextPreview(value) : value}
+          onChange={hasLineBreaks ? undefined : handleMainChange}
+          onClick={hasLineBreaks ? openModal : undefined}
+          readOnly={hasLineBreaks}
           required={required}
           maxLength={ATTRIBUTE_TEXT_MAX_LENGTH}
-          className={`${inputClass} pr-11`}
+          title={hasLineBreaks ? "Многострочное значение — нажмите, чтобы редактировать" : undefined}
+          className={`${inputClass} pr-11 ${hasLineBreaks ? "cursor-pointer truncate text-[var(--muted-foreground)]" : ""}`}
         />
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
+          onClick={openModal}
           className={`absolute right-1 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[#222] transition-colors ${
             hasLineBreaks ? "text-[var(--accent)]" : ""
           }`}
@@ -89,7 +95,7 @@ export function MultilineAttributeField({
                 {label}
               </h3>
               <p className="text-xs text-[var(--muted-foreground)]">
-                Enter — новая строка. Изменения сразу отображаются в основном поле.
+                Enter — новая строка. После переноса основное поле показывает краткий preview; правка — здесь.
               </p>
             </div>
 
