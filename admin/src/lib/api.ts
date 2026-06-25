@@ -562,6 +562,7 @@ export interface SiteContact {
   telegramUrl: string;
   address: string;
   phoneTel: string;
+  mapsUrl: string;
   addressMapsUrl: string;
   mapEmbedUrl: string;
   mapLat: number | null;
@@ -576,8 +577,7 @@ export interface SiteContactInput {
   tiktokUrl: string;
   telegramUrl: string;
   address: string;
-  mapLat: number | null;
-  mapLon: number | null;
+  mapsUrl: string;
   workingHours: string;
 }
 

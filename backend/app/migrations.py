@@ -86,6 +86,7 @@ def run_migrations(engine: Engine) -> None:
     _migrate_site_contact_maps_url(engine)
     _migrate_site_contact_map_coordinates(engine)
     _migrate_site_contact_working_hours(engine)
+    _migrate_site_contact_maps_url_from_coords(engine)
     _migrate_site_announcement(engine)
     _migrate_site_announcement_scroll_duration(engine)
     _migrate_order_items_in_stock(engine)
@@ -269,6 +270,38 @@ def _migrate_site_contact_map_coordinates(engine: Engine) -> None:
                 "WHERE id = 1 AND map_lat IS NULL AND map_lon IS NULL"
             ),
             {"lat": DEFAULT_MAP_LAT, "lon": DEFAULT_MAP_LON},
+        )
+
+
+def _migrate_site_contact_maps_url_from_coords(engine: Engine) -> None:
+    if not str(engine.url).startswith("sqlite"):
+        return
+
+    from app.contact_utils import coords_to_yandex_open_url, is_yandex_maps_url
+
+    inspector = inspect(engine)
+    if "site_contact" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("site_contact")}
+    if "maps_url" not in columns or "map_lat" not in columns or "map_lon" not in columns:
+        return
+
+    with engine.begin() as conn:
+        row = conn.execute(
+            text("SELECT maps_url, map_lat, map_lon FROM site_contact WHERE id = 1")
+        ).fetchone()
+        if not row:
+            return
+        maps_url, map_lat, map_lon = row[0], row[1], row[2]
+        if map_lat is None or map_lon is None:
+            return
+        stored = (maps_url or "").strip()
+        if stored and is_yandex_maps_url(stored) and "text=" not in stored:
+            return
+        conn.execute(
+            text("UPDATE site_contact SET maps_url = :url WHERE id = 1"),
+            {"url": coords_to_yandex_open_url(float(map_lat), float(map_lon))},
         )
 
 

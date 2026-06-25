@@ -1,11 +1,7 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
+from app.contact_utils import is_yandex_maps_url, normalize_yandex_maps_url
 from app.schemas.common import CamelModel, to_camel
-
-MIN_MAP_LAT = -90.0
-MAX_MAP_LAT = 90.0
-MIN_MAP_LON = -180.0
-MAX_MAP_LON = 180.0
 
 
 class SiteContactOut(CamelModel):
@@ -17,6 +13,7 @@ class SiteContactOut(CamelModel):
     address: str
     working_hours: str
     phone_tel: str
+    maps_url: str
     map_lat: float | None
     map_lon: float | None
     address_maps_url: str
@@ -32,12 +29,13 @@ class SiteContactUpdate(BaseModel):
     tiktok_url: str = Field(default="", max_length=512, strip_whitespace=True)
     telegram_url: str = Field(default="", max_length=512, strip_whitespace=True)
     address: str = Field(min_length=1, max_length=512, strip_whitespace=True)
-    map_lat: float | None = Field(default=None, ge=MIN_MAP_LAT, le=MAX_MAP_LAT)
-    map_lon: float | None = Field(default=None, ge=MIN_MAP_LON, le=MAX_MAP_LON)
+    maps_url: str = Field(min_length=1, max_length=1024, strip_whitespace=True)
     working_hours: str = Field(default="", max_length=256, strip_whitespace=True)
 
-    @model_validator(mode="after")
-    def validate_map_coordinates(self) -> "SiteContactUpdate":
-        if (self.map_lat is None) != (self.map_lon is None):
-            raise ValueError("Укажите широту и долготу вместе или оставьте оба поля пустыми")
-        return self
+    @field_validator("maps_url")
+    @classmethod
+    def validate_maps_url(cls, value: str) -> str:
+        normalized = normalize_yandex_maps_url(value)
+        if not is_yandex_maps_url(normalized):
+            raise ValueError("Укажите ссылку на Яндекс.Карты (yandex.ru/maps или yandex.by/maps)")
+        return normalized

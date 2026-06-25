@@ -5,8 +5,10 @@ from app.db_commit import commit_or_raise
 from app.contact_utils import (
     DEFAULT_MAP_LAT,
     DEFAULT_MAP_LON,
-    address_to_maps_url,
+    coords_to_yandex_open_url,
+    extract_coords_from_yandex_url,
     phone_to_tel,
+    resolve_map_coordinates,
     resolve_map_embed_url,
     resolve_maps_open_url,
 )
@@ -20,6 +22,7 @@ DEFAULT_TIKTOK = "https://www.tiktok.com/@terrasound.by"
 DEFAULT_TELEGRAM = "https://t.me/terrasound_by"
 DEFAULT_ADDRESS = "г. Гродно, Озерское шоссе, 14"
 DEFAULT_WORKING_HOURS = "Пн–Пт, 10:00–18:00, обед 14:00–15:00"
+DEFAULT_MAPS_URL = coords_to_yandex_open_url(DEFAULT_MAP_LAT, DEFAULT_MAP_LON)
 
 
 def get_or_create_site_contact(db: Session) -> SiteContact:
@@ -35,7 +38,7 @@ def get_or_create_site_contact(db: Session) -> SiteContact:
         tiktok_url=DEFAULT_TIKTOK,
         telegram_url=DEFAULT_TELEGRAM,
         address=DEFAULT_ADDRESS,
-        maps_url=address_to_maps_url(DEFAULT_ADDRESS),
+        maps_url=DEFAULT_MAPS_URL,
         map_lat=DEFAULT_MAP_LAT,
         map_lon=DEFAULT_MAP_LON,
         working_hours=DEFAULT_WORKING_HOURS,
@@ -47,6 +50,11 @@ def get_or_create_site_contact(db: Session) -> SiteContact:
 
 
 def site_contact_to_out(contact: SiteContact) -> SiteContactOut:
+    map_lat, map_lon = resolve_map_coordinates(
+        maps_url=contact.maps_url,
+        map_lat=contact.map_lat,
+        map_lon=contact.map_lon,
+    )
     return SiteContactOut(
         phone=contact.phone,
         email=contact.email,
@@ -56,18 +64,20 @@ def site_contact_to_out(contact: SiteContact) -> SiteContactOut:
         address=contact.address,
         working_hours=contact.working_hours,
         phone_tel=phone_to_tel(contact.phone),
-        map_lat=contact.map_lat,
-        map_lon=contact.map_lon,
+        maps_url=contact.maps_url,
+        map_lat=map_lat,
+        map_lon=map_lon,
         address_maps_url=resolve_maps_open_url(
             address=contact.address,
             maps_url=contact.maps_url,
-            map_lat=contact.map_lat,
-            map_lon=contact.map_lon,
+            map_lat=map_lat,
+            map_lon=map_lon,
         ),
         map_embed_url=resolve_map_embed_url(
             address=contact.address,
-            map_lat=contact.map_lat,
-            map_lon=contact.map_lon,
+            maps_url=contact.maps_url,
+            map_lat=map_lat,
+            map_lon=map_lon,
         ),
     )
 
@@ -88,8 +98,9 @@ def update_site_contact(db: Session, payload: SiteContactUpdate) -> SiteContact:
     contact.tiktok_url = payload.tiktok_url.strip()
     contact.telegram_url = payload.telegram_url.strip()
     contact.address = payload.address.strip()
-    contact.map_lat = payload.map_lat
-    contact.map_lon = payload.map_lon
+    contact.maps_url = payload.maps_url.strip()
+    coords = extract_coords_from_yandex_url(contact.maps_url)
+    contact.map_lat, contact.map_lon = coords if coords else (None, None)
     contact.working_hours = payload.working_hours.strip()
     commit_or_raise(db)
     db.refresh(contact)

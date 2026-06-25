@@ -10,11 +10,12 @@ from app.models.site_contact import SiteContact
 from app.models.site_announcement import SiteAnnouncement
 from app.models.product_highlights import ProductHighlights
 from app.models.site_stats import SiteStats
-from app.contact_utils import DEFAULT_MAP_LAT, DEFAULT_MAP_LON, address_to_maps_url
+from app.contact_utils import DEFAULT_MAP_LAT, DEFAULT_MAP_LON
 from app.services.site_contact import (
     DEFAULT_ADDRESS,
     DEFAULT_EMAIL,
     DEFAULT_INSTAGRAM,
+    DEFAULT_MAPS_URL,
     DEFAULT_PHONE,
     DEFAULT_TELEGRAM,
     DEFAULT_TIKTOK,
@@ -693,7 +694,7 @@ def _seed_site_contact(db: Session) -> None:
             tiktok_url=DEFAULT_TIKTOK,
             telegram_url=DEFAULT_TELEGRAM,
             address=DEFAULT_ADDRESS,
-            maps_url=address_to_maps_url(DEFAULT_ADDRESS),
+            maps_url=DEFAULT_MAPS_URL,
             map_lat=DEFAULT_MAP_LAT,
             map_lon=DEFAULT_MAP_LON,
             working_hours=DEFAULT_WORKING_HOURS,

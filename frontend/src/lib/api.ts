@@ -241,6 +241,7 @@ export interface SiteContact {
   telegramUrl: string;
   address: string;
   phoneTel: string;
+  mapsUrl: string;
   mapLat: number | null;
   mapLon: number | null;
   addressMapsUrl: string;

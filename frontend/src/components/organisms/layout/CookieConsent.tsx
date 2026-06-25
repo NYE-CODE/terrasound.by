@@ -33,8 +33,7 @@ export function CookieConsent() {
               Мы используем cookie
             </p>
             <p id="cookie-consent-description" className="text-sm text-muted-foreground leading-relaxed">
-              Сайт применяет файлы cookie и похожие технологии для корректной работы, сохранения
-              настроек (например, корзины) и анализа посещаемости в маркетинговых целях. Подробнее — в{" "}
+              Cookie используются для работы корзины и анализа посещаемости сайта. Подробнее — в{" "}
               <Link to="/privacy" className="text-accent hover:underline">
                 Политике конфиденциальности
               </Link>
